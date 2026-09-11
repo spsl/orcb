@@ -97,3 +97,86 @@ Source-control and review changes must consider GitLab and other supported git p
 ## GitHub CLI Usage
 
 Be mindful of the user's `gh` CLI API rate limit — batch requests where possible and avoid unnecessary calls. All code, commands, and scripts must be compatible with macOS, Linux, and Windows.
+
+# ORCB 定制化目标与上游同步策略
+
+## 项目目标
+
+ORCB 是基于上游 Orca 的本地定制发行版。当前产品目标是在不替换 Orca 核心工作流的前提下，提供独立的会话观察能力：从 Agent 事件生成会话分析与看板，点击卡片后在同一弹框中查看详情，并通过 Orca 已有的原生终端预览能力附着到对应 PTY。
+
+`agent-session-observer` 是产品行为和展示的参考实现，不是 ORCB 的运行时依赖。ORCB 必须在本仓库内维护自己的数据模型、IPC 和 UI；不要让已打包应用依赖其本地路径、服务或构建产物。
+
+长期优先级如下：
+
+1. 保持可持续合并官方 Orca 更新；
+2. 保持 Observer 功能独立、可测试、可移除；
+3. 复用 Orca 已有终端、PTY、输入、尺寸协商和主题能力；
+4. 只在必要的接缝处接入 ORCB，避免改变官方功能的语义。
+
+## 模块边界与修改策略
+
+将 ORCB 的业务代码集中在以下位置：
+
+- `src/shared/session-observer.ts`：Observer 的跨进程数据契约；
+- `src/main/session-observer/`：事件接收、状态持久化、运行时终端盘点和快照；
+- `src/main/ipc/session-observer.ts`：Observer IPC 注册；
+- `src/preload/api/session-observer-*.ts`：受限 preload API；
+- `src/renderer/src/components/session-observer/`：看板、详情弹框和 Observer UI；
+- `src/shared/orcb-local-distribution.ts`：ORCB 本地发行策略，例如应用更新开关。
+
+允许修改上游代码的接缝只限于必要的入口注册、IPC/preload 装配、应用壳层挂载、菜单入口和本地发行开关。接缝文件只能把控制权交给上述模块，不能承载 Observer 业务规则、状态计算或大段 UI。每次新增接缝都要说明为什么不能由模块内部完成，并让 diff 保持尽可能小。
+
+不要改动官方 Agent Dashboard 的状态机、卡片逻辑或管理弹窗来实现 Observer；Observer 必须保有自己的状态、持久化和弹框。不要复制或重写 xterm、PTY 输入协议、IME、剪贴板、光标或尺寸协商逻辑；直接复用 `AgentTerminalPreview` 等既有原生终端能力，只传入 Observer 已解析出的 `ptyId`。若上游终端能力确有缺陷，先将修复设计成通用、可独立提交给上游的改动，再决定是否纳入 ORCB。
+
+Observer 的状态语义属于产品契约：运行中、已关闭、手工覆盖、阻塞和分析缺失的优先级必须与 `agent-session-observer` 对齐。调整这些规则时，必须同时更新服务层和展示层测试；无法验证运行时终端时只能显示“状态未知”，不能推断为已关闭。
+
+本地应用名称保持为 `orcb`。官方应用的自动更新检查、菜单和提示由 `ORCB_APP_UPDATES_ENABLED` 统一控制；不要在多个 UI 中散落独立判断，也不要误伤与远程 Orca Server 有关的更新能力。
+
+## 开发注意事项
+
+- 新增 Observer 功能前，先搜索现有 Orca primitive、terminal preview、IPC 和状态存储是否已能复用；不要建立平行的基础设施。
+- UI 优先复用仓库现有 shadcn primitive 和设计 token。详情弹框在宽屏下保持左侧详情约 1/3、右侧原生终端约 2/3；窄屏可以堆叠，但终端必须保有可输入的空间。
+- Observer 的远程/SSH 终端状态遵守 `live` / `unknown` / `closed` 的证据边界。网络暂时不可达不是进程结束。
+- 新 IPC 字段必须保持向后兼容；优先新增可选字段，避免改变已有协议含义。
+- 每个 ORCB 功能提交只做一个逻辑变更。Observer 功能、上游同步和纯格式化不得混在同一提交中。
+- 除非用户明确要求，提交只保留在本地，不要 push。
+
+## 同步上游 Orca 的流程
+
+当前远程 `origin` 是 ORCB 自己的仓库，不应把它当作官方上游。首次同步前，由维护者确认官方 Orca 地址后添加只读语义的 `upstream` remote，并确认它的默认分支；不要假定分支名称一定是 `main`。
+
+同步必须从没有未提交改动的分支开始，并使用独立同步分支。推荐流程：
+
+```bash
+# 一次性配置：用确认过的官方地址替换占位符
+git remote add upstream <official-orca-repository-url>
+
+# 每次同步
+git fetch --prune upstream
+git switch main
+git pull --ff-only origin main
+git switch -c sync/orca-YYYYMMDD
+git merge --no-ff upstream/<upstream-default-branch>
+```
+
+对已经共享的 `main` 使用合并提交，不要 rebase 或强推它。独立的同步提交会保留“何时、从哪个上游版本同步”的边界，便于排查回归和后续再次合并。完成验证后再将同步分支合入 ORCB 的 `main`。
+
+## 冲突处理原则
+
+不要对整个目录或整个文件使用 `--ours` / `--theirs`。逐个冲突块判断来源，并遵守以下顺序：
+
+1. **Observer 自有文件冲突**：保留 ORCB 行为和测试，再按上游公开 API、类型或目录变更做适配。
+2. **上游接缝文件冲突**：先接受上游新的结构与生命周期，再以最小调用重新接入 Observer。不要把旧版整段 ORCB 壳层代码覆盖回去。
+3. **上游核心文件冲突**：默认优先保留上游实现。只有已有明确 ORCB 产品约束时才加回最小差异，并将该差异收敛为接缝或通用修复。
+4. **终端/PTY 相关冲突**：优先采用上游的协议、输入和尺寸协商实现；重新检查 Observer 传递的 `ptyId`、挂载时机和不可用状态，不要恢复旧的自定义终端代码。
+
+每个冲突解决后，先搜索所有受影响符号和调用方，再运行相关单测。同步完成前至少执行：
+
+```bash
+pnpm tc
+pnpm run check:code-quality:changed
+pnpm test src/renderer/src/components/session-observer
+pnpm run build:unpack
+```
+
+同时人工验证一条真实会话：看板状态、卡片弹框、终端光标和输入、IME/粘贴、终端结束后的展示，以及本地应用不出现官方更新提示。先记录上游版本、冲突文件和保留原因，再提交单独的上游同步提交。

@@ -635,7 +635,7 @@ describe('AgentTerminalPreview', () => {
     expect(view.queryByText(/No live terminal/)).not.toBeInTheDocument()
   })
 
-  it('claims a grid sized to the dialog box and never re-requests an unchanged target', async () => {
+  it('reclaims the dialog grid when it regains focus after an external PTY resize', async () => {
     vi.useFakeTimers()
     const view = render(<AgentTerminalPreview ptyId="pty-1" />)
     await vi.waitFor(() => expect(terminalHarness.instances).toHaveLength(1))
@@ -655,12 +655,19 @@ describe('AgentTerminalPreview', () => {
     expect(fit).toHaveBeenCalledTimes(1)
     expect(fit).toHaveBeenCalledWith('pty-1', 90, 30)
 
-    // A reconnect (e.g. the host reclaiming the grid) computes the same
-    // target — no repeat claim, so no resize tug-of-war with the host.
+    // A reconnect caused by the host reclaiming the grid does not let the
+    // background preview steal ownership back.
     act(() => emitData?.({ type: 'resync', ptyId: 'pty-1' }))
     await vi.waitFor(() => expect(connect).toHaveBeenCalledTimes(2))
     await vi.advanceTimersByTimeAsync(400)
     expect(fit).toHaveBeenCalledTimes(1)
+
+    // Focus activity on this preview transfers ownership back to the dialog.
+    const terminalInput = host.querySelector<HTMLElement>('.xterm-helper-textarea')!
+    act(() => terminalInput.dispatchEvent(new FocusEvent('focusin', { bubbles: true })))
+    await vi.advanceTimersByTimeAsync(200)
+    expect(fit).toHaveBeenCalledTimes(2)
+    expect(fit).toHaveBeenLastCalledWith('pty-1', 90, 30)
   })
 
   it('delays repeated capture after an overflow and cancels the retry on unmount', async () => {

@@ -24,7 +24,7 @@ export function createPreviewGridClaim(args: {
   ptyId: string
   container: HTMLElement
   getTerminal: () => Terminal | null
-}): { schedule: () => void; dispose: () => void } {
+}): { schedule: () => void; invalidate: () => void; dispose: () => void } {
   let lastRequestedFit: string | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
   let disposed = false
@@ -84,6 +84,11 @@ export function createPreviewGridClaim(args: {
 
   return {
     schedule,
+    // An external viewer can reclaim the PTY grid without changing the dialog
+    // box, so the previous target no longer proves that this preview owns it.
+    invalidate: (): void => {
+      lastRequestedFit = null
+    },
     dispose: (): void => {
       disposed = true
       if (timer) {

@@ -315,7 +315,11 @@ export function AgentTerminalPreview({
       }
       scheduleFit()
       gridClaim.schedule()
-      terminal.focus()
+      // Initial mount owns focus; an external resync must preserve whichever
+      // viewer currently has focus instead of pulling focus back here.
+      if (!replaceExisting) {
+        terminal.focus()
+      }
     }
 
     const setup = async (replaceExisting = false): Promise<void> => {
@@ -382,6 +386,14 @@ export function AgentTerminalPreview({
       writeLive(payload)
     })
 
+    const handleFocusIn = (): void => {
+      // Viewer activity determines PTY ownership. Reclaim only when this
+      // preview actually receives focus, so another focused terminal wins.
+      gridClaim.invalidate()
+      gridClaim.schedule()
+    }
+    container.addEventListener('focusin', handleFocusIn)
+
     void setup()
 
     return () => {
@@ -393,6 +405,7 @@ export function AgentTerminalPreview({
       boxResizeObserver?.disconnect()
       disposeAppMenuClipboard()
       disposeRightClickPaste()
+      container.removeEventListener('focusin', handleFocusIn)
       offData?.()
       userInputDisposable?.dispose()
       disposeImeNativeTextBridge()

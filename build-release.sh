@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Build the signed/notarized macOS release package and install its app bundle.
+# Build the local macOS ad-hoc package and install its app bundle.
 #
 # Usage:
 #   ./build-release.sh
@@ -76,8 +76,8 @@ resolve_pnpm
 APP_BUNDLE_NAME="$(node -p "require('./config/electron-builder.config.cjs').productName + '.app'")"
 APP_PATH="$ROOT_DIR/dist/$MAC_OUTPUT_DIR/$APP_BUNDLE_NAME"
 
-echo "[build-release] building macOS release package"
-pnpm run build:mac:release
+echo "[build-release] building local macOS release package (ad-hoc)"
+pnpm run build:mac
 
 if [ ! -d "$APP_PATH" ]; then
   echo "[build-release] packaged app not found: $APP_PATH" >&2

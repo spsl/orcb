@@ -13,9 +13,9 @@ function readRootEntries(sha) {
   return stdout.split('\0').filter(Boolean)
 }
 
-// Why: the Cloud workspace import is the one reviewed root addition; it stays
-// listed until it lands on main, after which the base tree carries it.
-const REVIEWED_ROOT_ENTRIES = new Set(['cloud'])
+// Why: these are reviewed one-command local build entry points; they stay listed
+// until they land on main, after which the base tree carries them.
+const REVIEWED_ROOT_ENTRIES = new Set(['build-release.sh', 'build-test.sh', 'cloud'])
 
 function checkRootDirectoryEntries(argv) {
   if (argv.length !== 2) {

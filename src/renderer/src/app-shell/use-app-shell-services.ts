@@ -17,6 +17,8 @@ import { useOsc52ClipboardDefaultOnNotice } from '../components/terminal-pane/os
 import { useWebSessionTabsSync } from '../runtime/web-session-tabs-sync'
 import { useLocalStructuredSessionTabsSync } from '../runtime/local-structured-session-tabs-sync'
 import { useRemoteRuntimeRecoveryTriggers } from '../runtime/use-remote-runtime-recovery-triggers'
+import { useSessionObserverRevealBridge } from '../components/session-observer/use-session-observer-reveal-bridge'
+import { useSessionObserverCloseBridge } from '../components/session-observer/use-session-observer-close-bridge'
 
 /**
  * App-level subscriptions that must outlive any individual surface. Each one is here because
@@ -48,4 +50,6 @@ export function useAppShellServices(options: { floatingPanelVisible: boolean }):
   useLargeTextControlPaste()
   usePrimarySelectionPaste(primarySelectionMiddleClickPaste)
   useOsc52ClipboardDefaultOnNotice(persistedUIReady)
+  useSessionObserverRevealBridge()
+  useSessionObserverCloseBridge()
 }

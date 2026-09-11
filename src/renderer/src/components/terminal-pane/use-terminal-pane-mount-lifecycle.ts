@@ -107,7 +107,9 @@ export function useTerminalPaneMountLifecycle(
         managerRef: deps.managerRef,
         persistLayoutSnapshot: deps.persistLayoutSnapshot,
         syncCanExpandState: preparation.syncCanExpandState,
-        queueResizeAll
+        queueResizeAll,
+        onRequestClosePane: deps.onRequestClosePane,
+        paneTransportsRef: deps.paneTransportsRef
       },
       ptyDeps
     })

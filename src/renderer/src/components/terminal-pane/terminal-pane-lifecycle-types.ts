@@ -44,6 +44,8 @@ export type UseTerminalPaneLifecycleDeps = {
   issueCommandSplit?: TerminalPaneIssueCommandSplit | null
   isActive: boolean
   isVisible: boolean
+  /** Routes externally requested terminal closes through the user-confirming controller. */
+  onRequestClosePane?: (paneId: number) => void
   systemPrefersDark: boolean
   settings: GlobalSettings | null | undefined
   settingsRef: React.RefObject<GlobalSettings | null | undefined>

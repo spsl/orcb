@@ -1,5 +1,10 @@
 import type { PaneManager } from '@/lib/pane-manager/pane-manager'
-import { CLOSE_TERMINAL_PANE_EVENT, type CloseTerminalPaneDetail } from '@/constants/terminal'
+import {
+  CLOSE_TERMINAL_PANE_EVENT,
+  REQUEST_CLOSE_TERMINAL_PANE_EVENT,
+  type CloseTerminalPaneDetail,
+  type RequestCloseTerminalPaneDetail
+} from '@/constants/terminal'
 import { consumePendingWebRuntimeSplitMirrorTelemetry } from '@/runtime/web-runtime-session'
 import { scheduleRuntimeGraphSync } from '@/runtime/sync-runtime-graph'
 import { closeTerminalTab } from '../terminal/terminal-tab-actions'
@@ -15,6 +20,8 @@ import {
   resolveTerminalPaneSplitSourceId
 } from './terminal-pane-split-request-routing'
 import type { PtyConnectionDeps } from './pty-connection-types'
+import type { PtyTransport } from './pty-transport'
+import { handleRequestCloseTerminalPaneDetail } from './request-close-terminal-pane-event'
 
 export function installTerminalPaneMountEvents(args: {
   manager: PaneManager
@@ -26,6 +33,8 @@ export function installTerminalPaneMountEvents(args: {
     persistLayoutSnapshot: () => void
     syncCanExpandState: () => void
     queueResizeAll: (focusActive: boolean) => void
+    onRequestClosePane?: (paneId: number) => void
+    paneTransportsRef: React.RefObject<Map<number, PtyTransport>>
   }
   ptyDeps: PtyConnectionDeps
 }): () => void {
@@ -111,8 +120,22 @@ export function installTerminalPaneMountEvents(args: {
   }
 
   window.addEventListener(CLOSE_TERMINAL_PANE_EVENT, onCliClosePane)
+  const onRequestedClosePane = (event: Event): void => {
+    const detail = (event as CustomEvent<RequestCloseTerminalPaneDetail>).detail
+    if (!deps.onRequestClosePane) {
+      return
+    }
+    handleRequestCloseTerminalPaneDetail(detail, {
+      tabId: deps.tabId,
+      manager: deps.managerRef.current,
+      getPtyIdForPane: (paneId) => deps.paneTransportsRef.current.get(paneId)?.getPtyId(),
+      handleRequestClosePane: deps.onRequestClosePane
+    })
+  }
+  window.addEventListener(REQUEST_CLOSE_TERMINAL_PANE_EVENT, onRequestedClosePane)
   return () => {
     unregisterTerminalPaneSplitRequestHandler()
     window.removeEventListener(CLOSE_TERMINAL_PANE_EVENT, onCliClosePane)
+    window.removeEventListener(REQUEST_CLOSE_TERMINAL_PANE_EVENT, onRequestedClosePane)
   }
 }

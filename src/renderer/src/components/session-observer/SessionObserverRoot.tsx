@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import type {
   SessionObserverManualStatusOverride,
+  SessionObserverSessionView,
   SessionObserverSnapshot
 } from '../../../../shared/session-observer'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,7 @@ export function SessionObserverRoot(): React.JSX.Element {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [reanalysisPendingId, setReanalysisPendingId] = useState<string | null>(null)
   const [statusUpdatePendingId, setStatusUpdatePendingId] = useState<string | null>(null)
+  const [closePendingId, setClosePendingId] = useState<string | null>(null)
   useAppMenuPaste()
   useAppMenuSelectionActions()
 
@@ -70,6 +72,48 @@ export function SessionObserverRoot(): React.JSX.Element {
       })
   }
 
+  const revealSession = (session: SessionObserverSessionView): void => {
+    if (!session.worktreeId) {
+      return
+    }
+    void window.api.sessionObserver
+      .reveal({
+        worktreeId: session.worktreeId,
+        tabId: session.tabId,
+        paneKey: session.paneKey
+      })
+      .then((revealed) => {
+        if (revealed) {
+          setSelectedSessionId(null)
+        }
+      })
+      .catch(() => undefined)
+  }
+
+  const closeSession = (session: SessionObserverSessionView): void => {
+    if (
+      !session.worktreeId ||
+      !session.tabId ||
+      session.terminalState !== 'live' ||
+      !session.ptyId
+    ) {
+      return
+    }
+    setClosePendingId(session.id)
+    void window.api.sessionObserver
+      .close({
+        worktreeId: session.worktreeId,
+        tabId: session.tabId,
+        paneKey: session.paneKey,
+        ptyId: session.ptyId
+      })
+      .catch(() => false)
+      .finally(() => {
+        setClosePendingId((current) => (current === session.id ? null : current))
+        refreshSnapshot()
+      })
+  }
+
   return (
     <div className="flex h-screen min-h-0 flex-col bg-background text-foreground">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3">
@@ -105,6 +149,9 @@ export function SessionObserverRoot(): React.JSX.Element {
         }}
         onReanalyze={reanalyze}
         onManualStatusChange={updateManualStatus}
+        onReveal={revealSession}
+        onCloseTerminal={closeSession}
+        closePending={closePendingId === selectedSession?.id}
       />
     </div>
   )

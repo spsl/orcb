@@ -55,6 +55,9 @@ describe('SessionObserverDetailDialog', () => {
         onOpenChange={onOpenChange}
         onReanalyze={() => {}}
         onManualStatusChange={() => {}}
+        onReveal={() => {}}
+        onCloseTerminal={() => {}}
+        closePending={false}
       />
     )
 
@@ -64,5 +67,102 @@ describe('SessionObserverDetailDialog', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '关闭' }))
     expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('offers to open the source worktree and reports the selected session', () => {
+    const onReveal = vi.fn()
+    const sourceSession = session()
+    render(
+      <SessionObserverDetailDialog
+        session={sourceSession}
+        reanalysisPending={false}
+        statusUpdatePending={false}
+        onOpenChange={() => {}}
+        onReanalyze={() => {}}
+        onManualStatusChange={() => {}}
+        onReveal={onReveal}
+        onCloseTerminal={() => {}}
+        closePending={false}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '打开工作树' }))
+    expect(onReveal).toHaveBeenCalledWith(sourceSession)
+  })
+
+  it('hides the source worktree action when no worktree is available', () => {
+    render(
+      <SessionObserverDetailDialog
+        session={session({ worktreeId: null })}
+        reanalysisPending={false}
+        statusUpdatePending={false}
+        onOpenChange={() => {}}
+        onReanalyze={() => {}}
+        onManualStatusChange={() => {}}
+        onReveal={() => {}}
+        onCloseTerminal={() => {}}
+        closePending={false}
+      />
+    )
+
+    expect(screen.queryByRole('button', { name: '打开工作树' })).not.toBeInTheDocument()
+  })
+
+  it('closes a live terminal through the provided callback', () => {
+    const onCloseTerminal = vi.fn()
+    const sourceSession = session()
+    render(
+      <SessionObserverDetailDialog
+        session={sourceSession}
+        reanalysisPending={false}
+        statusUpdatePending={false}
+        onOpenChange={() => {}}
+        onReanalyze={() => {}}
+        onManualStatusChange={() => {}}
+        onReveal={() => {}}
+        onCloseTerminal={onCloseTerminal}
+        closePending={false}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '关闭终端' }))
+    expect(onCloseTerminal).toHaveBeenCalledWith(sourceSession)
+  })
+
+  it('does not offer terminal close for closed or unknown terminals', () => {
+    for (const terminalState of ['closed', 'unknown'] as const) {
+      const view = render(
+        <SessionObserverDetailDialog
+          session={session({ terminalState })}
+          reanalysisPending={false}
+          statusUpdatePending={false}
+          onOpenChange={() => {}}
+          onReanalyze={() => {}}
+          onManualStatusChange={() => {}}
+          onReveal={() => {}}
+          onCloseTerminal={() => {}}
+          closePending={false}
+        />
+      )
+      expect(screen.queryByRole('button', { name: '关闭终端' })).not.toBeInTheDocument()
+      view.unmount()
+    }
+  })
+
+  it('disables terminal close while the request is pending', () => {
+    render(
+      <SessionObserverDetailDialog
+        session={session()}
+        reanalysisPending={false}
+        statusUpdatePending={false}
+        onOpenChange={() => {}}
+        onReanalyze={() => {}}
+        onManualStatusChange={() => {}}
+        onReveal={() => {}}
+        onCloseTerminal={() => {}}
+        closePending
+      />
+    )
+    expect(screen.getByRole('button', { name: '关闭终端' })).toBeDisabled()
   })
 })

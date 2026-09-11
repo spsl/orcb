@@ -1,4 +1,4 @@
-import { RefreshCw, XIcon } from 'lucide-react'
+import { Loader2, RefreshCw, SquareArrowOutUpRight, Trash2, XIcon } from 'lucide-react'
 import type {
   SessionObserverAnalysisStatus,
   SessionObserverManualStatusOverride,
@@ -128,7 +128,10 @@ export function SessionObserverDetailDialog({
   statusUpdatePending,
   onOpenChange,
   onReanalyze,
-  onManualStatusChange
+  onManualStatusChange,
+  onReveal,
+  onCloseTerminal,
+  closePending
 }: {
   session: SessionObserverSessionView | null
   reanalysisPending: boolean
@@ -139,6 +142,9 @@ export function SessionObserverDetailDialog({
     sessionId: string,
     manualStatusOverride: SessionObserverManualStatusOverride
   ) => void
+  onReveal: (session: SessionObserverSessionView) => void
+  onCloseTerminal: (session: SessionObserverSessionView) => void
+  closePending: boolean
 }): React.JSX.Element {
   const canReanalyze = Boolean(
     session && session.turns.length > 0 && session.analysisState !== 'running'
@@ -209,6 +215,36 @@ export function SessionObserverDetailDialog({
             </aside>
             <SessionObserverTerminal session={session} className="h-full min-h-0 min-w-0" />
           </div>
+          {session.worktreeId ? (
+            <footer className="flex shrink-0 items-center gap-1.5 border-t border-border px-4 py-2">
+              {session.terminalState === 'live' && session.ptyId ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="xs"
+                  disabled={closePending}
+                  onClick={() => onCloseTerminal(session)}
+                  aria-label="关闭终端"
+                  title="关闭终端"
+                >
+                  {closePending ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                  关闭终端
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                className="ml-auto"
+                onClick={() => onReveal(session)}
+                aria-label="打开工作树"
+                title="打开工作树"
+              >
+                <SquareArrowOutUpRight className="size-3" />
+                打开工作树
+              </Button>
+            </footer>
+          ) : null}
         </DialogContent>
       ) : null}
     </Dialog>

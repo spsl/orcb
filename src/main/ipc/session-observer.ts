@@ -7,14 +7,18 @@ import { JsonSessionObserverStateStore } from '../session-observer/session-obser
 import {
   SESSION_OBSERVER_ANALYSIS_STATUSES,
   type SessionObserverManualStatusOverride,
-  type SessionObserverAnalysisStatus
+  type SessionObserverAnalysisStatus,
+  type SessionObserverRevealArgs,
+  type SessionObserverCloseArgs
 } from '../../shared/session-observer'
 import {
   createOrFocusSessionObserver,
   getSessionObserverWindow,
   isSessionObserverRenderer
 } from '../window/session-observer-window'
-import { isTrustedUIRenderer } from './ui'
+import { getTrustedUIRendererWindow, isTrustedUIRenderer } from './ui'
+import { safelyRevealWindow } from '../window/focus-existing-window'
+import { isBackgroundLaunch } from '../window/foreground-activation-policy'
 
 const SESSION_ID_MAX_LENGTH = 4_096
 
@@ -30,6 +34,39 @@ function isValidManualStatusOverride(value: unknown): value is SessionObserverMa
     value === null ||
     (typeof value === 'string' &&
       SESSION_OBSERVER_ANALYSIS_STATUSES.includes(value as SessionObserverAnalysisStatus))
+  )
+}
+
+function isValidRevealArgs(value: unknown): value is SessionObserverRevealArgs {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const args = value as Record<string, unknown>
+  return (
+    typeof args.worktreeId === 'string' &&
+    args.worktreeId.length > 0 &&
+    args.worktreeId.length <= SESSION_ID_MAX_LENGTH &&
+    (args.tabId === null ||
+      (typeof args.tabId === 'string' &&
+        args.tabId.length > 0 &&
+        args.tabId.length <= SESSION_ID_MAX_LENGTH)) &&
+    typeof args.paneKey === 'string' &&
+    args.paneKey.length > 0 &&
+    args.paneKey.length <= SESSION_ID_MAX_LENGTH
+  )
+}
+
+function isValidCloseArgs(value: unknown): value is SessionObserverCloseArgs {
+  if (!isValidRevealArgs(value)) {
+    return false
+  }
+  const args = value as Record<string, unknown>
+  const ptyId = args.ptyId
+  return (
+    typeof args.tabId === 'string' &&
+    typeof ptyId === 'string' &&
+    ptyId.length > 0 &&
+    ptyId.length <= SESSION_ID_MAX_LENGTH
   )
 }
 
@@ -54,6 +91,8 @@ export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): vo
   ipcMain.removeHandler('sessionObserver:requestSnapshot')
   ipcMain.removeHandler('sessionObserver:reanalyze')
   ipcMain.removeHandler('sessionObserver:updateManualStatus')
+  ipcMain.removeHandler('sessionObserver:reveal')
+  ipcMain.removeHandler('sessionObserver:close')
 
   const service = getObserverService(runtime)
   let snapshotGeneration = 0
@@ -114,4 +153,44 @@ export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): vo
       return service.updateManualStatus(sessionId, manualStatusOverride)
     }
   )
+
+  ipcMain.handle('sessionObserver:reveal', (event, args: unknown): boolean => {
+    if (!isSessionObserverRenderer(event.sender) || !isValidRevealArgs(args)) {
+      return false
+    }
+    const mainWindow = getTrustedUIRendererWindow()
+    if (!mainWindow) {
+      return false
+    }
+    safelyRevealWindow(mainWindow)
+    mainWindow.webContents.send('ui:revealSessionObserver', args)
+    if (!isBackgroundLaunch()) {
+      try {
+        app.focus({ steal: true })
+      } catch {
+        // Best-effort; the per-window focus above may still bring it forward.
+      }
+    }
+    return true
+  })
+
+  ipcMain.handle('sessionObserver:close', (event, args: unknown): boolean => {
+    if (!isSessionObserverRenderer(event.sender) || !isValidCloseArgs(args)) {
+      return false
+    }
+    const mainWindow = getTrustedUIRendererWindow()
+    if (!mainWindow) {
+      return false
+    }
+    safelyRevealWindow(mainWindow)
+    mainWindow.webContents.send('ui:closeSessionObserver', args)
+    if (!isBackgroundLaunch()) {
+      try {
+        app.focus({ steal: true })
+      } catch {
+        // Best-effort; the per-window focus above may still bring it forward.
+      }
+    }
+    return true
+  })
 }

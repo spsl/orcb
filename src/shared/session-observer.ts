@@ -84,3 +84,16 @@ export type SessionObserverSnapshot = {
   generatedAt: number
   sessions: SessionObserverSessionView[]
 }
+
+/** Main-window routing target for returning from the observer to its source pane. */
+export type SessionObserverRevealArgs = {
+  worktreeId: string
+  tabId: string | null
+  paneKey: string
+}
+
+/** Main-window routing target for closing the source terminal pane. */
+export type SessionObserverCloseArgs = Omit<SessionObserverRevealArgs, 'tabId'> & {
+  tabId: string
+  ptyId: string
+}

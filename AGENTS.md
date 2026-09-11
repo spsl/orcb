@@ -188,3 +188,24 @@ pnpm run build:unpack
 ```
 
 同时人工验证一条真实会话：看板状态、卡片弹框、终端光标和输入、IME/粘贴、终端结束后的展示，以及本地应用不出现官方更新提示。先记录上游版本、冲突文件和保留原因，再提交单独的上游同步提交。
+
+## Observer 详情弹框终端操作变更记录（2026-09-12）
+
+本次变更为 Observer 详情弹框增加“打开工作树”和“关闭终端”操作。目标是让会话分析窗口可以回到原工作树，或在确认后关闭对应的原生终端，同时不复制终端/PTY 控制逻辑。关闭请求必须回到主渲染器的现有关闭控制器，由它继续负责运行中进程探测、关闭确认、PTY 清理、布局持久化和会话状态清理。
+
+### 数据流和修改原因
+
+1. `src/shared/session-observer.ts` 新增 `SessionObserverRevealArgs` 和 `SessionObserverCloseArgs`。它们是两个渲染器之间的最小路由契约；关闭目标额外携带 `ptyId`，用于防止会话结束后同一 pane 被复用时误关新终端。
+2. `src/main/ipc/session-observer.ts` 新增 `sessionObserver:reveal` 和 `sessionObserver:close`。这里是独立 Observer 窗口能够触达主窗口的受信边界，因此要保留 Observer renderer 来源校验、字段长度校验、主窗口存在性校验，以及 `ui:revealSessionObserver` / `ui:closeSessionObserver` 转发。不得在 IPC 层直接操作 PTY。
+3. `src/preload/api/session-observer-api.ts` 和 `src/preload/api/session-observer-bridge.ts` 暴露 invoke/listener，并保持 preload 的窄接口。新增通道时要同时更新类型和清理 listener 的函数，不能把 `ipcRenderer` 暴露给页面。
+4. `src/renderer/src/app-shell/use-app-shell-services.ts` 安装两个常驻 bridge。主窗口的 workspace、tab 和 PaneManager 状态只存在于主渲染器，必须在应用壳层订阅转发，不能让 Observer 弹框自行维护一份状态。
+5. `src/renderer/src/components/session-observer/` 负责 Observer 自有行为：详情按钮、单会话 pending 状态、关闭后刷新快照，以及 `activateAndRevealWorkspace` / `activateTabAndFocusPane` 路由。`close-session-observer.ts` 解析稳定 `paneKey`，先激活来源 tab，再通过一次性、有限帧重试的事件等待目标 pane 挂载。
+6. `src/renderer/src/components/terminal-pane/` 是唯一必须触碰的上游终端接缝。`REQUEST_CLOSE_TERMINAL_PANE_EVENT` 只在挂载的 pane surface 中接收，并同时检查 `tabId`、leaf 是否仍存在、当前 PTY 是否等于 `expectedPtyId`；通过后调用既有 `handleRequestClosePane`。`handled` 标记用于多个挂载 surface 或重试帧竞争时保证只关闭一次。不要在这里新增第二套 close、PTY kill、输入或尺寸协商实现。
+7. 各对应 `*.test.*` 覆盖 IPC 来源和参数校验、preload relay、工作树路由、关闭请求的 stale/duplicate 防护、按钮显示和 pending 状态、以及终端挂载事件的 PTY 匹配。修改上述契约或生命周期时，测试必须随之更新。
+
+### 与上游合并时的文件处理顺序
+
+- **Observer 自有文件**（`src/shared/session-observer.ts`、`src/renderer/src/components/session-observer/` 里的新增路由模块和测试）：保留本节定义的行为和测试，再按上游类型、导入路径或 primitive 重命名做适配。
+- **IPC/preload/应用壳层接缝**（`src/main/ipc/session-observer.ts`、`src/preload/api/session-observer-*`、`use-app-shell-services.ts`）：先采用上游最新的 handler 注册、可信窗口获取和服务生命周期结构，再以最小 diff 重新接入两个通道和两个 bridge；不要用旧文件整段覆盖上游。
+- **终端生命周期接缝**（`terminal-pane-lifecycle-types.ts`、`terminal-pane-mount-events.ts`、`use-terminal-pane-lifecycle-stage.ts`、`use-terminal-pane-mount-lifecycle.ts`、`constants/terminal.ts`）：默认保留上游的 PaneManager、关闭确认、运行探测、PTY transport 和挂载/卸载时序，只恢复可选的 `onRequestClosePane` 注入、请求事件监听和 `expectedPtyId` 校验。若上游重命名事件或拆分生命周期函数，按同一语义迁移，不要恢复旧实现。
+- **冲突验证**：解决后搜索 `sessionObserver:close`、`REQUEST_CLOSE_TERMINAL_PANE_EVENT`、`handleRequestClosePane`、`expectedPtyId` 的所有调用方；至少运行 Observer 相关单测和终端挂载事件单测，再执行本节“同步上游 Orca 的流程”中的完整检查。

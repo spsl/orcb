@@ -15066,5 +15066,13 @@
     "sidebar": {
       "label": "会话管理"
     }
+  },
+  "notifications": {
+    "agentStatus": {
+      "needsInput": "需要输入",
+      "working": "处理中",
+      "stopped": "已停止",
+      "finished": "已完成"
+    }
   }
 }

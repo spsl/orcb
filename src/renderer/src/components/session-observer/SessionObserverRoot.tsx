@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import type { SessionObserverSnapshot } from '../../../../shared/session-observer'
+import type {
+  SessionObserverManualStatusOverride,
+  SessionObserverSnapshot
+} from '../../../../shared/session-observer'
 import { Button } from '@/components/ui/button'
 import { useAppMenuPaste } from '@/hooks/useAppMenuPaste'
 import { useAppMenuSelectionActions } from '@/hooks/useAppMenuSelectionActions'
 import { SessionObserverBoard } from './SessionObserverBoard'
-import { SessionObserverDetail } from './SessionObserverDetail'
-import { SessionObserverTerminal } from './SessionObserverTerminal'
+import { SessionObserverDetailDialog } from './SessionObserverDetailDialog'
 
 const EMPTY_SNAPSHOT: SessionObserverSnapshot = { generatedAt: 0, sessions: [] }
+const TERMINAL_STATE_REFRESH_MS = 3_000
 
 export function SessionObserverRoot(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<SessionObserverSnapshot>(EMPTY_SNAPSHOT)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [reanalysisPendingId, setReanalysisPendingId] = useState<string | null>(null)
+  const [statusUpdatePendingId, setStatusUpdatePendingId] = useState<string | null>(null)
   useAppMenuPaste()
   useAppMenuSelectionActions()
 
@@ -24,16 +28,17 @@ export function SessionObserverRoot(): React.JSX.Element {
   useEffect(() => {
     const unsubscribe = window.api.sessionObserver.onSnapshot(setSnapshot)
     refreshSnapshot()
-    return unsubscribe
+    const terminalStateRefresh = window.setInterval(refreshSnapshot, TERMINAL_STATE_REFRESH_MS)
+    return () => {
+      unsubscribe()
+      window.clearInterval(terminalStateRefresh)
+    }
   }, [refreshSnapshot])
 
   useEffect(() => {
-    setSelectedSessionId((current) => {
-      if (current && snapshot.sessions.some((session) => session.id === current)) {
-        return current
-      }
-      return snapshot.sessions[0]?.id ?? null
-    })
+    setSelectedSessionId((current) =>
+      current && snapshot.sessions.some((session) => session.id === current) ? current : null
+    )
   }, [snapshot.sessions])
 
   const selectedSession = useMemo(
@@ -49,6 +54,19 @@ export function SessionObserverRoot(): React.JSX.Element {
       .catch(() => false)
       .finally(() => {
         setReanalysisPendingId((current) => (current === sessionId ? null : current))
+      })
+  }
+
+  const updateManualStatus = (
+    sessionId: string,
+    manualStatusOverride: SessionObserverManualStatusOverride
+  ): void => {
+    setStatusUpdatePendingId(sessionId)
+    void window.api.sessionObserver
+      .updateManualStatus(sessionId, manualStatusOverride)
+      .catch(() => false)
+      .finally(() => {
+        setStatusUpdatePendingId((current) => (current === sessionId ? null : current))
       })
   }
 
@@ -69,21 +87,25 @@ export function SessionObserverRoot(): React.JSX.Element {
           </Button>
         </div>
       </header>
-      <main className="grid min-h-0 flex-1 grid-rows-[minmax(220px,0.9fr)_minmax(320px,1.1fr)]">
+      <main className="flex min-h-0 flex-1">
         <SessionObserverBoard
           sessions={snapshot.sessions}
           selectedSessionId={selectedSessionId}
           onSelect={setSelectedSessionId}
         />
-        <div className="grid min-h-0 grid-cols-2">
-          <SessionObserverDetail
-            session={selectedSession}
-            reanalysisPending={reanalysisPendingId === selectedSession?.id}
-            onReanalyze={reanalyze}
-          />
-          <SessionObserverTerminal session={selectedSession} />
-        </div>
       </main>
+      <SessionObserverDetailDialog
+        session={selectedSession}
+        reanalysisPending={reanalysisPendingId === selectedSession?.id}
+        statusUpdatePending={statusUpdatePendingId === selectedSession?.id}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedSessionId(null)
+          }
+        }}
+        onReanalyze={reanalyze}
+        onManualStatusChange={updateManualStatus}
+      />
     </div>
   )
 }

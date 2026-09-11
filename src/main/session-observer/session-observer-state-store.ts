@@ -3,9 +3,11 @@ import { dirname, join } from 'node:path'
 import type { EnrichedAgentHookEventPayload } from '../agent-hooks/server'
 import type {
   SessionObserverAnalysis,
+  SessionObserverAnalysisStatus,
   SessionObserverSession,
   SessionObserverTurn
 } from '../../shared/session-observer'
+import { SESSION_OBSERVER_ANALYSIS_STATUSES } from '../../shared/session-observer'
 
 const PERSISTED_STATE_VERSION = 1
 const MAX_TEXT_LENGTH = 16_000
@@ -138,6 +140,13 @@ function hydrateAnalysis(value: unknown): SessionObserverAnalysis | null {
   }
 }
 
+function manualStatusOverride(value: unknown): SessionObserverAnalysisStatus | null {
+  return typeof value === 'string' &&
+    SESSION_OBSERVER_ANALYSIS_STATUSES.includes(value as SessionObserverAnalysisStatus)
+    ? (value as SessionObserverAnalysisStatus)
+    : null
+}
+
 export function hydrateSession(value: unknown): SessionObserverSession | null {
   if (!value || typeof value !== 'object') {
     return null
@@ -180,6 +189,7 @@ export function hydrateSession(value: unknown): SessionObserverSession | null {
     analysis: hydrateAnalysis(record.analysis),
     analysisError:
       analysisState === 'running' ? '上次分析在应用关闭前中断' : boundedText(record.analysisError),
+    manualStatusOverride: manualStatusOverride(record.manualStatusOverride),
     updatedAt: record.updatedAt,
     completedAt:
       typeof record.completedAt === 'number' && Number.isFinite(record.completedAt)
@@ -205,6 +215,7 @@ export function sessionFromEvent(event: EnrichedAgentHookEventPayload): SessionO
     analysisState: 'awaiting_output',
     analysis: null,
     analysisError: null,
+    manualStatusOverride: null,
     updatedAt: now,
     completedAt: null
   }

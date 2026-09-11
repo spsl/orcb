@@ -1,5 +1,8 @@
 import { ipcRenderer } from 'electron'
-import type { SessionObserverSnapshot } from '../../shared/session-observer'
+import type {
+  SessionObserverManualStatusOverride,
+  SessionObserverSnapshot
+} from '../../shared/session-observer'
 import type { PreloadApi } from '../api-types'
 
 export const sessionObserverApi = {
@@ -7,6 +10,11 @@ export const sessionObserverApi = {
   requestSnapshot: (): Promise<void> => ipcRenderer.invoke('sessionObserver:requestSnapshot'),
   reanalyze: (sessionId: string): Promise<boolean> =>
     ipcRenderer.invoke('sessionObserver:reanalyze', sessionId),
+  updateManualStatus: (
+    sessionId: string,
+    manualStatusOverride: SessionObserverManualStatusOverride
+  ): Promise<boolean> =>
+    ipcRenderer.invoke('sessionObserver:updateManualStatus', sessionId, manualStatusOverride),
   onSnapshot: (callback: (snapshot: SessionObserverSnapshot) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, snapshot: SessionObserverSnapshot): void =>
       callback(snapshot)

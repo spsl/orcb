@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, Download } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAppStore } from '../../store'
 import { translate } from '@/i18n/i18n'
+import { ORCB_APP_UPDATES_ENABLED } from '../../../../shared/orcb-local-distribution'
 
 // Why: always rendered (not gated by `statusBarItems`). When the update card
 // is collapsed, this segment is the only way back to it — hiding it would
@@ -16,6 +17,10 @@ export function UpdateStatusSegment({
   const status = useAppStore((s) => s.updateStatus)
   const collapsed = useAppStore((s) => s.updateCardCollapsed)
   const setCollapsed = useAppStore((s) => s.setUpdateCardCollapsed)
+
+  if (!ORCB_APP_UPDATES_ENABLED) {
+    return null
+  }
 
   if (status.state !== 'downloading' && status.state !== 'downloaded' && status.state !== 'error') {
     return null

@@ -1,8 +1,9 @@
 import type { AgentHookServer, EnrichedAgentHookEventPayload } from '../agent-hooks/server'
-import type {
-  SessionObserverSession,
-  SessionObserverSessionView,
-  SessionObserverSnapshot
+import {
+  isSessionObserverAnalysisStatus,
+  type SessionObserverManualStatusOverride,
+  type SessionObserverSession,
+  type SessionObserverSnapshot
 } from '../../shared/session-observer'
 import {
   CodexSessionObserverAnalyzer,
@@ -22,19 +23,16 @@ import {
   listLiveTerminals,
   type SessionObserverRuntime
 } from './session-observer-runtime-terminals'
+import { projectSessionObserverView } from './session-observer-session-projection'
 
 const MAX_SESSIONS = 200
 const PERSIST_DEBOUNCE_MS = 300
 const MAX_CONCURRENT_ANALYSES = 2
-
-type SessionObserverHookServer = Pick<
-  AgentHookServer,
-  'getStatusSnapshot' | 'subscribeEnrichedStatus'
->
+type ObserverHookServer = Pick<AgentHookServer, 'getStatusSnapshot' | 'subscribeEnrichedStatus'>
 
 type SessionObserverServiceOptions = {
   runtime: SessionObserverRuntime
-  hookServer: SessionObserverHookServer
+  hookServer: ObserverHookServer
   storage: SessionObserverStateStore
   analyzer?: SessionObserverAnalyzer
 }
@@ -157,17 +155,40 @@ export class SessionObserverService {
   }
 
   async snapshot(): Promise<SessionObserverSnapshot> {
-    const terminalByPaneKey = await listLiveTerminals(this.options.runtime)
-    const sessions: SessionObserverSessionView[] = Array.from(this.sessions.values(), (session) => {
-      const terminal = terminalByPaneKey.get(session.paneKey)
-      return {
-        ...copySession(session),
-        ...(terminal?.title ? { title: terminal.title } : {}),
-        ptyId: terminal?.ptyId ?? null,
-        live: terminal !== undefined
-      }
-    }).sort((left, right) => right.updatedAt - left.updatedAt)
+    const terminalInventory = await listLiveTerminals(this.options.runtime)
+    const sessions = Array.from(this.sessions.values(), (session) =>
+      projectSessionObserverView(session, terminalInventory)
+    ).sort((left, right) => right.updatedAt - left.updatedAt)
     return { generatedAt: Date.now(), sessions }
+  }
+
+  async updateManualStatus(
+    sessionId: string,
+    manualStatusOverride: SessionObserverManualStatusOverride
+  ): Promise<boolean> {
+    if (manualStatusOverride !== null && !isSessionObserverAnalysisStatus(manualStatusOverride)) {
+      return false
+    }
+    const session = this.sessions.get(sessionId)
+    if (!session) {
+      return false
+    }
+    // Match observer's ownership boundary: a terminal that has ended is history,
+    // not a task whose status can still be reassigned.
+    const terminalInventory = await listLiveTerminals(this.options.runtime)
+    if (
+      !terminalInventory.runtimeAvailable ||
+      !terminalInventory.terminalsByPaneKey.has(session.paneKey)
+    ) {
+      return false
+    }
+    if (session.manualStatusOverride === manualStatusOverride) {
+      return true
+    }
+    session.manualStatusOverride = manualStatusOverride
+    this.schedulePersist()
+    this.emitChange()
+    return true
   }
 
   reanalyze(sessionId: string): boolean {

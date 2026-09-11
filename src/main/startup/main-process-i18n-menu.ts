@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron'
+import { ORCB_APP_UPDATES_ENABLED } from '../../shared/orcb-local-distribution'
 import { ensureMainI18n, setMainUiLanguage } from '../i18n/main-i18n'
 import {
   registerAppMenu,
@@ -28,6 +29,7 @@ export async function initializeMainProcessI18nAndMenu(): Promise<void> {
   logStartupMilestone('i18n-ready')
   registerAppMenu({
     appMenuLabel: state.devInstanceIdentity?.name ?? app.name,
+    showUpdateCheck: ORCB_APP_UPDATES_ENABLED,
     onCheckForUpdates: (options) => {
       ensureAutoUpdaterConfigured()
       runUserInitiatedUpdateCheck(options)

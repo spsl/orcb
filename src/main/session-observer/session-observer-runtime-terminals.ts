@@ -3,12 +3,17 @@ import type { OrcaRuntimeService } from '../runtime/orca-runtime'
 
 export type SessionObserverRuntime = Pick<OrcaRuntimeService, 'listTerminals'>
 
-type LiveTerminal = { ptyId: string; title: string | null }
+export type LiveTerminal = { ptyId: string; title: string | null }
+
+export type LiveTerminalInventory = {
+  terminalsByPaneKey: Map<string, LiveTerminal>
+  runtimeAvailable: boolean
+}
 
 /** Lists only terminal identities that can safely receive input through the runtime. */
 export async function listLiveTerminals(
   runtime: SessionObserverRuntime
-): Promise<Map<string, LiveTerminal>> {
+): Promise<LiveTerminalInventory> {
   const terminalsByPaneKey = new Map<string, LiveTerminal>()
   try {
     const listed = await runtime.listTerminals()
@@ -25,8 +30,9 @@ export async function listLiveTerminals(
         // Older remote hosts can report legacy leaf ids that have no safe pane-key mapping.
       }
     }
+    return { terminalsByPaneKey, runtimeAvailable: true }
   } catch {
-    // Keep history visible during a transient runtime outage without inventing liveness.
+    // A failed inventory cannot prove that every previously visible terminal ended.
+    return { terminalsByPaneKey, runtimeAvailable: false }
   }
-  return terminalsByPaneKey
 }

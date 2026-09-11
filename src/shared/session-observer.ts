@@ -8,6 +8,21 @@ export const SESSION_OBSERVER_ANALYSIS_STATUSES = [
 
 export type SessionObserverAnalysisStatus = (typeof SESSION_OBSERVER_ANALYSIS_STATUSES)[number]
 
+export function isSessionObserverAnalysisStatus(
+  value: unknown
+): value is SessionObserverAnalysisStatus {
+  return (
+    typeof value === 'string' &&
+    SESSION_OBSERVER_ANALYSIS_STATUSES.includes(value as SessionObserverAnalysisStatus)
+  )
+}
+
+/** A user-owned board override; it never changes Orca's lifecycle state or the analysis record. */
+export type SessionObserverManualStatusOverride = SessionObserverAnalysisStatus | null
+
+/** Terminal liveness comes from the runtime inventory and can be unavailable during a transient outage. */
+export type SessionObserverTerminalState = 'live' | 'closed' | 'unknown'
+
 export type SessionObserverAnalysis = {
   summary: string
   goal: string
@@ -50,6 +65,7 @@ export type SessionObserverSession = {
   analysisState: SessionObserverAnalysisState
   analysis: SessionObserverAnalysis | null
   analysisError: string | null
+  manualStatusOverride: SessionObserverManualStatusOverride
   updatedAt: number
   completedAt: number | null
 }
@@ -57,6 +73,11 @@ export type SessionObserverSession = {
 export type SessionObserverSessionView = SessionObserverSession & {
   ptyId: string | null
   live: boolean
+  terminalState: SessionObserverTerminalState
+  /** Latest model verdict, without an execution-state or user override applied. */
+  modelStatus: SessionObserverAnalysisStatus
+  /** The status the live board should present before applying the closed-terminal column. */
+  effectiveStatus: SessionObserverAnalysisStatus
 }
 
 export type SessionObserverSnapshot = {

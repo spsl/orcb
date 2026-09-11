@@ -221,6 +221,15 @@ describe('registerAppMenu', () => {
     ])
   })
 
+  it('omits the updater item when a local distribution disables application updates', () => {
+    registerAppMenu({ ...buildMenuOptions(), showUpdateCheck: false })
+
+    const parentLabel = isMac ? 'Orca' : 'Help'
+    expect(
+      getSubmenu(getTemplate(), parentLabel).find((entry) => entry.label === 'Check for Updates...')
+    ).toBeUndefined()
+  })
+
   it('shows the worktree palette shortcut as a display-only menu hint', () => {
     registerAppMenu(buildMenuOptions())
 

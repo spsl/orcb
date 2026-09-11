@@ -29,6 +29,7 @@ type RegisterAppMenuOptions = {
   onOpenFeatureTour: (window?: Electron.BaseWindow | null) => void
   onOpenCrashReport: (window?: Electron.BaseWindow | null) => void
   onCheckForUpdates: (options: UpdateCheckOptions) => void
+  showUpdateCheck?: boolean
   onBeforeReload?: (options: { ignoreCache: boolean; webContentsId: number }) => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -50,6 +51,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     onOpenFeatureTour,
     onOpenCrashReport,
     onCheckForUpdates,
+    showUpdateCheck = true,
     onBeforeReload,
     onZoomIn,
     onZoomOut,
@@ -142,7 +144,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     label: options.appMenuLabel ?? app.name,
     submenu: [
       { role: 'about' },
-      checkForUpdatesItem,
+      ...(showUpdateCheck ? [checkForUpdatesItem] : []),
       settingsItem,
       { type: 'separator' },
       { role: 'services' },
@@ -322,7 +324,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       { type: 'separator' },
       featureTourItem,
       setupGuideItem,
-      ...(isMac
+      ...(isMac || !showUpdateCheck
         ? []
         : ([
             { type: 'separator' },

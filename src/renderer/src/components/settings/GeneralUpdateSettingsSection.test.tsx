@@ -28,10 +28,9 @@ afterEach(() => {
   useAppStore.setState({ updateStatus: { state: 'idle' } })
 })
 
-it('describes the available action as a download', () => {
+it('hides application update controls for the local distribution', () => {
   render(<GeneralUpdateSettingsSection />)
 
-  expect(screen.getByRole('button', { name: 'Download Update (1.4.200)' })).toBeTruthy()
-  expect(screen.getByText(/is available\. Click "Download Update" to download it\./)).toBeTruthy()
-  expect(screen.queryByText(/download and install it/)).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Download Update (1.4.200)' })).toBeNull()
+  expect(screen.queryByText(/Check for Updates/)).toBeNull()
 })

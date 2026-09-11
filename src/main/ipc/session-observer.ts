@@ -5,6 +5,11 @@ import { agentHookServer } from '../agent-hooks/server'
 import { SessionObserverService } from '../session-observer/session-observer-service'
 import { JsonSessionObserverStateStore } from '../session-observer/session-observer-state-store'
 import {
+  SESSION_OBSERVER_ANALYSIS_STATUSES,
+  type SessionObserverManualStatusOverride,
+  type SessionObserverAnalysisStatus
+} from '../../shared/session-observer'
+import {
   createOrFocusSessionObserver,
   getSessionObserverWindow,
   isSessionObserverRenderer
@@ -18,6 +23,14 @@ let unsubscribeObserverChanges: (() => void) | null = null
 
 function isValidSessionId(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= SESSION_ID_MAX_LENGTH
+}
+
+function isValidManualStatusOverride(value: unknown): value is SessionObserverManualStatusOverride {
+  return (
+    value === null ||
+    (typeof value === 'string' &&
+      SESSION_OBSERVER_ANALYSIS_STATUSES.includes(value as SessionObserverAnalysisStatus))
+  )
 }
 
 function getObserverService(runtime: OrcaRuntimeService): SessionObserverService {
@@ -40,6 +53,7 @@ export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): vo
   ipcMain.removeHandler('sessionObserver:open')
   ipcMain.removeHandler('sessionObserver:requestSnapshot')
   ipcMain.removeHandler('sessionObserver:reanalyze')
+  ipcMain.removeHandler('sessionObserver:updateManualStatus')
 
   const service = getObserverService(runtime)
   let snapshotGeneration = 0
@@ -86,4 +100,18 @@ export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): vo
     }
     return service.reanalyze(sessionId)
   })
+
+  ipcMain.handle(
+    'sessionObserver:updateManualStatus',
+    async (event, sessionId: unknown, manualStatusOverride: unknown): Promise<boolean> => {
+      if (
+        !isSessionObserverRenderer(event.sender) ||
+        !isValidSessionId(sessionId) ||
+        !isValidManualStatusOverride(manualStatusOverride)
+      ) {
+        return false
+      }
+      return service.updateManualStatus(sessionId, manualStatusOverride)
+    }
+  )
 }

@@ -1,6 +1,7 @@
 import { app, ipcMain } from 'electron'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import type { ReleaseBuildListResult, UpdateCheckOptions } from '../../shared/update-status-types'
+import { ORCB_APP_UPDATES_ENABLED } from '../../shared/orcb-local-distribution'
 import { RELEASE_CHANNELS, type ReleaseChannel } from '../../shared/release-channel'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import type { Store } from '../persistence'
@@ -25,6 +26,9 @@ const UPDATER_SETUP_FALLBACK_MS = 15_000
 let pendingAutoUpdaterSetup: (() => void) | null = null
 
 export function ensureAutoUpdaterConfigured(): void {
+  if (!ORCB_APP_UPDATES_ENABLED) {
+    return
+  }
   pendingAutoUpdaterSetup?.()
 }
 
@@ -94,6 +98,9 @@ export function registerUpdaterHandlers(_store: Store): void {
   ipcMain.handle('updater:getStatus', () => getUpdateStatus())
   ipcMain.handle('updater:getVersion', () => app.getVersion())
   ipcMain.handle('updater:check', (_event, options?: UpdateCheckOptions) => {
+    if (!ORCB_APP_UPDATES_ENABLED) {
+      return
+    }
     ensureAutoUpdaterConfigured()
     return checkForUpdatesFromMenu(options)
   })

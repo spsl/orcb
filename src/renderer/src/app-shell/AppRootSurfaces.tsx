@@ -15,6 +15,7 @@ import { ZoomOverlay } from '../components/ZoomOverlay'
 import { shouldRenderPetOverlay } from '../components/pet/pet-overlay-visibility'
 import { useAppStore } from '../store'
 import type { UpdateStatus } from '../../../shared/update-status-types'
+import { ORCB_APP_UPDATES_ENABLED } from '../../../shared/orcb-local-distribution'
 import { useLazyModalMounts } from './use-lazy-modal-mounts'
 import {
   selectAppRootSurfacePetEnabled,
@@ -141,7 +142,8 @@ export function AppRootSurfaces(props: {
   const hasSshCredentialRequest = useAppStore((s) => s.sshCredentialQueue.length > 0)
 
   const shouldMountSetupGuideTelemetryObserver = persistedUIReady
-  const shouldMountUpdateCard = shouldMountUpdateCardForStatus(updateStatus)
+  const shouldMountUpdateCard =
+    ORCB_APP_UPDATES_ENABLED && shouldMountUpdateCardForStatus(updateStatus)
   const shouldMountDictationController = voiceEnabled || dictationState !== 'idle'
   const renderPetOverlay = shouldRenderPetOverlay({ persistedUIReady, petEnabled, petVisible })
 

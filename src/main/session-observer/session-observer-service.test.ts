@@ -117,4 +117,75 @@ describe('SessionObserverService', () => {
       ]
     })
   })
+
+  it('prioritizes live execution, then a user override, over an older analysis', async () => {
+    const paneKey = 'tab-1:11111111-1111-4111-8111-111111111111'
+    const service = new SessionObserverService({
+      runtime: {
+        listTerminals: vi.fn(async () => ({
+          terminals: [
+            {
+              tabId: 'tab-1',
+              leafId: '11111111-1111-4111-8111-111111111111',
+              ptyId: 'pty-1',
+              connected: true,
+              orphaned: false,
+              title: 'Codex'
+            }
+          ]
+        }))
+      } as never,
+      hookServer: {
+        getStatusSnapshot: () => [],
+        subscribeEnrichedStatus: () => () => undefined
+      } as never,
+      storage: {
+        load: vi.fn(async () => []),
+        save: vi.fn(async () => undefined)
+      },
+      analyzer: { analyze: vi.fn(async () => analysis) }
+    })
+
+    service.observe({ ...completedEvent(), paneKey })
+    await service.waitForIdleForTests()
+    service.observe({
+      ...completedEvent(),
+      paneKey,
+      payload: { ...completedEvent().payload, state: 'working' }
+    })
+
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [{ modelStatus: 'completed', effectiveStatus: 'in_progress', live: true }]
+    })
+    await expect(service.updateManualStatus(paneKey, 'blocked')).resolves.toBe(true)
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [{ manualStatusOverride: 'blocked', effectiveStatus: 'blocked' }]
+    })
+  })
+
+  it('keeps terminal state unknown when the runtime inventory is unavailable', async () => {
+    const service = new SessionObserverService({
+      runtime: {
+        listTerminals: vi.fn(async () => {
+          throw new Error('runtime unavailable')
+        })
+      } as never,
+      hookServer: {
+        getStatusSnapshot: () => [],
+        subscribeEnrichedStatus: () => () => undefined
+      } as never,
+      storage: {
+        load: vi.fn(async () => []),
+        save: vi.fn(async () => undefined)
+      },
+      analyzer: { analyze: vi.fn(async () => analysis) }
+    })
+
+    service.observe(completedEvent())
+    await service.waitForIdleForTests()
+
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [{ live: false, terminalState: 'unknown' }]
+    })
+  })
 })

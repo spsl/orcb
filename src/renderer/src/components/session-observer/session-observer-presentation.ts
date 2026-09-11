@@ -1,45 +1,43 @@
 import type {
   SessionObserverAnalysisState,
+  SessionObserverAnalysisStatus,
   SessionObserverSessionView
 } from '../../../../shared/session-observer'
 
 export const SESSION_OBSERVER_COLUMNS = [
-  { id: 'working', label: '执行中' },
-  { id: 'waiting', label: '等待确认' },
-  { id: 'blocked', label: '受阻' },
-  { id: 'completed', label: '已完成' },
-  { id: 'review', label: '待分析' }
+  { id: 'unclear', label: '不明确', hint: '尚无足够可靠的当前结论' },
+  { id: 'waiting_for_user', label: '需要处理', hint: '等待确认、输入、选择或审批' },
+  { id: 'in_progress', label: '进行中', hint: 'Agent 正在推进任务' },
+  { id: 'completed', label: '已完成', hint: '当前分析明确表示任务完成' },
+  { id: 'closed', label: '已关闭', hint: 'Orca 中的终端已经结束' }
 ] as const
+
+export const SESSION_OBSERVER_STATUS_OPTIONS: readonly {
+  status: SessionObserverAnalysisStatus
+  label: string
+}[] = [
+  { status: 'waiting_for_user', label: '需要处理' },
+  { status: 'blocked', label: '阻塞' },
+  { status: 'in_progress', label: '进行中' },
+  { status: 'completed', label: '已完成' },
+  { status: 'unclear', label: '不明确' }
+]
 
 export type SessionObserverColumnId = (typeof SESSION_OBSERVER_COLUMNS)[number]['id']
 
 export function sessionColumn(session: SessionObserverSessionView): SessionObserverColumnId {
-  const analysisStatus = session.analysis?.status
-  if (analysisStatus === 'waiting_for_user') {
-    return 'waiting'
+  // A terminal that has ended is history regardless of its last model verdict.
+  if (session.terminalState === 'closed') {
+    return 'closed'
   }
-  if (analysisStatus === 'blocked') {
-    return 'blocked'
+  return columnForStatus(session.effectiveStatus)
+}
+
+function columnForStatus(status: SessionObserverAnalysisStatus): SessionObserverColumnId {
+  if (status === 'waiting_for_user' || status === 'blocked') {
+    return 'waiting_for_user'
   }
-  if (analysisStatus === 'completed') {
-    return 'completed'
-  }
-  if (analysisStatus === 'in_progress') {
-    return 'working'
-  }
-  if (session.lifecycleState === 'waiting') {
-    return 'waiting'
-  }
-  if (session.lifecycleState === 'blocked') {
-    return 'blocked'
-  }
-  if (session.lifecycleState === 'done') {
-    return 'completed'
-  }
-  if (session.lifecycleState === 'working') {
-    return 'working'
-  }
-  return 'review'
+  return status
 }
 
 export function sessionTitle(session: SessionObserverSessionView): string {
@@ -72,19 +70,8 @@ export function analysisStateLabel(state: SessionObserverAnalysisState): string 
   }
 }
 
-export function analysisStatusLabel(
-  status: NonNullable<SessionObserverSessionView['analysis']>['status']
-): string {
-  switch (status) {
-    case 'in_progress':
-      return '进行中'
-    case 'waiting_for_user':
-      return '等待确认'
-    case 'blocked':
-      return '受阻'
-    case 'completed':
-      return '已完成'
-    case 'unclear':
-      return '信息不足'
-  }
+export function analysisStatusLabel(status: SessionObserverAnalysisStatus): string {
+  return (
+    SESSION_OBSERVER_STATUS_OPTIONS.find((option) => option.status === status)?.label ?? '不明确'
+  )
 }

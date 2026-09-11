@@ -311,11 +311,9 @@ export const electronViteConfig: UserConfig = {
       modulePreload: { polyfill: true },
       minify: 'oxc',
       target: 'es2020',
-      // Why: the pop-out dashboard is a second top-level window with its own
-      // React root. It gets its own HTML entry so it can boot independently of
-      // the main window while reusing the same preload/window.api. `index` must
-      // stay listed — overriding input otherwise drops electron-vite's default
-      // renderer entry.
+      // Why: companion windows own independent React roots while reusing the
+      // same preload/window.api. `index` must stay listed — overriding input
+      // otherwise drops electron-vite's default renderer entry.
       rollupOptions: {
         // Why: shared chunks must never import an HTML entry whose module mounts
         // a different React root.
@@ -323,6 +321,7 @@ export const electronViteConfig: UserConfig = {
         input: {
           index: resolve('src/renderer/index.html'),
           popout: resolve('src/renderer/popout.html'),
+          'session-observer': resolve('src/renderer/session-observer.html'),
           web: resolve('src/renderer/web-index.html')
         }
       }

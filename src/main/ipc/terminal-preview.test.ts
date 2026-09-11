@@ -1,22 +1,31 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { handlers, ipcMainMock, isDashboardPopoutRendererMock, isTrustedUIRendererMock } =
-  vi.hoisted(() => {
-    const map = new Map<string, (...args: unknown[]) => unknown>()
-    return {
-      handlers: map,
-      ipcMainMock: {
-        removeHandler: vi.fn(),
-        handle: (channel: string, fn: (...args: unknown[]) => unknown) => map.set(channel, fn)
-      },
-      isDashboardPopoutRendererMock: vi.fn(() => true),
-      isTrustedUIRendererMock: vi.fn(() => false)
-    }
-  })
+const {
+  handlers,
+  ipcMainMock,
+  isDashboardPopoutRendererMock,
+  isSessionObserverRendererMock,
+  isTrustedUIRendererMock
+} = vi.hoisted(() => {
+  const map = new Map<string, (...args: unknown[]) => unknown>()
+  return {
+    handlers: map,
+    ipcMainMock: {
+      removeHandler: vi.fn(),
+      handle: (channel: string, fn: (...args: unknown[]) => unknown) => map.set(channel, fn)
+    },
+    isDashboardPopoutRendererMock: vi.fn(() => true),
+    isSessionObserverRendererMock: vi.fn(() => false),
+    isTrustedUIRendererMock: vi.fn(() => false)
+  }
+})
 
 vi.mock('electron', () => ({ ipcMain: ipcMainMock }))
 vi.mock('../window/dashboard-popout-window', () => ({
   isDashboardPopoutRenderer: isDashboardPopoutRendererMock
+}))
+vi.mock('../window/session-observer-window', () => ({
+  isSessionObserverRenderer: isSessionObserverRendererMock
 }))
 vi.mock('./ui', () => ({
   isTrustedUIRenderer: isTrustedUIRendererMock

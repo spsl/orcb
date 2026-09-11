@@ -68,7 +68,10 @@ const VERSIONED_ONNXRUNTIME_DYLIB_RE = /^libonnxruntime\.\d[\d.]*\.dylib$/
 
 const NODE_BUILTINS = new Set([
   ...builtinModules,
-  ...builtinModules.map((moduleName) => `node:${moduleName}`)
+  ...builtinModules.map((moduleName) => `node:${moduleName}`),
+  // Node 22 exposes this experimental built-in through process.getBuiltinModule()
+  // but omits it from builtinModules; the packaged Electron runtime supports it.
+  'node:sqlite'
 ])
 
 function packageNameFromSpecifier(specifier) {

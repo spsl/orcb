@@ -19,7 +19,17 @@ if [ -z "$APP_PATH" ]; then
 fi
 
 CONTENTS="$APP_PATH/Contents"
-ELECTRON="$CONTENTS/MacOS/Orca"
+ELECTRON=""
+for candidate in orcb Orca; do
+	if [ -f "$CONTENTS/MacOS/$candidate" ] && [ -x "$CONTENTS/MacOS/$candidate" ]; then
+		ELECTRON="$CONTENTS/MacOS/$candidate"
+		break
+	fi
+done
+if [ -z "$ELECTRON" ]; then
+	echo "Unable to locate the orcb executable in $CONTENTS/MacOS" >&2
+	exit 1
+fi
 # Why: Orca packages the CLI entrypoint outside app.asar so the public shell
 # command can execute it directly with ELECTRON_RUN_AS_NODE, mirroring VS Code's
 # launcher model instead of requiring a separate npm-distributed binary.

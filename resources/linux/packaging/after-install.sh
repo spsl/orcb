@@ -5,7 +5,7 @@
 # the exact hosts that need it most. deb/rpm both run this after unpacking.
 #
 # The shim resolves the real app by walking up from its own location, so a
-# symlink works. We discover the install dir instead of hardcoding /opt/Orca
+# symlink works. The fork has its own package directory under /opt/orcb,
 # because electron-builder's directory name can vary by productName sanitization.
 set -e
 
@@ -15,7 +15,7 @@ is_owned_link() {
   [ -L "$link" ] || return 1
   local link_target candidate candidate_target
   link_target="$(readlink -f -- "$link" 2>/dev/null || true)"
-  for candidate in /opt/Orca/resources/bin/orca-ide /opt/orca-ide/resources/bin/orca-ide /opt/orca/resources/bin/orca-ide; do
+  for candidate in /opt/orcb/resources/bin/orca-ide; do
     candidate_target="$(readlink -f -- "$candidate" 2>/dev/null || true)"
     if [ -n "$candidate_target" ] && [ "$link_target" = "$candidate_target" ]; then
       return 0
@@ -24,7 +24,7 @@ is_owned_link() {
   return 1
 }
 
-for dir in /opt/Orca /opt/orca-ide /opt/orca; do
+for dir in /opt/orcb; do
   sandbox="$dir/chrome-sandbox"
   if [ -f "$sandbox" ]; then
     # Why: packaged Linux installs must leave Chromium's sandbox helper usable

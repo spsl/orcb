@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   openActivityPage: vi.fn(),
   openMobilePage: vi.fn(),
   openArtifactsPage: vi.fn(),
+  openSessionObserver: vi.fn(),
   openModal: vi.fn(),
   updateSettings: vi.fn(),
   refreshPreflightStatus: vi.fn(),
@@ -215,6 +216,7 @@ describe('SidebarNav', () => {
     await i18n.changeLanguage('en')
     mocks.hasPairedMobileDevice = false
     mocks.agentBucketCounts = { attention: 0, working: 0, done: 0, idle: 0 }
+    window.api = { sessionObserver: { open: mocks.openSessionObserver } } as never
     setSidebarState()
   })
 
@@ -223,6 +225,14 @@ describe('SidebarNav', () => {
 
     expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()
     expect(mocks.getAgentBucketCounts).not.toHaveBeenCalled()
+  })
+
+  it('always shows the named session management entry and opens its window', async () => {
+    const container = await renderSidebarNav()
+
+    await clickButton(getButtonByText(container, 'Session Management'))
+
+    expect(mocks.openSessionObserver).toHaveBeenCalledOnce()
   })
 
   it('mounts the Agent Dashboard row only when its experiment is enabled', async () => {

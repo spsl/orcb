@@ -16,6 +16,7 @@ import {
 import { useShortcutLabel } from '../hooks/useShortcutLabel'
 import { useAppStore } from '../store'
 import { hasCustomTitleBar, isMac } from './app-window-chrome'
+import { SessionObserverButton } from './SessionObserverButton'
 import type { AppChromeLayout } from './use-app-chrome-layout'
 
 /**
@@ -107,6 +108,8 @@ export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): R
             </TooltipContent>
           </Tooltip>
         )}
+        {/* Workspace mode does not mount TitlebarMainStrip; keep the global observer action visible in that layout. */}
+        {(layout.workspaceChromeActive || layout.creationLayoutActive) && <SessionObserverButton />}
       </div>
       {/* Why: Back/Forward span worktree + page history, so show the cluster wherever the shortcut is live (hidden in Settings/non-stack views). */}
       {shouldShowWorktreeHistoryControls(layout.activeView) && (

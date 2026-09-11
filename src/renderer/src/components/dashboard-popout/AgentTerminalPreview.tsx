@@ -53,11 +53,14 @@ function clamp(value: number, min: number, max: number): number {
 export function AgentTerminalPreview({
   ptyId,
   terminalInput = null,
+  fillHeight = false,
   className
 }: {
   ptyId: string
   /** Host-input facts relayed with the card; null routes bytes by client OS. */
   terminalInput?: DashboardCardTerminalInput | null
+  /** Lets an embedded companion surface supply its own bounded terminal height. */
+  fillHeight?: boolean
   className?: string
 }): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -423,7 +426,8 @@ export function AgentTerminalPreview({
     // clipped to fit; createPreviewBoxFit anchors the end that shows the cursor.
     <div
       className={cn(
-        'relative h-[calc(100vh-140px)] w-full overflow-hidden bg-background p-1.5',
+        'relative w-full overflow-hidden bg-background p-1.5',
+        fillHeight ? 'h-full' : 'h-[calc(100vh-140px)]',
         className
       )}
       style={terminalTheme?.background ? { backgroundColor: terminalTheme.background } : undefined}

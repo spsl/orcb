@@ -17789,5 +17789,10 @@
     "title": "Orca keeps failing to load",
     "stalledMessage": "The app window stopped responding while reloading after a crash.",
     "crashLoopMessage": "The app window crashed repeatedly and stopped reloading automatically."
+  },
+  "sessionObserver": {
+    "sidebar": {
+      "label": "Session Management"
+    }
   }
 }

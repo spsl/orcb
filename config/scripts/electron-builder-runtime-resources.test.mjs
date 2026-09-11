@@ -22,6 +22,10 @@ const {
 } = require('../packaged-runtime-node-modules.cjs')
 
 describe('packaged runtime resources', () => {
+  it('treats node:sqlite as an Electron built-in when the build Node omits it from builtinModules', () => {
+    expect(isPackagedExternalSpecifier('node:sqlite')).toBe(false)
+  })
+
   it('verifies packaged main runtime deps from Windows-style asar entries', async () => {
     const resourcesDir = await mkdtemp(join(tmpdir(), 'orca-runtime-deps-'))
     try {

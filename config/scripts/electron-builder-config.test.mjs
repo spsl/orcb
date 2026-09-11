@@ -267,18 +267,26 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.linux.icon).toBe('resources/build/icon.icns')
   })
 
+  it('brands packaged desktop applications and artifacts as orcb', () => {
+    expect(electronBuilderConfig.productName).toBe('orcb')
+    expect(electronBuilderConfig.win.executableName).toBe('orcb')
+    expect(electronBuilderConfig.nsis.artifactName).toBe('orcb-windows-setup.${ext}')
+    expect(electronBuilderConfig.dmg.artifactName).toBe('orcb-macos-${arch}.${ext}')
+    expect(electronBuilderConfig.linux.executableName).toBe('orcb')
+  })
+
   it('matches the Linux desktop entry to Electron window class', () => {
-    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orca')
+    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orcb')
   })
 
   it('uses the release artifact set as local Linux targets without changing existing names', () => {
     expect(electronBuilderConfig.linux.target).toEqual(['AppImage', 'deb', 'rpm'])
     expect(electronBuilderConfig.toolsets).toEqual({ appimage: '1.0.3' })
-    expect(electronBuilderConfig.appImage.artifactName).toBe('orca-linux.${ext}')
-    expect(electronBuilderConfig.deb.artifactName).toBe('orca-ide_${version}_${arch}.${ext}')
+    expect(electronBuilderConfig.appImage.artifactName).toBe('orcb-linux.${ext}')
+    expect(electronBuilderConfig.deb.artifactName).toBe('orcb_${version}_${arch}.${ext}')
     expect(electronBuilderConfig.rpm).toMatchObject({
-      packageName: 'orca-ide',
-      artifactName: 'orca-ide-${version}.${arch}.${ext}'
+      packageName: 'orcb',
+      artifactName: 'orcb-${version}.${arch}.${ext}'
     })
   })
 
@@ -316,7 +324,7 @@ describe('electron-builder config', () => {
       delete require.cache[configPath]
       process.env.ORCA_LINUX_ARM64_RELEASE = '1'
       expect(require('../electron-builder.config.cjs').appImage.artifactName).toBe(
-        'orca-linux-arm64.${ext}'
+        'orcb-linux-arm64.${ext}'
       )
     } finally {
       if (original === undefined) {

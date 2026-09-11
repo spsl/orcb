@@ -138,6 +138,7 @@ vi.mock('../ipc/runtime-environment-transport-routing', () => ({
   callRuntimeEnvironment: callRuntimeEnvironmentMock
 }))
 vi.mock('./dashboard-popout-window', () => ({ isDashboardPopoutRenderer: () => false }))
+vi.mock('./session-observer-window', () => ({ isSessionObserverRenderer: () => false }))
 
 import {
   registerClipboardHandlers,

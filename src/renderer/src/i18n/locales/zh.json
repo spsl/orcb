@@ -15061,5 +15061,10 @@
       "action": "试用智能体",
       "hiddenToast": "智能体标签页已隐藏。可在设置 → 实验性功能中重新启用。"
     }
+  },
+  "sessionObserver": {
+    "sidebar": {
+      "label": "会话管理"
+    }
   }
 }

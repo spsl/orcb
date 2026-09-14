@@ -19,6 +19,8 @@ import {
 import { getTrustedUIRendererWindow, isTrustedUIRenderer } from './ui'
 import { safelyRevealWindow } from '../window/focus-existing-window'
 import { isBackgroundLaunch } from '../window/foreground-activation-policy'
+import type { Store } from '../persistence'
+import type { SessionObserverAnalyzerAgent } from '../../shared/session-observer-analysis'
 
 const SESSION_ID_MAX_LENGTH = 4_096
 
@@ -70,7 +72,7 @@ function isValidCloseArgs(value: unknown): value is SessionObserverCloseArgs {
   )
 }
 
-function getObserverService(runtime: OrcaRuntimeService): SessionObserverService {
+function getObserverService(runtime: OrcaRuntimeService, store?: Store): SessionObserverService {
   if (observerService) {
     return observerService
   }
@@ -79,14 +81,17 @@ function getObserverService(runtime: OrcaRuntimeService): SessionObserverService
     hookServer: agentHookServer,
     storage: new JsonSessionObserverStateStore(
       join(app.getPath('userData'), 'orcb-session-observer.json')
-    )
+    ),
+    getAnalyzerConfig: () => store?.getSettings().sessionObserverAnalysis,
+    getAnalyzerCommand: (agent: SessionObserverAnalyzerAgent) =>
+      store?.getSettings().agentCmdOverrides?.[agent]
   })
   observerService.start()
   return observerService
 }
 
 /** IPC boundary for the independent observer window. */
-export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): void {
+export function registerSessionObserverHandlers(runtime: OrcaRuntimeService, store?: Store): void {
   ipcMain.removeHandler('sessionObserver:open')
   ipcMain.removeHandler('sessionObserver:requestSnapshot')
   ipcMain.removeHandler('sessionObserver:reanalyze')
@@ -94,7 +99,7 @@ export function registerSessionObserverHandlers(runtime: OrcaRuntimeService): vo
   ipcMain.removeHandler('sessionObserver:reveal')
   ipcMain.removeHandler('sessionObserver:close')
 
-  const service = getObserverService(runtime)
+  const service = getObserverService(runtime, store)
   let snapshotGeneration = 0
   const publishSnapshot = (): void => {
     const target = getSessionObserverWindow()

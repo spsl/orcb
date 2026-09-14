@@ -209,3 +209,21 @@ pnpm run build:unpack
 - **IPC/preload/应用壳层接缝**（`src/main/ipc/session-observer.ts`、`src/preload/api/session-observer-*`、`use-app-shell-services.ts`）：先采用上游最新的 handler 注册、可信窗口获取和服务生命周期结构，再以最小 diff 重新接入两个通道和两个 bridge；不要用旧文件整段覆盖上游。
 - **终端生命周期接缝**（`terminal-pane-lifecycle-types.ts`、`terminal-pane-mount-events.ts`、`use-terminal-pane-lifecycle-stage.ts`、`use-terminal-pane-mount-lifecycle.ts`、`constants/terminal.ts`）：默认保留上游的 PaneManager、关闭确认、运行探测、PTY transport 和挂载/卸载时序，只恢复可选的 `onRequestClosePane` 注入、请求事件监听和 `expectedPtyId` 校验。若上游重命名事件或拆分生命周期函数，按同一语义迁移，不要恢复旧实现。
 - **冲突验证**：解决后搜索 `sessionObserver:close`、`REQUEST_CLOSE_TERMINAL_PANE_EVENT`、`handleRequestClosePane`、`expectedPtyId` 的所有调用方；至少运行 Observer 相关单测和终端挂载事件单测，再执行本节“同步上游 Orca 的流程”中的完整检查。
+
+## Observer 分析器配置变更记录（2026-09-14）
+
+本次变更将会话分析从固定的 `Codex / gpt-5.6-luna / max` 改为可持久化选择 Agent、模型和思考等级，同时保留该组合作为默认值。配置属于本地 `GlobalSettings`，因为分析进程由 ORCB 本地 Observer 服务启动，不能把本机账号、命令覆盖或模型偏好投影到 SSH/远程 runtime；加载、主进程写入和 renderer 写入都经过同一个归一化函数，避免旧配置或手工编辑的值绕过边界。
+
+### 数据流和修改原因
+
+1. `src/shared/session-observer-analysis.ts` 定义配置契约、默认值、模型能力和归一化规则。Codex/Claude 的模型与思考等级复用现有 session option catalog，Pi 复用现有非交互 commit-message spec；只把已经验证过 stdin、只读/无工具调用方式的三种 Agent 暴露给 Observer。模型输入仍允许动态 provider id，未知模型使用安全的通用选项，避免 CLI 新增模型后必须先升级 ORCB。
+2. `src/main/session-observer/session-observer-analyzer-invocation.ts` 是 Agent 适配边界，分别构建 Codex、Claude、Pi 的非交互参数；Codex 使用 `read-only` 和结构化输出文件，Claude 使用 plan/no-tools/JSON schema，Pi 使用 print/no-tools/no-context。共享 Schema 同时写入分析 prompt，因为 Pi 没有独立的 schema 参数；stdout 有明确上限，截断结果不得参与状态判断。`agentCmdOverrides` 只作为已选 Agent 的命令前缀解析，不在 Observer 内复制终端或 PTY 控制逻辑。
+3. `src/main/session-observer/session-observer-service.ts` 在每个任务开始前复制并归一化配置，再传给 analyzer。配置在任务运行中变化只影响后续任务；旧任务继续使用启动时快照，和按 turn ID 丢弃过期分析的规则保持独立。配置变化不触发历史会话重算，用户可用“重新分析”显式使用新配置。
+4. `src/renderer/src/components/session-observer/SessionObserverAnalyzerSettings.tsx` 将三个控件放在 Observer 页面顶部，写入现有 settings API，并串行化快速连续编辑，避免后一次 partial update 覆盖前一次。正在运行的任务提示继续使用启动时配置；模型字段保留可编辑输入和 datalist，以覆盖账号/CLI 提供的动态模型。
+5. `src/main/session-observer/session-observer-analyzer-output.ts` 保留统一结果校验，并兼容 Codex 文件、Claude envelope、Pi 文本中的 JSON/ fenced JSON。解析器只接受有界字段和合法状态，CLI 日志或 ANSI 前缀不会改变 Observer 状态语义。
+
+### 与上游合并时的处理方式
+
+- `session-observer-analysis.ts`、analyzer invocation/output、service config snapshot 和设置组件属于 Observer 自有模块：保留本地配置语义和测试，再按上游 catalog/spec 的重命名或能力字段做适配；不要把配置并入官方 Agent Dashboard 或远程 runtime settings。
+- `GlobalSettings`、默认设置、settings normalize 和 `registerSessionObserverHandlers` 是接缝：先采用上游新的设置生命周期和 handler 注册结构，再以最小字段/ getter 接入 Observer。若上游修改 `agentCmdOverrides` 或 session option catalog，优先复用上游类型与能力来源，检查三种 adapter 的只读/无工具参数是否仍成立。
+- 冲突解决后搜索 `sessionObserverAnalysis`、`resolveSessionObserverAnalyzerRunConfig`、`buildSessionObserverAnalyzerInvocation` 的所有调用方；至少运行 Observer、设置持久化和 analyzer parser/invocation 单测，再执行本文件“同步上游 Orca 的流程”中的完整检查。

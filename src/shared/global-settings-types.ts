@@ -41,6 +41,7 @@ import type {
   ExternalWorktreeVisibility,
   WorktreeVisibilitySourcePreferences
 } from './repo-types'
+import type { SessionObserverAnalysisConfig } from './session-observer-analysis'
 
 /** MiniMax account region used to select the quota endpoint. */
 export type MiniMaxEndpoint = 'overseas' | 'cn'
@@ -318,6 +319,8 @@ export type GlobalSettings = {
    *  - 'blank': blank terminal (no agent launched)
    *  - TuiAgent: a specific agent id */
   defaultTuiAgent: TuiAgent | 'blank' | null
+  /** Agent/model/effort used by the independent session observer analyzer. */
+  sessionObserverAnalysis?: SessionObserverAnalysisConfig
   /** Agents hidden from picker/auto-launch; detection stays a raw PATH snapshot. */
   disabledTuiAgents: TuiAgent[]
   /** Master switch for the experimental plugin system. Off by default: no

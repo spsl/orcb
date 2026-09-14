@@ -9,6 +9,7 @@ import { projectSourceControlAiToLegacyCommitMessageAi } from '../../../shared/s
 import { normalizeUiLanguage } from '../../../shared/ui-language'
 import { stripRetiredGlobalSettings } from '../applying-settings/terminal-settings-migrations'
 import { readLegacySidekickFlag } from '../applying-settings/onboarding-normalization'
+import { normalizeSessionObserverAnalysisConfig } from '../../../shared/session-observer-analysis'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import type { PreparedLoadedTerminalSettings } from './prepare-loaded-terminal-settings'
 import type { PreparedLoadedProfileSettings } from './prepare-loaded-profile-settings'
@@ -121,6 +122,10 @@ export function normalizeLoadedGlobalSettings(
       parsed.settings?.terminalShortcutPolicy
     ),
     disabledTuiAgents: migratedDisabledTuiAgents,
+    sessionObserverAnalysis: normalizeSessionObserverAnalysisConfig(
+      parsed.settings?.sessionObserverAnalysis,
+      defaults.settings.sessionObserverAnalysis
+    ),
     ...migratedAgentYoloDefaults,
     claudeAgentTeamsDefaultDisabledMigrated: true,
     openInApplications: normalizeOpenInApplications(parsed.settings?.openInApplications, {

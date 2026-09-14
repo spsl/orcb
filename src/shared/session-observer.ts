@@ -1,3 +1,9 @@
+export type {
+  SessionObserverAnalysisConfig,
+  SessionObserverAnalyzerAgent,
+  SessionObserverThinkingLevel
+} from './session-observer-analysis'
+
 export const SESSION_OBSERVER_ANALYSIS_STATUSES = [
   'in_progress',
   'waiting_for_user',

@@ -35,6 +35,7 @@ import {
 } from '../../protected-secret-persistence'
 import { normalizeNotificationSettings } from './onboarding-normalization'
 import { retireLegacyInstructionsForClearedTextActionRecipes } from './source-control-settings'
+import { normalizeSessionObserverAnalysisConfig } from '../../../shared/session-observer-analysis'
 import {
   buildWorkspaceDirHistoryForUpdate,
   stripRetiredGlobalSettings
@@ -83,6 +84,12 @@ export function updateSettings(
   }
   if ('disabledTuiAgents' in updates) {
     sanitizedUpdates.disabledTuiAgents = normalizeDisabledTuiAgents(updates.disabledTuiAgents)
+  }
+  if ('sessionObserverAnalysis' in updates) {
+    sanitizedUpdates.sessionObserverAnalysis = normalizeSessionObserverAnalysisConfig(
+      updates.sessionObserverAnalysis,
+      operations.state.settings.sessionObserverAnalysis
+    )
   }
   if ('worktreeVisibilityDefaults' in updates) {
     sanitizedUpdates.worktreeVisibilityDefaults = {

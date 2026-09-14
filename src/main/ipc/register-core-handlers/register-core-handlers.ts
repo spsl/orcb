@@ -168,7 +168,7 @@ export function registerCoreHandlers(
   registerOnboardingHandlers(store)
   registerDashboardPopoutHandlers(store, keybindings)
   registerTerminalPreviewHandlers(runtime)
-  registerSessionObserverHandlers(runtime)
+  registerSessionObserverHandlers(runtime, store)
   registerDeveloperPermissionHandlers()
   // Why: diagnostics handlers are wired alongside telemetry but the two
   // lanes never share a code path — `ipc/diagnostics.ts` imports only from

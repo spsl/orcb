@@ -35,6 +35,7 @@ import {
 import * as ownerHydration from './settings-owner-hydration-publication'
 import { persistVisibilityAwareSettings } from './worktree-visibility-settings-write'
 import { getSettingsFocusedExecutionHostId } from '../../../../shared/execution-host'
+import { normalizeSessionObserverAnalysisConfig } from '../../../../shared/session-observer-analysis'
 
 export type SettingsSlice = SettingsSearchState & {
   settings: GlobalSettings | null
@@ -102,6 +103,12 @@ function normalizeSettingsUpdates(
   }
   if ('disabledTuiAgents' in updates) {
     sanitizedUpdates.disabledTuiAgents = normalizeDisabledTuiAgents(updates.disabledTuiAgents)
+  }
+  if ('sessionObserverAnalysis' in updates) {
+    sanitizedUpdates.sessionObserverAnalysis = normalizeSessionObserverAnalysisConfig(
+      updates.sessionObserverAnalysis,
+      currentSettings?.sessionObserverAnalysis
+    )
   }
   if ('agentDefaultArgs' in updates) {
     sanitizedUpdates.agentDefaultArgs = normalizeTuiAgentArgsRecord(updates.agentDefaultArgs)

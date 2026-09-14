@@ -103,6 +103,14 @@ describe('getDefaultSettings', () => {
     })
   })
 
+  it('keeps the session observer analyzer on the historical Codex profile by default', () => {
+    expect(getDefaultSettings('/tmp').sessionObserverAnalysis).toEqual({
+      agent: 'codex',
+      model: 'gpt-5.6-luna',
+      thinkingLevel: 'max'
+    })
+  })
+
   it('keeps compact worktree cards disabled by default', () => {
     expect(getDefaultSettings('/tmp').compactWorktreeCards).toBe(false)
   })

@@ -1,4 +1,4 @@
-import type { AgentHookServer, EnrichedAgentHookEventPayload } from '../agent-hooks/server'
+import type { EnrichedAgentHookEventPayload } from '../agent-hooks/server'
 import {
   isSessionObserverAnalysisStatus,
   type SessionObserverManualStatusOverride,
@@ -7,6 +7,7 @@ import {
 } from '../../shared/session-observer'
 import {
   CodexSessionObserverAnalyzer,
+  resolveSessionObserverAnalyzerRunConfig,
   type SessionObserverAnalyzer
 } from './session-observer-analyzer'
 import {
@@ -16,26 +17,15 @@ import {
   lifecycleState,
   MAX_TURNS_PER_SESSION,
   sessionFromEvent,
-  stableTextHash,
-  type SessionObserverStateStore
+  stableTextHash
 } from './session-observer-state-store'
-import {
-  listLiveTerminals,
-  type SessionObserverRuntime
-} from './session-observer-runtime-terminals'
+import { listLiveTerminals } from './session-observer-runtime-terminals'
 import { projectSessionObserverView } from './session-observer-session-projection'
+import type { SessionObserverServiceOptions } from './session-observer-service-types'
 
 const MAX_SESSIONS = 200
 const PERSIST_DEBOUNCE_MS = 300
 const MAX_CONCURRENT_ANALYSES = 2
-type ObserverHookServer = Pick<AgentHookServer, 'getStatusSnapshot' | 'subscribeEnrichedStatus'>
-
-type SessionObserverServiceOptions = {
-  runtime: SessionObserverRuntime
-  hookServer: ObserverHookServer
-  storage: SessionObserverStateStore
-  analyzer?: SessionObserverAnalyzer
-}
 
 /** A read-only projection of hook events that does not alter Orca's agent-status store. */
 export class SessionObserverService {
@@ -266,7 +256,11 @@ export class SessionObserverService {
     session.analysisError = null
     this.emitChange()
     try {
-      const result = await this.analyzer.analyze(copySession(session))
+      const runConfig = resolveSessionObserverAnalyzerRunConfig(
+        this.options.getAnalyzerConfig?.(),
+        this.options.getAnalyzerCommand
+      )
+      const result = await this.analyzer.analyze(copySession(session), runConfig)
       const current = this.sessions.get(sessionId)
       if (!current || current.turns.at(-1)?.id !== targetTurnId) {
         return

@@ -441,6 +441,41 @@ describe('Store', () => {
     expect(updated.disabledTuiAgents).toEqual(['gemini', 'opencode'])
   })
 
+  it('normalizes the session observer analyzer profile on load and update', async () => {
+    writeFileSync(
+      join(testState.dir, 'orca-data.json'),
+      JSON.stringify({
+        settings: {
+          sessionObserverAnalysis: {
+            agent: 'unknown-agent',
+            model: '   ',
+            thinkingLevel: 'invalid'
+          }
+        }
+      })
+    )
+    const store = await createStore()
+
+    expect(store.getSettings().sessionObserverAnalysis).toEqual({
+      agent: 'codex',
+      model: 'gpt-5.6-luna',
+      thinkingLevel: 'max'
+    })
+
+    const updated = store.updateSettings({
+      sessionObserverAnalysis: {
+        agent: 'claude',
+        model: 'haiku',
+        thinkingLevel: 'max'
+      }
+    })
+    expect(updated.sessionObserverAnalysis).toEqual({
+      agent: 'claude',
+      model: 'haiku',
+      thinkingLevel: null
+    })
+  })
+
   it('enables Claude Agent Teams by default for fresh installs', async () => {
     const store = await createStore()
 

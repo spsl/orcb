@@ -10,6 +10,7 @@ import { useAppMenuPaste } from '@/hooks/useAppMenuPaste'
 import { useAppMenuSelectionActions } from '@/hooks/useAppMenuSelectionActions'
 import { SessionObserverBoard } from './SessionObserverBoard'
 import { SessionObserverDetailDialog } from './SessionObserverDetailDialog'
+import { SessionObserverAnalyzerSettings } from './SessionObserverAnalyzerSettings'
 
 const EMPTY_SNAPSHOT: SessionObserverSnapshot = { generatedAt: 0, sessions: [] }
 const TERMINAL_STATE_REFRESH_MS = 3_000
@@ -131,6 +132,7 @@ export function SessionObserverRoot(): React.JSX.Element {
           </Button>
         </div>
       </header>
+      <SessionObserverAnalyzerSettings />
       <main className="flex min-h-0 flex-1">
         <SessionObserverBoard
           sessions={snapshot.sessions}

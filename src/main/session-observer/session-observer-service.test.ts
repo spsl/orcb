@@ -127,6 +127,88 @@ describe('SessionObserverService', () => {
     })
   })
 
+  it('keeps the last runtime-confirmed workspace path and branch after the terminal closes', async () => {
+    const paneKey = 'tab-1:11111111-1111-4111-8111-111111111111'
+    let listed = true
+    const service = new SessionObserverService({
+      runtime: {
+        listTerminals: vi.fn(async () => ({
+          terminals: listed
+            ? [
+                {
+                  tabId: 'tab-1',
+                  leafId: '11111111-1111-4111-8111-111111111111',
+                  ptyId: 'pty-1',
+                  connected: true,
+                  orphaned: false,
+                  title: 'Codex',
+                  worktreeId: 'repo-1::/Users/ada/projects/orcb',
+                  worktreePath: '/Users/ada/projects/orcb',
+                  branch: 'refs/heads/feature/session-card'
+                }
+              ]
+            : []
+        }))
+      } as never,
+      hookServer: {
+        getStatusSnapshot: () => [],
+        subscribeEnrichedStatus: () => () => undefined
+      } as never,
+      storage: { load: vi.fn(async () => []), save: vi.fn(async () => undefined) },
+      analyzer: { analyze: vi.fn(async () => analysis) }
+    })
+
+    service.observe({
+      ...completedEvent(),
+      paneKey,
+      worktreeId: 'repo-1::/Users/ada/projects/orcb',
+      payload: { ...completedEvent().payload, state: 'working' }
+    })
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [
+        {
+          worktreePath: '/Users/ada/projects/orcb',
+          gitBranch: 'refs/heads/feature/session-card'
+        }
+      ]
+    })
+
+    listed = false
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [
+        {
+          live: false,
+          terminalState: 'closed',
+          worktreePath: '/Users/ada/projects/orcb',
+          gitBranch: 'refs/heads/feature/session-card'
+        }
+      ]
+    })
+  })
+
+  it('clears a previous branch when a session moves to another worktree', async () => {
+    const service = new SessionObserverService({
+      runtime: {
+        listTerminals: vi.fn(async () => ({ terminals: [] }))
+      } as never,
+      hookServer: {
+        getStatusSnapshot: () => [],
+        subscribeEnrichedStatus: () => () => undefined
+      } as never,
+      storage: { load: vi.fn(async () => []), save: vi.fn(async () => undefined) },
+      analyzer: { analyze: vi.fn(async () => analysis) }
+    })
+    const first = { ...completedEvent(), worktreeId: 'repo-1::/tmp/one' }
+    service.observe(first)
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [{ worktreePath: '/tmp/one', gitBranch: null }]
+    })
+    service.observe({ ...first, worktreeId: 'repo-2::/tmp/two', receivedAt: 2_000 })
+    await expect(service.snapshot()).resolves.toMatchObject({
+      sessions: [{ worktreePath: '/tmp/two', gitBranch: null }]
+    })
+  })
+
   it('prioritizes live execution, then a user override, over an older analysis', async () => {
     const paneKey = 'tab-1:11111111-1111-4111-8111-111111111111'
     const service = new SessionObserverService({

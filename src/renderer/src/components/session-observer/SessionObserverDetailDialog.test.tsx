@@ -3,7 +3,9 @@
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import type { SessionObserverSessionView } from '../../../../shared/session-observer'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { SessionObserverDetailDialog } from './SessionObserverDetailDialog'
 
 vi.mock('@/components/dashboard-popout/AgentTerminalPreview', () => ({
@@ -40,6 +42,10 @@ function session(overrides: Partial<SessionObserverSessionView> = {}): SessionOb
   }
 }
 
+function renderDialog(element: ReactElement) {
+  return render(<TooltipProvider>{element}</TooltipProvider>)
+}
+
 afterEach(() => {
   cleanup()
 })
@@ -47,7 +53,7 @@ afterEach(() => {
 describe('SessionObserverDetailDialog', () => {
   it('renders observer details alongside the native attached terminal', () => {
     const onOpenChange = vi.fn()
-    render(
+    renderDialog(
       <SessionObserverDetailDialog
         session={session()}
         reanalysisPending={false}
@@ -72,7 +78,7 @@ describe('SessionObserverDetailDialog', () => {
   it('offers to open the source worktree and reports the selected session', () => {
     const onReveal = vi.fn()
     const sourceSession = session()
-    render(
+    renderDialog(
       <SessionObserverDetailDialog
         session={sourceSession}
         reanalysisPending={false}
@@ -91,7 +97,7 @@ describe('SessionObserverDetailDialog', () => {
   })
 
   it('hides the source worktree action when no worktree is available', () => {
-    render(
+    renderDialog(
       <SessionObserverDetailDialog
         session={session({ worktreeId: null })}
         reanalysisPending={false}
@@ -109,14 +115,16 @@ describe('SessionObserverDetailDialog', () => {
   })
 
   it('closes a live terminal through the provided callback', () => {
-    const onCloseTerminal = vi.fn()
+    const calls: string[] = []
+    const onOpenChange = vi.fn(() => calls.push('dialog'))
+    const onCloseTerminal = vi.fn(() => calls.push('terminal'))
     const sourceSession = session()
-    render(
+    renderDialog(
       <SessionObserverDetailDialog
         session={sourceSession}
         reanalysisPending={false}
         statusUpdatePending={false}
-        onOpenChange={() => {}}
+        onOpenChange={onOpenChange}
         onReanalyze={() => {}}
         onManualStatusChange={() => {}}
         onReveal={() => {}}
@@ -125,13 +133,18 @@ describe('SessionObserverDetailDialog', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: '关闭终端' }))
+    const closeControl = screen.getByRole('button', { name: '关闭终端' })
+    expect(closeControl).toHaveAttribute('data-size', 'icon-xs')
+    expect(closeControl).not.toHaveTextContent('关闭终端')
+    fireEvent.click(closeControl)
+    expect(calls).toEqual(['dialog', 'terminal'])
     expect(onCloseTerminal).toHaveBeenCalledWith(sourceSession)
+    expect(screen.queryByText('关闭终端')).not.toBeInTheDocument()
   })
 
   it('does not offer terminal close for closed or unknown terminals', () => {
     for (const terminalState of ['closed', 'unknown'] as const) {
-      const view = render(
+      const view = renderDialog(
         <SessionObserverDetailDialog
           session={session({ terminalState })}
           reanalysisPending={false}
@@ -150,7 +163,7 @@ describe('SessionObserverDetailDialog', () => {
   })
 
   it('disables terminal close while the request is pending', () => {
-    render(
+    renderDialog(
       <SessionObserverDetailDialog
         session={session()}
         reanalysisPending={false}

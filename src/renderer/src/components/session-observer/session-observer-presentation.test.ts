@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { SessionObserverSessionView } from '../../../../shared/session-observer'
-import { sessionColumn } from './session-observer-presentation'
+import {
+  sessionColumn,
+  sessionGitBranchLabel,
+  sessionWorkspaceLabel
+} from './session-observer-presentation'
 
 function session(overrides: Partial<SessionObserverSessionView> = {}): SessionObserverSessionView {
   return {
@@ -47,5 +51,21 @@ describe('session observer board presentation', () => {
 
   it('does not turn a runtime outage into a closed-terminal verdict', () => {
     expect(sessionColumn(session({ live: false, terminalState: 'unknown' }))).toBe('unclear')
+  })
+
+  it('formats the last two workspace path segments across platforms', () => {
+    expect(
+      sessionWorkspaceLabel(session({ worktreePath: '/Users/ada/projects/orcb' }))
+    ).toBe('projects/orcb')
+    expect(sessionWorkspaceLabel(session({ worktreePath: 'C:\\Users\\Ada\\repo\\app' }))).toBe(
+      'repo/app'
+    )
+  })
+
+  it('normalizes branch refs and hides missing branches', () => {
+    expect(sessionGitBranchLabel(session({ gitBranch: 'refs/heads/feature/session-card' }))).toBe(
+      'feature/session-card'
+    )
+    expect(sessionGitBranchLabel(session({ gitBranch: '' }))).toBeNull()
   })
 })

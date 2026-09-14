@@ -61,6 +61,10 @@ export type SessionObserverSession = {
   paneKey: string
   tabId: string | null
   worktreeId: string | null
+  /** Last runtime-confirmed filesystem path for display; absent on legacy records. */
+  worktreePath?: string | null
+  /** Last runtime-confirmed branch; null means confirmed detached/non-git. */
+  gitBranch?: string | null
   agentType: string
   model: string | null
   lifecycleState: 'working' | 'waiting' | 'blocked' | 'done' | 'unknown'

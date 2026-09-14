@@ -6,8 +6,10 @@ import {
   analysisStateLabel,
   analysisStatusLabel,
   SESSION_OBSERVER_COLUMNS,
+  sessionGitBranchLabel,
   sessionColumn,
   sessionTitle,
+  sessionWorkspaceLabel,
   type SessionObserverColumnId
 } from './session-observer-presentation'
 
@@ -31,6 +33,8 @@ function SessionCard({
   const column = sessionColumn(session)
   const summary = session.analysis?.summary ?? analysisStateLabel(session.analysisState)
   const nextStep = session.analysis?.nextSteps[0] ?? null
+  const workspaceLabel = sessionWorkspaceLabel(session)
+  const branchLabel = sessionGitBranchLabel(session)
   const terminalStateLabel =
     session.terminalState === 'closed'
       ? '终端已结束'
@@ -58,9 +62,20 @@ function SessionCard({
           />
         ) : null}
       </div>
-      <p className="mt-2 truncate text-[11px] text-muted-foreground">
-        工作区：{session.worktreeId ?? '未知'}
+      <p
+        className="mt-2 truncate font-mono text-[11px] text-muted-foreground"
+        title={workspaceLabel}
+      >
+        工作区：{workspaceLabel}
       </p>
+      {branchLabel ? (
+        <p
+          className="mt-1 truncate font-mono text-[11px] text-muted-foreground"
+          title={branchLabel}
+        >
+          分支：{branchLabel}
+        </p>
+      ) : null}
       <p className="mt-1 line-clamp-2 min-h-8 text-xs leading-4 text-muted-foreground">{summary}</p>
       {nextStep ? (
         <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">

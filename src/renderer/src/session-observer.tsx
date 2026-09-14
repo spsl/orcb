@@ -7,6 +7,7 @@ import { buildAppFontFamily } from './lib/app-font-family'
 import { getOrCreateRendererRoot } from './lib/react-renderer-root'
 import { RecoverableRenderErrorBoundary } from './components/error-boundaries/RecoverableRenderErrorBoundary'
 import { SessionObserverRoot } from './components/session-observer/SessionObserverRoot'
+import { TooltipProvider } from './components/ui/tooltip'
 import { useAppStore } from './store'
 import type { GlobalSettings } from '../../shared/global-settings-types'
 
@@ -78,15 +79,17 @@ function ObserverSettingsSync(): null {
 getOrCreateRendererRoot(rootElement, import.meta.hot?.data).render(
   <StrictMode>
     <I18nProvider>
-      <ObserverSettingsSync />
-      <RecoverableRenderErrorBoundary
-        boundaryId="session-observer.root"
-        surface="page"
-        title="会话分析无法完成渲染"
-        description="请重试，或关闭后重新打开会话分析窗口。"
-      >
-        <SessionObserverRoot />
-      </RecoverableRenderErrorBoundary>
+      <TooltipProvider delayDuration={400}>
+        <ObserverSettingsSync />
+        <RecoverableRenderErrorBoundary
+          boundaryId="session-observer.root"
+          surface="page"
+          title="会话分析无法完成渲染"
+          description="请重试，或关闭后重新打开会话分析窗口。"
+        >
+          <SessionObserverRoot />
+        </RecoverableRenderErrorBoundary>
+      </TooltipProvider>
     </I18nProvider>
   </StrictMode>
 )

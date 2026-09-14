@@ -20,13 +20,16 @@ import {
   stableTextHash
 } from './session-observer-state-store'
 import { listLiveTerminals } from './session-observer-runtime-terminals'
+import {
+  applySessionObserverRuntimeMetadata,
+  applySessionObserverWorktreeIdentity
+} from './session-observer-session-metadata'
 import { projectSessionObserverView } from './session-observer-session-projection'
 import type { SessionObserverServiceOptions } from './session-observer-service-types'
 
 const MAX_SESSIONS = 200
 const PERSIST_DEBOUNCE_MS = 300
 const MAX_CONCURRENT_ANALYSES = 2
-
 /** A read-only projection of hook events that does not alter Orca's agent-status store. */
 export class SessionObserverService {
   private readonly sessions = new Map<string, SessionObserverSession>()
@@ -99,7 +102,8 @@ export class SessionObserverService {
       }
     }
     session.tabId = event.tabId ?? session.tabId
-    session.worktreeId = event.worktreeId ?? session.worktreeId
+    const nextWorktreeId = event.worktreeId ?? session.worktreeId
+    applySessionObserverWorktreeIdentity(session, nextWorktreeId)
     session.agentType = event.payload.agentType
     session.model = event.payload.model ?? session.model
     session.lifecycleState = lifecycleState(event.payload.state)
@@ -146,6 +150,9 @@ export class SessionObserverService {
 
   async snapshot(): Promise<SessionObserverSnapshot> {
     const terminalInventory = await listLiveTerminals(this.options.runtime)
+    if (applySessionObserverRuntimeMetadata(this.sessions.values(), terminalInventory.terminalsByPaneKey)) {
+      this.schedulePersist()
+    }
     const sessions = Array.from(this.sessions.values(), (session) =>
       projectSessionObserverView(session, terminalInventory)
     ).sort((left, right) => right.updatedAt - left.updatedAt)

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import '@testing-library/jest-dom/vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   SessionObserverSessionView,
@@ -37,14 +37,23 @@ vi.mock('./SessionObserverDetailDialog', () => ({
   SessionObserverDetailDialog: ({
     session,
     onCloseTerminal,
+    onOpenChange,
     closePending
   }: {
     session: SessionObserverSessionView | null
     onCloseTerminal: (session: SessionObserverSessionView) => void
+    onOpenChange: (open: boolean) => void
     closePending: boolean
   }) =>
     session ? (
-      <button type="button" disabled={closePending} onClick={() => onCloseTerminal(session)}>
+      <button
+        type="button"
+        disabled={closePending}
+        onClick={() => {
+          onOpenChange(false)
+          onCloseTerminal(session)
+        }}
+      >
         关闭终端
       </button>
     ) : null
@@ -129,10 +138,9 @@ describe('SessionObserverRoot', () => {
       paneKey: 'tab-1:leaf-1',
       ptyId: 'pty-1'
     })
-    expect(closeButton).toBeDisabled()
+    expect(screen.queryByRole('button', { name: '关闭终端' })).not.toBeInTheDocument()
 
     await act(async () => resolveClose(true))
-    await waitFor(() => expect(closeButton).not.toBeDisabled())
     expect(mocks.requestSnapshot).toHaveBeenCalled()
   })
 

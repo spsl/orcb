@@ -3,6 +3,9 @@ import type {
   SessionObserverAnalysisStatus,
   SessionObserverSessionView
 } from '../../../../shared/session-observer'
+import { normalizeRuntimePathSeparators } from '../../../../shared/cross-platform-path'
+import { splitWorktreeIdForFilesystem } from '../../../../shared/worktree/id'
+import { branchName } from '../../lib/git-utils'
 
 export const SESSION_OBSERVER_COLUMNS = [
   { id: 'unclear', label: '不明确', hint: '尚无足够可靠的当前结论' },
@@ -42,6 +45,22 @@ function columnForStatus(status: SessionObserverAnalysisStatus): SessionObserver
 
 export function sessionTitle(session: SessionObserverSessionView): string {
   return firstLine(session.title) ?? firstLine(session.prompt) ?? `${session.agentType} 会话`
+}
+
+export function sessionWorkspaceLabel(session: SessionObserverSessionView): string {
+  const pathValue =
+    session.worktreePath?.trim() ||
+    splitWorktreeIdForFilesystem(session.worktreeId ?? '')?.worktreePath.trim()
+  if (!pathValue) {
+    return '未知'
+  }
+  const parts = normalizeRuntimePathSeparators(pathValue.normalize('NFC')).split('/').filter(Boolean)
+  return parts.length >= 2 ? parts.slice(-2).join('/') : (parts[0] ?? '未知')
+}
+
+export function sessionGitBranchLabel(session: SessionObserverSessionView): string | null {
+  const branch = session.gitBranch?.trim()
+  return branch ? branchName(branch) : null
 }
 
 export function firstLine(value: string | null, maxLength = 96): string | null {

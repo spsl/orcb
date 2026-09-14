@@ -100,6 +100,8 @@ export function SessionObserverRoot(): React.JSX.Element {
     ) {
       return
     }
+    // Close the observer dialog before handing the terminal close to the main renderer.
+    setSelectedSessionId(null)
     setClosePendingId(session.id)
     void window.api.sessionObserver
       .close({

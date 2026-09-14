@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { splitWorktreeIdForFilesystem } from '../../shared/worktree/id'
 import type { EnrichedAgentHookEventPayload } from '../agent-hooks/server'
 import type {
   SessionObserverAnalysis,
@@ -29,6 +30,13 @@ export function boundedText(value: unknown): string | null {
   }
   const normalized = value.trim()
   return normalized.length > 0 ? normalized.slice(0, MAX_TEXT_LENGTH) : null
+}
+
+export function worktreePathFromId(worktreeId: string | null | undefined): string | null {
+  if (!worktreeId) {
+    return null
+  }
+  return boundedText(splitWorktreeIdForFilesystem(worktreeId)?.worktreePath)
 }
 
 export function lifecycleState(value: unknown): SessionObserverSession['lifecycleState'] {
@@ -178,6 +186,9 @@ export function hydrateSession(value: unknown): SessionObserverSession | null {
     paneKey,
     tabId: boundedText(record.tabId),
     worktreeId: boundedText(record.worktreeId),
+    worktreePath:
+      boundedText(record.worktreePath) ?? worktreePathFromId(record.worktreeId as string | null | undefined),
+    gitBranch: boundedText(record.gitBranch),
     agentType,
     model: boundedText(record.model),
     lifecycleState: lifecycleState(record.lifecycleState),
@@ -205,6 +216,8 @@ export function sessionFromEvent(event: EnrichedAgentHookEventPayload): SessionO
     paneKey: event.paneKey,
     tabId: event.tabId ?? null,
     worktreeId: event.worktreeId ?? null,
+    worktreePath: worktreePathFromId(event.worktreeId),
+    gitBranch: null,
     agentType: event.payload.agentType ?? 'unknown',
     model: event.payload.model ?? null,
     lifecycleState: lifecycleState(event.payload.state),

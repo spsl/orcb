@@ -7,6 +7,7 @@ import type {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
@@ -149,6 +150,13 @@ export function SessionObserverDetailDialog({
   const canReanalyze = Boolean(
     session && session.turns.length > 0 && session.analysisState !== 'running'
   )
+  const canCloseTerminal = Boolean(
+    session &&
+    session.worktreeId &&
+    session.tabId &&
+    session.terminalState === 'live' &&
+    session.ptyId
+  )
   return (
     <Dialog open={session !== null} onOpenChange={onOpenChange}>
       {session ? (
@@ -187,6 +195,29 @@ export function SessionObserverDetailDialog({
               >
                 <RefreshCw className={cn(reanalysisPending && 'animate-spin')} />
               </Button>
+              {canCloseTerminal ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-destructive hover:text-destructive"
+                      disabled={closePending}
+                      onClick={() => {
+                        onOpenChange(false)
+                        onCloseTerminal(session)
+                      }}
+                      aria-label="关闭终端"
+                    >
+                      {closePending ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={4}>
+                    关闭终端
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
               <Button
                 type="button"
                 variant="ghost"
@@ -217,20 +248,6 @@ export function SessionObserverDetailDialog({
           </div>
           {session.worktreeId ? (
             <footer className="flex shrink-0 items-center gap-1.5 border-t border-border px-4 py-2">
-              {session.terminalState === 'live' && session.ptyId ? (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="xs"
-                  disabled={closePending}
-                  onClick={() => onCloseTerminal(session)}
-                  aria-label="关闭终端"
-                  title="关闭终端"
-                >
-                  {closePending ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                  关闭终端
-                </Button>
-              ) : null}
               <Button
                 type="button"
                 variant="outline"

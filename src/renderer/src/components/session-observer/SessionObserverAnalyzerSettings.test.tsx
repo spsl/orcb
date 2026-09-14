@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => {
       sessionObserverAnalysis: {
         agent: 'codex' as const,
         model: 'gpt-5.6-luna',
-        thinkingLevel: 'max' as const
+        thinkingLevel: 'low' as const
       }
     },
     updateSettingsOrThrow:
@@ -66,7 +66,7 @@ describe('SessionObserverAnalyzerSettings', () => {
       sessionObserverAnalysis: {
         agent: 'codex',
         model: 'account-model',
-        thinkingLevel: 'max'
+        thinkingLevel: 'low'
       }
     })
   })
@@ -111,7 +111,7 @@ describe('SessionObserverAnalyzerSettings', () => {
       sessionObserverAnalysis: {
         agent: 'codex',
         model: 'second-model',
-        thinkingLevel: 'max'
+        thinkingLevel: 'low'
       }
     })
   })

@@ -48,7 +48,7 @@ export type SessionObserverThinkingLevelOption = {
 export const DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG: SessionObserverAnalysisConfig = {
   agent: 'codex',
   model: 'gpt-5.6-luna',
-  thinkingLevel: 'max'
+  thinkingLevel: 'low'
 }
 
 const THINKING_LEVEL_ORDER: readonly SessionObserverThinkingLevel[] = [
@@ -195,9 +195,6 @@ function defaultThinkingForModel(
   const options = getSessionObserverThinkingLevelOptions(agent, model)
   if (options.length === 0) {
     return null
-  }
-  if (agent === 'codex' && model === DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG.model) {
-    return 'max'
   }
   return options.find((option) => option.id === 'low')?.id ?? options[0].id
 }

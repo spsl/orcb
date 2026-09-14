@@ -459,7 +459,7 @@ describe('Store', () => {
     expect(store.getSettings().sessionObserverAnalysis).toEqual({
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'max'
+      thinkingLevel: 'low'
     })
 
     const updated = store.updateSettings({

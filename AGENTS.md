@@ -212,7 +212,7 @@ pnpm run build:unpack
 
 ## Observer 分析器配置变更记录（2026-09-14）
 
-本次变更将会话分析从固定的 `Codex / gpt-5.6-luna / max` 改为可持久化选择 Agent、模型和思考等级，同时保留该组合作为默认值。配置属于本地 `GlobalSettings`，因为分析进程由 ORCB 本地 Observer 服务启动，不能把本机账号、命令覆盖或模型偏好投影到 SSH/远程 runtime；加载、主进程写入和 renderer 写入都经过同一个归一化函数，避免旧配置或手工编辑的值绕过边界。
+本次变更将会话分析从固定的 `Codex / gpt-5.6-luna / max` 改为可持久化选择 Agent、模型和思考等级；当前默认值为 `Codex / gpt-5.6-luna / low`。配置属于本地 `GlobalSettings`，因为分析进程由 ORCB 本地 Observer 服务启动，不能把本机账号、命令覆盖或模型偏好投影到 SSH/远程 runtime；加载、主进程写入和 renderer 写入都经过同一个归一化函数，避免旧配置或手工编辑的值绕过边界。
 
 ### 数据流和修改原因
 
@@ -221,6 +221,7 @@ pnpm run build:unpack
 3. `src/main/session-observer/session-observer-service.ts` 在每个任务开始前复制并归一化配置，再传给 analyzer。配置在任务运行中变化只影响后续任务；旧任务继续使用启动时快照，和按 turn ID 丢弃过期分析的规则保持独立。配置变化不触发历史会话重算，用户可用“重新分析”显式使用新配置。
 4. `src/renderer/src/components/session-observer/SessionObserverAnalyzerSettings.tsx` 将三个控件放在 Observer 页面顶部，写入现有 settings API，并串行化快速连续编辑，避免后一次 partial update 覆盖前一次。正在运行的任务提示继续使用启动时配置；模型字段保留可编辑输入和 datalist，以覆盖账号/CLI 提供的动态模型。
 5. `src/main/session-observer/session-observer-analyzer-output.ts` 保留统一结果校验，并兼容 Codex 文件、Claude envelope、Pi 文本中的 JSON/ fenced JSON。解析器只接受有界字段和合法状态，CLI 日志或 ANSI 前缀不会改变 Observer 状态语义。
+6. 默认 Codex 配置使用 `gpt-5.6-luna / low`；该默认值用于新配置、缺失或非法配置的回退以及“恢复默认”操作，已经持久化的合法用户选择不被覆盖。
 
 ### 与上游合并时的处理方式
 

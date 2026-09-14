@@ -12,11 +12,18 @@ describe('session observer analysis configuration', () => {
     expect(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG).toEqual({
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'max'
+      thinkingLevel: 'low'
     })
     const copy = normalizeSessionObserverAnalysisConfig(undefined)
     expect(copy).toEqual(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG)
     expect(copy).not.toBe(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG)
+    expect(
+      normalizeSessionObserverAnalysisConfig({
+        agent: 'codex',
+        model: 'gpt-5.6-luna',
+        thinkingLevel: 'max'
+      }).thinkingLevel
+    ).toBe('max')
   })
 
   it('normalizes malformed persisted values and bounds model ids', () => {
@@ -31,6 +38,9 @@ describe('session observer analysis configuration', () => {
   })
 
   it('selects a safe default for each supported adapter', () => {
+    expect(getDefaultSessionObserverAnalysisConfig('codex')).toEqual(
+      DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG
+    )
     expect(getDefaultSessionObserverAnalysisConfig('claude')).toMatchObject({
       agent: 'claude',
       model: 'sonnet',

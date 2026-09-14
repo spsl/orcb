@@ -107,7 +107,7 @@ describe('getDefaultSettings', () => {
     expect(getDefaultSettings('/tmp').sessionObserverAnalysis).toEqual({
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'max'
+      thinkingLevel: 'low'
     })
   })
 

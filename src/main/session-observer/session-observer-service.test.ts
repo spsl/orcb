@@ -202,7 +202,7 @@ describe('SessionObserverService', () => {
     let configured: SessionObserverAnalysisConfig = {
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'max'
+      thinkingLevel: 'low'
     }
     const first = deferred<SessionObserverAnalysis>()
     const calls: unknown[] = []
@@ -250,7 +250,7 @@ describe('SessionObserverService', () => {
       {
         agent: 'codex',
         model: 'gpt-5.6-luna',
-        thinkingLevel: 'max',
+        thinkingLevel: 'low',
         command: 'codex --profile observer'
       },
       { agent: 'claude', model: 'sonnet', thinkingLevel: 'low' }

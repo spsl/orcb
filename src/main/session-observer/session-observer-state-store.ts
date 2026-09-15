@@ -8,7 +8,10 @@ import type {
   SessionObserverSession,
   SessionObserverTurn
 } from '../../shared/session-observer'
-import { SESSION_OBSERVER_ANALYSIS_STATUSES } from '../../shared/session-observer'
+import {
+  SESSION_OBSERVER_ANALYSIS_STATUSES,
+  normalizeSessionObserverTitle
+} from '../../shared/session-observer'
 
 const PERSISTED_STATE_VERSION = 1
 const MAX_TEXT_LENGTH = 16_000
@@ -113,6 +116,7 @@ function hydrateAnalysis(value: unknown): SessionObserverAnalysis | null {
   }
   const summary = boundedText(record.summary)
   const goal = boundedText(record.goal)
+  const title = normalizeSessionObserverTitle(record.title) ?? normalizeSessionObserverTitle(goal)
   const progress = list('progress')
   const completed = list('completed')
   const nextSteps = list('nextSteps')
@@ -120,6 +124,7 @@ function hydrateAnalysis(value: unknown): SessionObserverAnalysis | null {
   if (
     !summary ||
     !goal ||
+    !title ||
     !progress ||
     !completed ||
     !nextSteps ||
@@ -136,6 +141,7 @@ function hydrateAnalysis(value: unknown): SessionObserverAnalysis | null {
     return null
   }
   return {
+    title,
     summary,
     goal,
     status,

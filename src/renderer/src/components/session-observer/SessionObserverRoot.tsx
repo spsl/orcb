@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Settings2 } from 'lucide-react'
 import type {
   SessionObserverManualStatusOverride,
   SessionObserverSessionView,
   SessionObserverSnapshot
 } from '../../../../shared/session-observer'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
 import { useAppMenuPaste } from '@/hooks/useAppMenuPaste'
 import { useAppMenuSelectionActions } from '@/hooks/useAppMenuSelectionActions'
 import { SessionObserverBoard } from './SessionObserverBoard'
@@ -21,6 +28,7 @@ export function SessionObserverRoot(): React.JSX.Element {
   const [reanalysisPendingId, setReanalysisPendingId] = useState<string | null>(null)
   const [statusUpdatePendingId, setStatusUpdatePendingId] = useState<string | null>(null)
   const [closePendingId, setClosePendingId] = useState<string | null>(null)
+  const [analyzerSettingsOpen, setAnalyzerSettingsOpen] = useState(false)
   useAppMenuPaste()
   useAppMenuSelectionActions()
 
@@ -128,13 +136,21 @@ export function SessionObserverRoot(): React.JSX.Element {
           <span className="hidden text-xs text-muted-foreground sm:inline">
             {liveTerminalCount} 个可附着终端
           </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAnalyzerSettingsOpen(true)}
+          >
+            <Settings2 />
+            分析设置
+          </Button>
           <Button type="button" variant="outline" size="sm" onClick={refreshSnapshot}>
             <RefreshCw />
             刷新
           </Button>
         </div>
       </header>
-      <SessionObserverAnalyzerSettings />
       <main className="flex min-h-0 flex-1">
         <SessionObserverBoard
           sessions={snapshot.sessions}
@@ -142,6 +158,17 @@ export function SessionObserverRoot(): React.JSX.Element {
           onSelect={setSelectedSessionId}
         />
       </main>
+      <Dialog open={analyzerSettingsOpen} onOpenChange={setAnalyzerSettingsOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>分析配置</DialogTitle>
+            <DialogDescription>
+              配置会用于后续自动分析和“重新分析”；正在执行的分析继续使用启动时的配置。
+            </DialogDescription>
+          </DialogHeader>
+          <SessionObserverAnalyzerSettings />
+        </DialogContent>
+      </Dialog>
       <SessionObserverDetailDialog
         session={selectedSession}
         reanalysisPending={reanalysisPendingId === selectedSession?.id}

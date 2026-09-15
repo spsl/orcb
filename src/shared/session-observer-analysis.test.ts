@@ -12,7 +12,8 @@ describe('session observer analysis configuration', () => {
     expect(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG).toEqual({
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'low'
+      thinkingLevel: 'low',
+      systemPrompt: null
     })
     const copy = normalizeSessionObserverAnalysisConfig(undefined)
     expect(copy).toEqual(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG)
@@ -72,12 +73,28 @@ describe('session observer analysis configuration', () => {
         model: 'account-specific-model',
         thinkingLevel: null
       })
-    ).toEqual({ agent: 'claude', model: 'account-specific-model', thinkingLevel: null })
+    ).toEqual({
+      agent: 'claude',
+      model: 'account-specific-model',
+      thinkingLevel: null,
+      systemPrompt: null
+    })
     expect(getSessionObserverAnalyzerModelOptions('codex')).toEqual(
       expect.arrayContaining([
         { id: 'gpt-5.6-luna', label: 'GPT-5.6 Luna' },
         { id: 'gpt-5.5', label: 'GPT-5.5' }
       ])
     )
+  })
+
+  it('bounds and preserves a custom business prompt while allowing an empty reset', () => {
+    const normalized = normalizeSessionObserverAnalysisConfig({
+      systemPrompt: `  请聚焦发布风险。  `
+    })
+    expect(normalized.systemPrompt).toBe('请聚焦发布风险。')
+    expect(
+      normalizeSessionObserverAnalysisConfig({ systemPrompt: 'x'.repeat(9_000) }).systemPrompt
+    ).toHaveLength(8_000)
+    expect(normalizeSessionObserverAnalysisConfig({ systemPrompt: '   ' }).systemPrompt).toBeNull()
   })
 })

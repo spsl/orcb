@@ -7,6 +7,7 @@ import type { SessionObserverAnalyzer } from './session-observer-analyzer'
 import type { SessionObserverAnalysisConfig } from '../../shared/session-observer-analysis'
 
 const analysis: SessionObserverAnalysis = {
+  title: '接入终端',
   summary: '已经完成终端接入。',
   goal: '接入终端。',
   status: 'completed',
@@ -284,7 +285,8 @@ describe('SessionObserverService', () => {
     let configured: SessionObserverAnalysisConfig = {
       agent: 'codex',
       model: 'gpt-5.6-luna',
-      thinkingLevel: 'low'
+      thinkingLevel: 'low',
+      systemPrompt: null
     }
     const first = deferred<SessionObserverAnalysis>()
     const calls: unknown[] = []
@@ -311,7 +313,7 @@ describe('SessionObserverService', () => {
     while (calls.length < 1) {
       await new Promise<void>((resolve) => setTimeout(resolve, 0))
     }
-    configured = { agent: 'claude', model: 'sonnet', thinkingLevel: 'low' }
+    configured = { agent: 'claude', model: 'sonnet', thinkingLevel: 'low', systemPrompt: null }
     first.resolve(analysis)
     await service.waitForIdleForTests()
 
@@ -333,9 +335,10 @@ describe('SessionObserverService', () => {
         agent: 'codex',
         model: 'gpt-5.6-luna',
         thinkingLevel: 'low',
+        systemPrompt: null,
         command: 'codex --profile observer'
       },
-      { agent: 'claude', model: 'sonnet', thinkingLevel: 'low' }
+      { agent: 'claude', model: 'sonnet', thinkingLevel: 'low', systemPrompt: null }
     ])
   })
 })

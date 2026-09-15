@@ -58,6 +58,9 @@ vi.mock('./SessionObserverDetailDialog', () => ({
       </button>
     ) : null
 }))
+vi.mock('./SessionObserverAnalyzerSettings', () => ({
+  SessionObserverAnalyzerSettings: () => <div>分析配置表单</div>
+}))
 
 import { SessionObserverRoot } from './SessionObserverRoot'
 
@@ -153,5 +156,14 @@ describe('SessionObserverRoot', () => {
     fireEvent.click(await screen.findByRole('button', { name: '选择会话' }))
     fireEvent.click(screen.getByRole('button', { name: '关闭终端' }))
     expect(mocks.close).not.toHaveBeenCalled()
+  })
+
+  it('reveals analyzer settings only after the header action is selected', () => {
+    render(<SessionObserverRoot />)
+
+    expect(screen.queryByText('分析配置表单')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '分析设置' }))
+    expect(screen.getByRole('dialog')).toHaveTextContent('分析配置')
+    expect(screen.getByText('分析配置表单')).toBeInTheDocument()
   })
 })

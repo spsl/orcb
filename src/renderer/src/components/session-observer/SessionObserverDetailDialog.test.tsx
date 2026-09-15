@@ -75,6 +75,29 @@ describe('SessionObserverDetailDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
+  it('shows the friendly workspace path and git branch in metadata', () => {
+    renderDialog(
+      <SessionObserverDetailDialog
+        session={session({
+          worktreePath: '/Users/ada/projects/orcb',
+          gitBranch: 'refs/heads/feature/session-card'
+        })}
+        reanalysisPending={false}
+        statusUpdatePending={false}
+        onOpenChange={() => {}}
+        onReanalyze={() => {}}
+        onManualStatusChange={() => {}}
+        onReveal={() => {}}
+        onCloseTerminal={() => {}}
+        closePending={false}
+      />
+    )
+
+    expect(screen.getByText('projects/orcb')).toBeInTheDocument()
+    expect(screen.getByText('feature/session-card')).toBeInTheDocument()
+    expect(screen.queryByText('workspace-1')).not.toBeInTheDocument()
+  })
+
   it('offers to open the source worktree and reports the selected session', () => {
     const onReveal = vi.fn()
     const sourceSession = session()

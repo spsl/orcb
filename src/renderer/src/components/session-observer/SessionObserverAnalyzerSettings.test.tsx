@@ -17,7 +17,8 @@ const mocks = vi.hoisted(() => {
       sessionObserverAnalysis: {
         agent: 'codex' as const,
         model: 'gpt-5.6-luna',
-        thinkingLevel: 'low' as const
+        thinkingLevel: 'low' as const,
+        systemPrompt: null
       }
     },
     updateSettingsOrThrow:
@@ -47,11 +48,8 @@ describe('SessionObserverAnalyzerSettings', () => {
   it('shows the persisted analyzer profile and model suggestions', () => {
     render(<SessionObserverAnalyzerSettings />)
 
-    expect(screen.getByRole('region', { name: '分析配置' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Agent')).toBeInTheDocument()
     expect(screen.getByLabelText('模型')).toHaveValue('gpt-5.6-luna')
-    expect(
-      screen.getByText('配置会用于后续自动分析和“重新分析”；正在执行的分析继续使用启动时的配置。')
-    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '恢复默认分析配置' })).toBeInTheDocument()
   })
 
@@ -66,7 +64,25 @@ describe('SessionObserverAnalyzerSettings', () => {
       sessionObserverAnalysis: {
         agent: 'codex',
         model: 'account-model',
-        thinkingLevel: 'low'
+        thinkingLevel: 'low',
+        systemPrompt: null
+      }
+    })
+  })
+
+  it('persists a custom business prompt after the textarea loses focus', async () => {
+    render(<SessionObserverAnalyzerSettings />)
+    const prompt = screen.getByLabelText('自定义分析提示词')
+    fireEvent.change(prompt, { target: { value: '请重点关注发布风险。' } })
+    fireEvent.blur(prompt)
+
+    await waitFor(() => expect(mocks.state.updateSettingsOrThrow).toHaveBeenCalledTimes(1))
+    expect(mocks.state.updateSettingsOrThrow).toHaveBeenCalledWith({
+      sessionObserverAnalysis: {
+        agent: 'codex',
+        model: 'gpt-5.6-luna',
+        thinkingLevel: 'low',
+        systemPrompt: '请重点关注发布风险。'
       }
     })
   })
@@ -75,7 +91,8 @@ describe('SessionObserverAnalyzerSettings', () => {
     mocks.state.settings.sessionObserverAnalysis = {
       agent: 'claude',
       model: 'opus',
-      thinkingLevel: 'high'
+      thinkingLevel: 'high',
+      systemPrompt: null
     }
     render(<SessionObserverAnalyzerSettings />)
     fireEvent.click(screen.getByRole('button', { name: '恢复默认分析配置' }))
@@ -111,7 +128,8 @@ describe('SessionObserverAnalyzerSettings', () => {
       sessionObserverAnalysis: {
         agent: 'codex',
         model: 'second-model',
-        thinkingLevel: 'low'
+        thinkingLevel: 'low',
+        systemPrompt: null
       }
     })
   })

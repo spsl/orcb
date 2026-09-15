@@ -27,6 +27,8 @@ export type SessionObserverAnalysisConfig = {
   model: string
   /** null delegates the effort choice to the selected CLI/model. */
   thinkingLevel: SessionObserverThinkingLevel | null
+  /** Optional user instructions that replace the analyzer's business guidance. */
+  systemPrompt?: string | null
 }
 
 export type SessionObserverAnalyzerAgentOption = {
@@ -48,8 +50,11 @@ export type SessionObserverThinkingLevelOption = {
 export const DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG: SessionObserverAnalysisConfig = {
   agent: 'codex',
   model: 'gpt-5.6-luna',
-  thinkingLevel: 'low'
+  thinkingLevel: 'low',
+  systemPrompt: null
 }
+
+export const MAX_SESSION_OBSERVER_SYSTEM_PROMPT_LENGTH = 8_000
 
 const THINKING_LEVEL_ORDER: readonly SessionObserverThinkingLevel[] = [
   'minimal',
@@ -224,7 +229,8 @@ export function getDefaultSessionObserverAnalysisConfig(
   return {
     agent,
     model,
-    thinkingLevel: defaultThinkingForModel(agent, model)
+    thinkingLevel: defaultThinkingForModel(agent, model),
+    systemPrompt: null
   }
 }
 
@@ -267,5 +273,18 @@ export function normalizeSessionObserverAnalysisConfig(
         ? requestedThinking
         : defaultThinkingForModel(requestedAgent, model)
 
-  return { agent: requestedAgent, model, thinkingLevel }
+  const fallbackSystemPrompt =
+    typeof fallbackValue.systemPrompt === 'string'
+      ? fallbackValue.systemPrompt.trim().slice(0, MAX_SESSION_OBSERVER_SYSTEM_PROMPT_LENGTH)
+      : null
+  const requestedSystemPrompt =
+    record && Object.hasOwn(record, 'systemPrompt')
+      ? typeof record.systemPrompt === 'string'
+        ? record.systemPrompt.trim().slice(0, MAX_SESSION_OBSERVER_SYSTEM_PROMPT_LENGTH) || null
+        : null
+      : requestedAgent === fallbackAgent
+        ? fallbackSystemPrompt
+        : null
+
+  return { agent: requestedAgent, model, thinkingLevel, systemPrompt: requestedSystemPrompt }
 }

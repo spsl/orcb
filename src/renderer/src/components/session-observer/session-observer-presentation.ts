@@ -3,6 +3,7 @@ import type {
   SessionObserverAnalysisStatus,
   SessionObserverSessionView
 } from '../../../../shared/session-observer'
+import { SESSION_OBSERVER_TITLE_MAX_LENGTH } from '../../../../shared/session-observer'
 import { normalizeRuntimePathSeparators } from '../../../../shared/cross-platform-path'
 import { splitWorktreeIdForFilesystem } from '../../../../shared/worktree/id'
 import { branchName } from '../../lib/git-utils'
@@ -44,7 +45,12 @@ function columnForStatus(status: SessionObserverAnalysisStatus): SessionObserver
 }
 
 export function sessionTitle(session: SessionObserverSessionView): string {
-  return firstLine(session.title) ?? firstLine(session.prompt) ?? `${session.agentType} 会话`
+  return (
+    firstLine(session.analysis?.title, SESSION_OBSERVER_TITLE_MAX_LENGTH) ??
+    firstLine(session.title) ??
+    firstLine(session.prompt) ??
+    `${session.agentType} 会话`
+  )
 }
 
 export function sessionWorkspaceLabel(session: SessionObserverSessionView): string {
@@ -63,7 +69,7 @@ export function sessionGitBranchLabel(session: SessionObserverSessionView): stri
   return branch ? branchName(branch) : null
 }
 
-export function firstLine(value: string | null, maxLength = 96): string | null {
+export function firstLine(value: string | null | undefined, maxLength = 96): string | null {
   if (!value) {
     return null
   }

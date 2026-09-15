@@ -1,11 +1,34 @@
 import {
   SESSION_OBSERVER_ANALYSIS_STATUSES,
+  SESSION_OBSERVER_TITLE_MAX_LENGTH,
+  normalizeSessionObserverTitle,
   type SessionObserverAnalysis
 } from '../../shared/session-observer'
 import { stripAnsiEscapeSequences } from '../../shared/ansi-escape-sequences'
 
 export const MAX_ANALYSIS_TEXT_LENGTH = 4_000
 export const MAX_ANALYSIS_LIST_ITEMS = 20
+
+function analysisTitle(record: Record<string, unknown>): string {
+  const value = record.title
+  if (value === undefined) {
+    // Older analyzers did not return a title; keep their results readable while
+    // new runs use the required schema field.
+    return normalizeSessionObserverTitle(text(record, 'goal')) ?? '未命名会话'
+  }
+  if (
+    typeof value !== 'string' ||
+    value.length > SESSION_OBSERVER_TITLE_MAX_LENGTH ||
+    /[\r\n]/.test(value)
+  ) {
+    throw new Error('分析结果字段 title 无效')
+  }
+  const normalized = normalizeSessionObserverTitle(value)
+  if (!normalized) {
+    throw new Error('分析结果字段 title 无效')
+  }
+  return normalized
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -64,6 +87,7 @@ export function parseSessionObserverAnalysis(value: unknown): SessionObserverAna
     throw new Error('分析结果人工介入字段无效')
   }
   return {
+    title: analysisTitle(record),
     summary: text(record, 'summary', 2_000),
     goal: text(record, 'goal'),
     status: status as SessionObserverAnalysis['status'],

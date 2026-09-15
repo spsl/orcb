@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { RotateCw, Settings2 } from 'lucide-react'
+import { RotateCw } from 'lucide-react'
 import {
   DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG,
   getDefaultSessionObserverAnalysisConfig,
   getSessionObserverAnalyzerAgentOptions,
   getSessionObserverAnalyzerModelOptions,
   getSessionObserverThinkingLevelOptions,
+  MAX_SESSION_OBSERVER_SYSTEM_PROMPT_LENGTH,
   normalizeSessionObserverAnalysisConfig,
   type SessionObserverAnalysisConfig,
   type SessionObserverAnalyzerAgent
@@ -14,6 +15,7 @@ import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -34,13 +36,15 @@ function configFromSettings(
   )
 }
 
-/** Inline settings for the analyzer used by subsequent observer runs. */
+/** Settings form for the analyzer used by subsequent observer runs. */
 export function SessionObserverAnalyzerSettings(): React.JSX.Element {
   const settings = useAppStore((state) => state.settings)
   const updateSettingsOrThrow = useAppStore((state) => state.updateSettingsOrThrow)
   const config = configFromSettings(settings)
   const [modelDraft, setModelDraft] = useState(config.model)
   const [modelDirty, setModelDirty] = useState(false)
+  const [systemPromptDraft, setSystemPromptDraft] = useState(config.systemPrompt ?? '')
+  const [systemPromptDirty, setSystemPromptDirty] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const writeQueue = useRef<Promise<void>>(Promise.resolve())
 
@@ -49,6 +53,12 @@ export function SessionObserverAnalyzerSettings(): React.JSX.Element {
       setModelDraft(config.model)
     }
   }, [config.model, modelDirty])
+
+  useEffect(() => {
+    if (!systemPromptDirty) {
+      setSystemPromptDraft(config.systemPrompt ?? '')
+    }
+  }, [config.systemPrompt, systemPromptDirty])
 
   const modelOptions = getSessionObserverAnalyzerModelOptions(config.agent)
   const thinkingOptions = useMemo(
@@ -75,7 +85,7 @@ export function SessionObserverAnalyzerSettings(): React.JSX.Element {
     const next = getDefaultSessionObserverAnalysisConfig(agent)
     setModelDraft(next.model)
     setModelDirty(false)
-    writeConfig(next)
+    writeConfig({ agent: next.agent, model: next.model, thinkingLevel: next.thinkingLevel })
   }
 
   const handleModelBlur = (): void => {
@@ -95,6 +105,11 @@ export function SessionObserverAnalyzerSettings(): React.JSX.Element {
     }
   }
 
+  const handleSystemPromptBlur = (): void => {
+    setSystemPromptDirty(false)
+    writeConfig({ systemPrompt: systemPromptDraft.trim() || null })
+  }
+
   const handleThinkingChange = (value: string): void => {
     writeConfig({
       thinkingLevel:
@@ -110,15 +125,8 @@ export function SessionObserverAnalyzerSettings(): React.JSX.Element {
       : AUTO_THINKING_VALUE
 
   return (
-    <section
-      aria-label="分析配置"
-      className="shrink-0 border-b border-border bg-muted/20 px-4 py-2.5"
-    >
-      <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
-        <div className="mr-1 flex items-center gap-1.5 self-center text-xs font-medium">
-          <Settings2 className="size-3.5 text-muted-foreground" />
-          分析配置
-        </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-3">
         <div className="grid gap-1">
           <Label
             htmlFor="session-observer-analysis-agent"
@@ -199,20 +207,37 @@ export function SessionObserverAnalyzerSettings(): React.JSX.Element {
           onClick={() => {
             setModelDraft(DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG.model)
             setModelDirty(false)
+            setSystemPromptDraft('')
+            setSystemPromptDirty(false)
             writeConfig({ ...DEFAULT_SESSION_OBSERVER_ANALYSIS_CONFIG })
           }}
         >
           <RotateCw />
         </Button>
       </div>
-      <p className="mt-1.5 text-[11px] text-muted-foreground">
-        配置会用于后续自动分析和“重新分析”；正在执行的分析继续使用启动时的配置。
-      </p>
+      <div className="grid gap-1.5">
+        <Label htmlFor="session-observer-analysis-system-prompt">自定义分析提示词</Label>
+        <Textarea
+          id="session-observer-analysis-system-prompt"
+          value={systemPromptDraft}
+          maxLength={MAX_SESSION_OBSERVER_SYSTEM_PROMPT_LENGTH}
+          rows={5}
+          placeholder="留空使用内置提示词；这里只覆盖业务分析指令，安全、只读和 JSON 输出约束仍会保留。"
+          onChange={(event) => {
+            setSystemPromptDraft(event.target.value)
+            setSystemPromptDirty(true)
+          }}
+          onBlur={handleSystemPromptBlur}
+        />
+        <p className="text-[11px] text-muted-foreground">
+          自定义内容会用于后续分析；正在执行的分析继续使用启动时的配置。
+        </p>
+      </div>
       {saveError ? (
-        <p role="alert" className="mt-1 text-[11px] text-destructive">
+        <p role="alert" className="text-[11px] text-destructive">
           {saveError}
         </p>
       ) : null}
-    </section>
+    </div>
   )
 }

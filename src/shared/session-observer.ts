@@ -12,6 +12,17 @@ export const SESSION_OBSERVER_ANALYSIS_STATUSES = [
   'unclear'
 ] as const
 
+export const SESSION_OBSERVER_TITLE_MAX_LENGTH = 48
+
+/** Normalizes model-generated titles for single-line card and dialog display. */
+export function normalizeSessionObserverTitle(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  return normalized ? normalized.slice(0, SESSION_OBSERVER_TITLE_MAX_LENGTH) : null
+}
+
 export type SessionObserverAnalysisStatus = (typeof SESSION_OBSERVER_ANALYSIS_STATUSES)[number]
 
 export function isSessionObserverAnalysisStatus(
@@ -30,6 +41,8 @@ export type SessionObserverManualStatusOverride = SessionObserverAnalysisStatus 
 export type SessionObserverTerminalState = 'live' | 'closed' | 'unknown'
 
 export type SessionObserverAnalysis = {
+  /** A concise, model-generated description of the current task. */
+  title: string
   summary: string
   goal: string
   status: SessionObserverAnalysisStatus

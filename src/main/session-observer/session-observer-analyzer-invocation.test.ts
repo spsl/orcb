@@ -29,6 +29,7 @@ describe('session observer analyzer invocation', () => {
       agent: 'claude',
       model: 'sonnet',
       thinkingLevel: 'low',
+      systemPrompt: null,
       command: 'claude-wrapper'
     })
     expect(command).toHaveBeenCalledWith('claude')

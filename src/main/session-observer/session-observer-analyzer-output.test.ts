@@ -6,6 +6,7 @@ import {
 import type { SessionObserverAnalysis } from '../../shared/session-observer'
 
 const analysis: SessionObserverAnalysis = {
+  title: '完成需求实现',
   summary: '已经完成需求。',
   goal: '完成需求',
   status: 'completed',
@@ -49,5 +50,19 @@ describe('session observer analyzer output', () => {
     expect(() =>
       parseSessionObserverAnalysis({ ...analysis, progress: ['x'.repeat(4_001)] })
     ).toThrow(/progress/)
+  })
+
+  it('accepts legacy output without a title by deriving one from the goal', () => {
+    const { title: _title, ...legacy } = analysis
+    expect(parseSessionObserverAnalysis(legacy)).toMatchObject({ title: '完成需求' })
+  })
+
+  it('rejects multiline or overlong generated titles', () => {
+    expect(() => parseSessionObserverAnalysis({ ...analysis, title: '第一行\n第二行' })).toThrow(
+      /title/
+    )
+    expect(() => parseSessionObserverAnalysis({ ...analysis, title: 'x'.repeat(49) })).toThrow(
+      /title/
+    )
   })
 })

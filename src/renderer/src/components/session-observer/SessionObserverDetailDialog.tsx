@@ -22,7 +22,9 @@ import {
   analysisStateLabel,
   analysisStatusLabel,
   SESSION_OBSERVER_STATUS_OPTIONS,
-  sessionTitle
+  sessionGitBranchLabel,
+  sessionTitle,
+  sessionWorkspaceLabel
 } from './session-observer-presentation'
 
 function formatTime(timestamp: number): string {
@@ -32,7 +34,8 @@ function formatTime(timestamp: number): string {
 function Metadata({ session }: { session: SessionObserverSessionView }): React.JSX.Element {
   const values = [
     ['Agent / 模型', `${session.agentType}${session.model ? ` / ${session.model}` : ''}`],
-    ['工作区', session.worktreeId ?? '未知'],
+    ['工作区', sessionWorkspaceLabel(session)],
+    ['分支', sessionGitBranchLabel(session) ?? '未知'],
     ['会话标识', session.paneKey],
     ['最近更新', formatTime(session.updatedAt)],
     [

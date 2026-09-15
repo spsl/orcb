@@ -3,6 +3,7 @@ import type { SessionObserverSessionView } from '../../../../shared/session-obse
 import {
   sessionColumn,
   sessionGitBranchLabel,
+  sessionTitle,
   sessionWorkspaceLabel
 } from './session-observer-presentation'
 
@@ -67,5 +68,27 @@ describe('session observer board presentation', () => {
       'feature/session-card'
     )
     expect(sessionGitBranchLabel(session({ gitBranch: '' }))).toBeNull()
+  })
+
+  it('prefers the generated analysis title over the terminal title', () => {
+    expect(
+      sessionTitle(
+        session({
+          title: 'Codex',
+          analysis: {
+            title: '重构会话分析配置',
+            summary: '正在重构分析配置。',
+            goal: '重构分析配置',
+            status: 'in_progress',
+            progress: [],
+            completed: [],
+            nextSteps: [],
+            blockers: [],
+            needsUserAttention: false,
+            confidence: 0.8
+          }
+        })
+      )
+    ).toBe('重构会话分析配置')
   })
 })

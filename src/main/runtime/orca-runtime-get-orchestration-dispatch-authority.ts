@@ -14,6 +14,7 @@ import {
   type OrchestrationCliCommand
 } from './orchestration/cli-command'
 import { getAppEnvironment } from '../../shared/app-environment'
+import { ORCB_CLI_COMMAND_NAME, ORCB_DEV_CLI_COMMAND_NAME } from '../../shared/orcb-local-distribution'
 import type { FleetAgentStatusEvidence } from '../../shared/orchestration-fleet-agent-status-evidence'
 import { readOrchestrationFleetAgentStatusSnapshot } from './orchestration-fleet-agent-status-snapshot'
 import { resolveStructuredWorkerAuthority } from './structured-worker-authority'
@@ -225,17 +226,17 @@ export class OrcaRuntimeWithGetOrchestrationDispatchAuthority extends OrcaRuntim
       const ptyId = this.resolveLeafForHandle(handle)?.ptyId
       pty = ptyId ? (this.ptysById.get(ptyId) ?? null) : null
     } catch {
-      return 'orca'
+      return ORCB_CLI_COMMAND_NAME
     }
     if (!pty) {
-      return 'orca'
+      return ORCB_CLI_COMMAND_NAME
     }
     return resolveTerminalOrchestrationCliCommand({
       connectionId: pty.connectionId,
       isWsl: pty.isWsl,
       worktreeId: pty.worktreeId,
-      // Dev builds run the CLI as `orca-dev`; a packaged app must not advertise it.
-      runtimeCliCommand: getAppEnvironment().isPackaged() ? undefined : 'orca-dev',
+      // Dev builds run the CLI as `orcb-dev`; a packaged app must not advertise it.
+      runtimeCliCommand: getAppEnvironment().isPackaged() ? undefined : ORCB_DEV_CLI_COMMAND_NAME,
       projectRuntime: this.store
         ? resolveLocalProjectRuntimeForWorktreeId(this.requireStore(), pty.worktreeId)
         : undefined

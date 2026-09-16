@@ -42,6 +42,9 @@ export const CheckParams = z
     ack: OptionalString,
     compatibilityAck: OptionalString,
     compatibilityQuestionAck: OptionalString,
+    // Why: old runtimes reject `orcb` in compatibilityCliCommand. Keep that legacy
+    // field for the old decoder and carry ORCB's public command separately.
+    compatibilityOrcbCliCommand: z.enum(['orcb', 'orcb-dev']).optional(),
     compatibilityCliCommand: z.enum(['orca', 'orca-ide', 'orca-dev']).optional(),
     run: OptionalString,
     wait: OptionalBoolean,
@@ -122,6 +125,8 @@ export const AskParams = z
     timeoutMs: OptionalFiniteNumber,
     from: OptionalString,
     run: OptionalString,
+    compatibilityOrcbCliCommand: z.enum(['orcb', 'orcb-dev']).optional(),
+    compatibilityOrcbWindowsCommand: z.literal('orcb').optional(),
     compatibilityCliCommand: z.enum(['orca', 'orca-ide', 'orca-dev']).optional(),
     compatibilityWindowsCommand: z.enum(['orca', 'orca-ide']).optional()
   })

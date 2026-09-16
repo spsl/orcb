@@ -3,23 +3,19 @@ import { getDefaultWslDistro } from '../wsl'
 import { runWslProcess } from '../wsl/wsl-runner'
 import { CliInstaller } from './cli-installer'
 import {
-  buildManagedLegacyRemoveCommand,
   buildSafeRemoveCommand,
   buildWslBridgeScript,
   buildWslLauncher,
   getBridgePathFromCommandPath,
-  getPosixDirname,
   getWslBridgeMarker,
   getWslLauncherMarker,
-  parseManagedLauncherTarget,
-  quoteShell
+  parseManagedLauncherTarget
 } from './wsl-cli-scripts'
 import { buildWslCliInstallCommand } from './wsl-cli-registration-command'
 import { buildWslCliStatus, readWslCliCommandFile, resolveReadyWslCliState } from './wsl-cli-status'
 
 const MANAGED_MARKER = getWslLauncherMarker()
 const BRIDGE_MANAGED_MARKER = getWslBridgeMarker()
-const LEGACY_WSL_COMMAND_NAME = 'orca'
 const WSL_COMMAND_TIMEOUT_MS = 10_000
 
 function normalizeManagedScriptContent(content: string): string {
@@ -76,7 +72,7 @@ export class WslCliInstaller {
         state: 'not_installed',
         currentTarget: null,
         pathConfigured: ready.pathConfigured,
-        detail: `Register ${ready.commandPath} to use Orca from WSL.`
+        detail: `Register ${ready.commandPath} to use ORCB from WSL.`
       })
     }
 
@@ -88,7 +84,7 @@ export class WslCliInstaller {
         state: 'conflict',
         currentTarget: null,
         pathConfigured: ready.pathConfigured,
-        detail: `${ready.commandPath} exists but is not an Orca launcher script.`
+        detail: `${ready.commandPath} exists but is not an ORCB launcher script.`
       })
     }
 
@@ -125,7 +121,7 @@ export class WslCliInstaller {
         detail:
           bridgeContent === null || bridgeManaged
             ? `${ready.commandPath} is missing its PowerShell bridge.`
-            : `${ready.bridgePath} exists but is not managed by Orca.`
+            : `${ready.bridgePath} exists but is not managed by ORCB.`
       })
     }
 
@@ -141,10 +137,10 @@ export class WslCliInstaller {
       currentTarget,
       pathConfigured: ready.pathConfigured,
       detail: !managed
-        ? `${ready.commandPath} exists but is not managed by Orca.`
+        ? `${ready.commandPath} exists but is not managed by ORCB.`
         : bridgeConflict
-          ? `${ready.bridgePath} exists but is not managed by Orca.`
-          : `${ready.commandPath} points to a different Orca launcher.`
+          ? `${ready.bridgePath} exists but is not managed by ORCB.`
+          : `${ready.commandPath} points to a different ORCB launcher.`
     })
   }
 
@@ -163,7 +159,7 @@ export class WslCliInstaller {
     }
     if (status.state === 'conflict') {
       // Why: a user-owned bridge conflicts with repair, but the launcher is
-      // still Orca-managed and must remain registered for future reconciliation.
+      // still ORCB-managed and must remain registered for future reconciliation.
       return { changed: false, managed: status.currentTarget !== null, status }
     }
 
@@ -171,32 +167,10 @@ export class WslCliInstaller {
       return { changed: true, managed: true, status: await this.install(status) }
     }
 
-    const legacyCommandPath = status.commandPath
-      ? `${getPosixDirname(status.commandPath)}/${LEGACY_WSL_COMMAND_NAME}`
-      : null
-    if (!legacyCommandPath || !this.distro) {
-      return { changed: false, managed: status.state === 'installed', status }
-    }
-
-    const legacyContent = await this.readCommandFile(this.distro, legacyCommandPath)
-    const legacyManaged =
-      typeof legacyContent === 'string' && legacyContent.includes(MANAGED_MARKER)
-    if (!legacyManaged) {
-      return { changed: false, managed: status.state === 'installed', status }
-    }
-
-    if (
-      status.commandPath &&
-      (await this.isBridgeConflict(this.distro, getBridgePathFromCommandPath(status.commandPath)))
-    ) {
-      // Why: adopting the legacy command would fail install()'s bridge guard
-      // forever; stay registered so reconciliation retries after an update.
-      return { changed: false, managed: true, status }
-    }
-
-    // Why: a legacy-only managed command proves the user opted into WSL CLI
-    // registration; install the current name before removing that owned script.
-    return { changed: true, managed: true, status: await this.install(status) }
+    // Why: older Orca/ORCB launchers share neither a command name nor a bridge
+    // namespace with ORCB. Do not infer ownership from their generic marker:
+    // that could replace a separately installed official Orca launcher.
+    return { changed: false, managed: status.state === 'installed', status }
   }
 
   async install(precomputedStatus?: CliInstallStatus): Promise<CliInstallStatus> {
@@ -208,7 +182,7 @@ export class WslCliInstaller {
     }
     if (status.state === 'conflict') {
       throw new Error(
-        `Refusing to replace non-Orca command at ${status.commandPath}. Remove it and register again if it is no longer needed.`
+        `Refusing to replace non-ORCB command at ${status.commandPath}. Remove it and register again if it is no longer needed.`
       )
     }
 
@@ -228,23 +202,16 @@ export class WslCliInstaller {
     if (!status.supported || !status.commandPath) {
       return status
     }
-    const legacyCommandPath = `${getPosixDirname(status.commandPath)}/${LEGACY_WSL_COMMAND_NAME}`
     if (status.state === 'not_installed') {
-      // Why: a managed legacy `orca` left behind would later be re-adopted by
-      // startup reconciliation as opt-in proof, silently undoing this removal.
-      await this.run(
-        this.distro as string,
-        ['set -eu', buildManagedLegacyRemoveCommand(quoteShell(legacyCommandPath))].join('\n')
-      )
       return status
     }
     if (status.state === 'conflict') {
-      throw new Error(`Refusing to remove non-Orca command at ${status.commandPath}.`)
+      throw new Error(`Refusing to remove non-ORCB command at ${status.commandPath}.`)
     }
 
     await this.run(
       this.distro as string,
-      buildSafeRemoveCommand(status.commandPath, legacyCommandPath)
+      buildSafeRemoveCommand(status.commandPath)
     )
     return this.getStatus()
   }

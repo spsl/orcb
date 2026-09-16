@@ -1,3 +1,8 @@
+import {
+  ORCB_CLI_COMMAND_NAME,
+  ORCB_DEV_CLI_COMMAND_NAME
+} from '../../shared/orcb-local-distribution'
+
 export function resolveOrchestrationCliExecutable(
   env: NodeJS.ProcessEnv = process.env,
   platform: NodeJS.Platform = process.platform
@@ -7,9 +12,10 @@ export function resolveOrchestrationCliExecutable(
     return configured
   }
   if (env.ORCA_DEV_REPO_ROOT) {
-    return 'orca-dev'
+    return ORCB_DEV_CLI_COMMAND_NAME
   }
-  return platform === 'linux' ? 'orca-ide' : 'orca'
+  void platform
+  return ORCB_CLI_COMMAND_NAME
 }
 
 export function buildOrchestrationRecoveryCommand(

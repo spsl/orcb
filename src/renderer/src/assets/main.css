@@ -1180,6 +1180,20 @@ html.native-shell .app-layout {
   color: var(--accent-foreground);
 }
 
+/* Keep multi-select project filters distinguishable from quiet outline chips. */
+[data-slot='button'].session-observer-project-filter[data-selected='true'] {
+  background: color-mix(in srgb, var(--foreground) 12%, var(--background));
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 18%, transparent);
+  color: var(--foreground);
+}
+
+.dark [data-slot='button'].session-observer-project-filter[data-selected='true'] {
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 16%, transparent);
+  color: var(--accent-foreground);
+}
+
 /* ── Sidebar ─────────────────────────────────────────── */
 
 [data-file-explorer-row][data-selected='true'] {

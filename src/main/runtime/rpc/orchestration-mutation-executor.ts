@@ -204,7 +204,7 @@ export class OrchestrationMutationExecutor {
             ? {
                 requestId,
                 dispatchId: recovery.dispatchId,
-                recoveryCommand: `orca orchestration worker-show --dispatch ${recovery.dispatchId} --json`
+                recoveryCommand: `orcb orchestration worker-show --dispatch ${recovery.dispatchId} --json`
               }
             : { requestId }
         )

@@ -1,4 +1,5 @@
 import type { OrchestrationCliCommand } from './cli-command'
+import { ORCB_CLI_COMMAND_NAME, ORCB_DEV_CLI_COMMAND_NAME } from '../../../shared/orcb-local-distribution'
 
 export type PreambleParams = {
   taskId: string
@@ -13,8 +14,7 @@ export type PreambleParams = {
   coordinatorHandle: string
   workerHandle: string
   devMode?: boolean
-  // Why: packaged WSL panes install the scoped launcher as `orca-ide`;
-  // other execution hosts keep their existing bare `orca` bridge.
+  // Why: every ORCB execution host exposes the same public command.
   cliCommand?: OrchestrationCliCommand
   // Why: populated by the coordinator's dispatch pre-flight (§3.1) only
   // when the target worktree is behind its tracking remote. When absent
@@ -47,10 +47,10 @@ const HEARTBEAT_INTERVAL_MIN = 5
 // not as a separate prose block — LLM readers anchor on examples and skim
 // trailing prose, so rules must land at the point of use.
 export function buildDispatchPreamble(params: PreambleParams): string {
-  // Why: in dev mode, agents must use orca-dev to connect to the dev runtime's
+  // Why: in dev mode, agents must use orcb-dev to connect to the dev runtime's
   // socket. Without this, agents inside the dev Electron app would call the
   // production CLI and talk to the wrong Orca instance (Section 6.4).
-  const cli = params.devMode ? 'orca-dev' : (params.cliCommand ?? 'orca')
+  const cli = params.devMode ? ORCB_DEV_CLI_COMMAND_NAME : (params.cliCommand ?? ORCB_CLI_COMMAND_NAME)
   const postDoneInstructions = buildPostWorkerDoneInstructions({
     cli,
     workerKind: params.workerKind ?? 'prompt-returning-agent'

@@ -30,6 +30,7 @@ export type LegacyCheckParams = {
   timeoutMs?: number
   compatibilityAck?: string
   compatibilityQuestionAck?: string
+  compatibilityOrcbCliCommand?: 'orcb' | 'orcb-dev'
   compatibilityCliCommand?: 'orca' | 'orca-ide' | 'orca-dev'
 }
 
@@ -41,6 +42,8 @@ export type LegacyAskParams = {
   resume?: string
   options?: string
   timeoutMs?: number
+  compatibilityOrcbCliCommand?: 'orcb' | 'orcb-dev'
+  compatibilityOrcbWindowsCommand?: 'orcb'
   compatibilityCliCommand?: 'orca' | 'orca-ide' | 'orca-dev'
   compatibilityWindowsCommand?: 'orca' | 'orca-ide'
 }
@@ -159,10 +162,25 @@ export function parseLegacyOptions(raw: string | undefined): string[] {
   )
 }
 
+export function resolveLegacyCompatibilityCliCommand(params: {
+  compatibilityOrcbCliCommand?: 'orcb' | 'orcb-dev'
+  compatibilityOrcbWindowsCommand?: 'orcb'
+  compatibilityCliCommand?: 'orca' | 'orca-ide' | 'orca-dev'
+  compatibilityWindowsCommand?: 'orca' | 'orca-ide'
+}): 'orcb' | 'orcb-dev' | 'orca' | 'orca-ide' | 'orca-dev' {
+  return (
+    params.compatibilityOrcbCliCommand ??
+    params.compatibilityOrcbWindowsCommand ??
+    params.compatibilityCliCommand ??
+    params.compatibilityWindowsCommand ??
+    'orca'
+  )
+}
+
 export function supportedLegacyHints(
   message: MessageRow,
   principal: LegacyCompatibilityPrincipalRow,
-  cliCommand: 'orca' | 'orca-ide' | 'orca-dev'
+  cliCommand: 'orcb' | 'orcb-dev' | 'orca' | 'orca-ide' | 'orca-dev'
 ): string[] {
   if (
     principal.role !== 'coordinator' ||

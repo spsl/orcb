@@ -27,6 +27,10 @@ import {
   restoreOrStripOverlayEnv
 } from './pi-agent'
 import { AGENT_HOOK_RUNTIME_ENV_KEYS } from './spawn-env-keys'
+import {
+  ORCB_CLI_COMMAND_NAME,
+  ORCB_DEV_CLI_COMMAND_NAME
+} from '../../../../shared/orcb-local-distribution'
 
 /**
  * Mutates `baseEnv` in place with all host-local PTY env vars and returns it.
@@ -222,11 +226,12 @@ export function buildPtyHostEnv(
     delete baseEnv.ORCA_CODEX_LAUNCH_PREFLIGHT
   }
 
-  // Why: WSL shells need the managed userData root for shell-ready wrappers; dev-mode terminals need the same export so `orca` targets the live dev instance.
+  // Why: WSL shells need the managed userData root for shell-ready wrappers; dev-mode terminals need the same export so `orcb` targets the live dev instance.
   if (opts.isWsl) {
     baseEnv.ORCA_USER_DATA_PATH = opts.userDataPath
-    // Why: managed WSL registration uses `orca-ide`; exposing that literal scopes agent guidance to WSL without a bare-orca shim.
-    baseEnv.ORCA_CLI_COMMAND = opts.isPackaged ? 'orca-ide' : 'orca-dev'
+    baseEnv.ORCA_CLI_COMMAND = opts.isPackaged
+      ? ORCB_CLI_COMMAND_NAME
+      : ORCB_DEV_CLI_COMMAND_NAME
   } else {
     if (!opts.isPackaged) {
       baseEnv.ORCA_USER_DATA_PATH ??= opts.userDataPath
@@ -244,7 +249,11 @@ export function buildPtyHostEnv(
     baseEnv.BROWSER === undefined &&
     process.env.BROWSER === undefined
   ) {
-    const cliCommand = opts.isWsl ? (opts.isPackaged ? 'orca-ide' : 'orca-dev') : 'orca'
+    const cliCommand = opts.isWsl
+      ? opts.isPackaged
+        ? ORCB_CLI_COMMAND_NAME
+        : ORCB_DEV_CLI_COMMAND_NAME
+      : ORCB_CLI_COMMAND_NAME
     baseEnv.BROWSER = `${cliCommand} open-url --url %s`
   }
 

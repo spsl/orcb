@@ -14,6 +14,8 @@ import { getOptionalPositiveIntegerValueFlag } from './numeric-flags'
 import {
   flushOrchestrationStdout,
   resolveCompatibilityCliCommand,
+  resolveOrcbCompatibilityCliCommand,
+  resolvePackagedOrcbWindowsCompatibilityCommand,
   resolvePackagedWindowsCompatibilityCommand
 } from './runtime-compatibility'
 import { resolveOrchestrationTerminalHandle } from './terminal-identity'
@@ -59,6 +61,8 @@ export const ORCHESTRATION_QUESTION_HANDLER: Record<string, CommandHandler> = {
         options: getOptionalStringFlag(flags, 'options'),
         timeoutMs: parsedTimeoutMs === undefined ? undefined : timeoutMs,
         from,
+        compatibilityOrcbCliCommand: resolveOrcbCompatibilityCliCommand(),
+        compatibilityOrcbWindowsCommand: resolvePackagedOrcbWindowsCompatibilityCommand(),
         compatibilityCliCommand: resolveCompatibilityCliCommand(),
         compatibilityWindowsCommand: resolvePackagedWindowsCompatibilityCommand()
       },

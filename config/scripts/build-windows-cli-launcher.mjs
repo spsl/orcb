@@ -22,7 +22,7 @@ export function shouldReuseCompiledWindowsCliLauncher(
 }
 
 function defaultOutputPath(projectRoot) {
-  return join(projectRoot, 'native', 'windows-cli-launcher', '.build', 'orca.exe')
+  return join(projectRoot, 'native', 'windows-cli-launcher', '.build', 'orcb.exe')
 }
 
 function findFrameworkCompiler(env) {
@@ -45,7 +45,7 @@ function readArg(name) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.platform !== 'win32') {
     // Why: electron-builder treats a skipped native build like success and can
-    // continue toward a Windows package whose declared orca.exe does not exist.
+    // continue toward a Windows package whose declared orcb.exe does not exist.
     throw new Error(
       'Windows CLI launcher compilation requires a Windows host; refusing to package without it.'
     )
@@ -57,7 +57,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const compilerPath = findFrameworkCompiler(process.env)
 
   if (!compilerPath) {
-    throw new Error('Unable to find the .NET Framework C# compiler required for orca.exe.')
+    throw new Error('Unable to find the .NET Framework C# compiler required for orcb.exe.')
   }
 
   mkdirSync(dirname(outputPath), { recursive: true })

@@ -18,6 +18,7 @@ import type {
   ComputerListWindowsResult,
   ComputerSnapshotResult
 } from '../shared/runtime-types'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 import type { RuntimeRpcSuccess } from './runtime-client'
 
 export function formatGetAppState(result: ComputerSnapshotResult): string {
@@ -221,7 +222,7 @@ function formatComputerFollowUpCommand(
   target: ComputerActionFollowUpTarget
 ): string {
   const args = [
-    'orca',
+    ORCB_CLI_COMMAND_NAME,
     'computer',
     'get-app-state',
     '--app',

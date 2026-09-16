@@ -151,6 +151,8 @@ export function SessionObserverBoard({
                 type="button"
                 variant={allProjectsSelected ? 'secondary' : 'outline'}
                 size="xs"
+                className="session-observer-project-filter"
+                data-selected={allProjectsSelected}
                 aria-pressed={allProjectsSelected}
                 onClick={() => onToggleProject(null)}
               >
@@ -164,8 +166,9 @@ export function SessionObserverBoard({
                     type="button"
                     variant={selected ? 'secondary' : 'outline'}
                     size="xs"
-                    className="max-w-full"
+                    className="session-observer-project-filter max-w-full"
                     title={project.label}
+                    data-selected={selected}
                     aria-pressed={selected}
                     onClick={() => onToggleProject(project.key)}
                   >

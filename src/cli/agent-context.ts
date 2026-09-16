@@ -1,5 +1,6 @@
 import type { CommandSpec } from './args'
 import { effectiveAllowedFlags } from './args'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 
 // Why: serialize the live spec table so agent discovery cannot drift from the
 // command surface it describes.
@@ -55,6 +56,6 @@ export function formatAgentContextSummary(schema: AgentContextSchema): string {
   // point the reader at --json rather than dumping every command.
   return [
     `${schema.commandCount} commands (schema v${schema.schemaVersion}).`,
-    'Run `orca agent-context --json` for the full machine-readable command schema.'
+    `Run \`${ORCB_CLI_COMMAND_NAME} agent-context --json\` for the full machine-readable command schema.`
   ].join('\n')
 }

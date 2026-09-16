@@ -62,6 +62,10 @@ describe('SessionObserverBoard', () => {
       'aria-pressed',
       'true'
     )
+    expect(screen.getByRole('button', { name: 'Orca（1）' })).toHaveAttribute(
+      'data-selected',
+      'true'
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Console（2）' }))
     expect(onToggleProject).toHaveBeenCalledWith('repo:repo-two')
   })

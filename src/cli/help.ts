@@ -4,6 +4,7 @@ import { unknownCommandData } from './command-suggestion'
 import { formatSkillsCommandFlagHelp } from './skills-command-flag-help'
 import { ROOT_HELP_TEXT_PRIMARY } from './root-help-text-primary'
 import { ROOT_HELP_TEXT_SECONDARY } from './root-help-text-secondary'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 
 const ROOT_HELP_TEXT = [ROOT_HELP_TEXT_PRIMARY, ROOT_HELP_TEXT_SECONDARY].join('\n')
 
@@ -29,7 +30,13 @@ export function printHelp(specs: CommandSpec[], commandPath: string[] = []): voi
 }
 
 export function formatCommandHelp(spec: CommandSpec): string {
-  const lines = [`orca ${spec.path.join(' ')}`, '', `Usage: ${spec.usage}`, '', spec.summary]
+  const lines = [
+    `${ORCB_CLI_COMMAND_NAME} ${spec.path.join(' ')}`,
+    '',
+    `Usage: ${spec.usage}`,
+    '',
+    spec.summary
+  ]
   const displayedFlags =
     spec.argumentMode === 'passthrough'
       ? []
@@ -63,11 +70,20 @@ export function formatCommandHelp(spec: CommandSpec): string {
 
 export function formatGroupHelp(specs: CommandSpec[], group: string): string {
   const groupSpecs = specs.filter((spec) => spec.path[0] === group && spec.hidden !== true)
-  const lines = [`orca ${group}`, '', `Usage: orca ${group} <command> [options]`, '', 'Commands:']
+  const lines = [
+    `${ORCB_CLI_COMMAND_NAME} ${group}`,
+    '',
+    `Usage: ${ORCB_CLI_COMMAND_NAME} ${group} <command> [options]`,
+    '',
+    'Commands:'
+  ]
   for (const spec of groupSpecs) {
     lines.push(`  ${spec.path.slice(1).join(' ').padEnd(18)} ${spec.summary}`)
   }
-  lines.push('', `Run \`orca ${group} <command> --help\` for command-specific usage.`)
+  lines.push(
+    '',
+    `Run \`${ORCB_CLI_COMMAND_NAME} ${group} <command> --help\` for command-specific usage.`
+  )
   return lines.join('\n')
 }
 

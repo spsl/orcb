@@ -8,6 +8,7 @@ import {
   normalizeLegacyText,
   operationIdentity,
   parseLegacyOptions,
+  resolveLegacyCompatibilityCliCommand,
   type LegacyAskParams
 } from './orchestration-legacy-operation'
 
@@ -71,8 +72,7 @@ export async function handleLegacyAsk(args: {
         (match) => match.question.status === 'answered' && !match.answerAcknowledged
       )
       if (lostAnswer) {
-        const cliCommand =
-          params.compatibilityCliCommand ?? params.compatibilityWindowsCommand ?? 'orca'
+        const cliCommand = resolveLegacyCompatibilityCliCommand(params)
         throw new OrchestrationError(
           'operation_unknown',
           `A matching legacy answer may have been accepted before the update. Run ${cliCommand} orchestration check --terminal ${principal.terminal_handle} before asking again.`
@@ -103,7 +103,9 @@ export async function handleLegacyAsk(args: {
     }
   }
 
-  if (params.compatibilityWindowsCommand && !params.resume) {
+  const compatibilityWindowsCommand =
+    params.compatibilityOrcbWindowsCommand ?? params.compatibilityWindowsCommand
+  if (compatibilityWindowsCommand && !params.resume) {
     return {
       answer: null,
       messageId: questionId,
@@ -114,7 +116,7 @@ export async function handleLegacyAsk(args: {
       timeoutMs,
       legacyCompatibility: {
         resumeRequired: true,
-        resumeCommand: `${params.compatibilityWindowsCommand} orchestration ask --resume ${questionId}`
+        resumeCommand: `${compatibilityWindowsCommand} orchestration ask --resume ${questionId}`
       }
     }
   }

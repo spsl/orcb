@@ -18,6 +18,7 @@ import {
   sshArtifactSourceKey,
   type RemoteArtifactInput
 } from '../../shared/artifact-cli-bridge'
+import { ORCB_CLI_COMMAND_NAME } from '../../shared/orcb-local-distribution'
 
 export type SshCliRuntimeAuthority = {
   kind: 'ssh'
@@ -119,7 +120,7 @@ export function buildHostCliEnv(args: {
   // cwd-based selectors like `--worktree active`.
   env.ORCA_CLI_CWD = args.remoteCwd
   // Why: recovery commands run on the SSH execution host through its relay shim.
-  env.ORCA_CLI_COMMAND = 'orca'
+  env.ORCA_CLI_COMMAND = ORCB_CLI_COMMAND_NAME
   // Why: same node-mode hygiene as the shipped CLI launchers — stash and clear
   // NODE_OPTIONS so Electron's node bootstrap does not inherit them.
   env.ORCA_NODE_OPTIONS = args.hostEnv.NODE_OPTIONS ?? ''
@@ -187,7 +188,7 @@ export async function runHostOrcaCliPassthrough(
   }
 
   if (!entryExists(cliEntryPath)) {
-    throw new HostCliUnavailableError(`Orca CLI entry not found at ${cliEntryPath}`)
+    throw new HostCliUnavailableError(`ORCB CLI entry not found at ${cliEntryPath}`)
   }
 
   const env = buildHostCliEnv({
@@ -222,7 +223,7 @@ export async function runHostOrcaCliPassthrough(
       }
       resolve({
         stdout: stdout.toString(),
-        stderr: `${stderr.toString()}Orca CLI bridge timed out after ${killTimeoutMs}ms on the host.\n`,
+        stderr: `${stderr.toString()}ORCB CLI bridge timed out after ${killTimeoutMs}ms on the host.\n`,
         exitCode: 1
       })
     }, killTimeoutMs)
@@ -238,7 +239,7 @@ export async function runHostOrcaCliPassthrough(
       // runnable at all — signal the caller to use the legacy fallback rather
       // than reporting a confusing per-command failure.
       reject(
-        new HostCliUnavailableError(`Failed to launch the Orca CLI on the host: ${err.message}`)
+        new HostCliUnavailableError(`Failed to launch the ORCB CLI on the host: ${err.message}`)
       )
     })
 

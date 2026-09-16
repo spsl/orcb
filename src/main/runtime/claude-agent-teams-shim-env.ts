@@ -9,6 +9,7 @@ import {
   type ClaudeAgentTeamsMode
 } from '../../shared/claude-agent-teams-tmux-compat'
 import { getOrcaCliCommandNameForPlatform } from '../../shared/orca-cli-command-name'
+import { ORCB_DEV_CLI_COMMAND_NAME } from '../../shared/orcb-local-distribution'
 import { resolvePathEnvKey } from '../pty/windows-path-segment-merge'
 
 export type ClaudeAgentTeamsLaunchPlan = {
@@ -44,7 +45,7 @@ export async function buildClaudeAgentTeamsLaunchPlan(args: {
   }
   const shimBin = resolveClaudeAgentTeamsShimBin(args.baseEnv)
   if (!shimBin) {
-    // Why: without an absolute CLI path the shim would resolve a bare `orca` against the pane cwd, so degrade instead.
+    // Why: without an absolute CLI path the shim would resolve a bare `orcb` against the pane cwd, so degrade instead.
     return {
       command: addClaudeTeammateModeInProcess(args.command),
       env: { CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1' }
@@ -59,7 +60,7 @@ export async function buildClaudeAgentTeamsLaunchPlan(args: {
   }
 }
 
-/** Absolute path to the Orca CLI that backs the tmux shim, or null when none can be qualified. */
+/** Absolute path to the ORCB CLI that backs the tmux shim, or null when none can be qualified. */
 export function resolveClaudeAgentTeamsShimBin(
   env: Record<string, string | undefined> = process.env
 ): string | null {
@@ -78,7 +79,10 @@ export function resolveClaudeAgentTeamsShimBin(
     return bundled
   }
   return (
-    findExecutableOnPath(process.platform === 'win32' ? 'orca-dev.cmd' : 'orca-dev', pathValue) ??
+    findExecutableOnPath(
+      process.platform === 'win32' ? `${ORCB_DEV_CLI_COMMAND_NAME}.cmd` : ORCB_DEV_CLI_COMMAND_NAME,
+      pathValue
+    ) ??
     findExecutableOnPath(getOrcaCliCommandNameForPlatform(process.platform), pathValue)
   )
 }
@@ -92,13 +96,13 @@ function bundledLauncherPath(): string | null {
     return null
   }
   if (process.platform === 'darwin') {
-    return join(process.resourcesPath, 'bin', 'orca')
+    return join(process.resourcesPath, 'bin', 'orcb')
   }
   if (process.platform === 'linux') {
-    return join(process.resourcesPath, 'bin', 'orca-ide')
+    return join(process.resourcesPath, 'bin', 'orcb')
   }
   if (process.platform === 'win32') {
-    return join(process.resourcesPath, 'bin', 'orca.exe')
+    return join(process.resourcesPath, 'bin', 'orcb.exe')
   }
   return null
 }
@@ -130,7 +134,7 @@ function isExecutableFile(candidate: string): boolean {
 }
 
 // Why: an unqualified command name is resolved against the invoking pane's cwd (always on cmd.exe, and via `.`/empty
-// PATH entries on POSIX), so a stray `orca` next to the agent's files would run with the team token. Demand a
+// PATH entries on POSIX), so a stray `orcb` next to the agent's files would run with the team token. Demand a
 // fully-qualified binary instead of guessing one.
 function unixShimScript(): string {
   return [
@@ -140,7 +144,7 @@ function unixShimScript(): string {
     'case $orca_bin in',
     '  /*|[A-Za-z]:[\\\\/]*) ;;',
     '  *)',
-    '    echo "orca agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path" >&2',
+    '    echo "orcb agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path" >&2',
     '    exit 127',
     '    ;;',
     'esac',
@@ -163,7 +167,7 @@ export function windowsClaudeAgentTeamsShimScript(): string {
     '"%ORCA_SHIM_BIN%" agent-teams-tmux %*',
     'exit /b %ERRORLEVEL%',
     ':unqualified',
-    'echo orca agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path 1>&2',
+    'echo orcb agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path 1>&2',
     'exit /b 127',
     ''
   ].join('\r\n')

@@ -17,14 +17,14 @@ const builderConfig = require('../../../config/electron-builder.config.cjs') as 
   linux?: { extraResources?: { from?: string; to?: string }[] }
   win?: { extraResources?: { from?: string; to?: string }[] }
 }
-const linuxLauncherAsset = new URL('../../../resources/linux/bin/orca-ide', import.meta.url)
-const darwinLauncherAsset = new URL('../../../resources/darwin/bin/orca', import.meta.url)
+const linuxLauncherAsset = new URL('../../../resources/linux/bin/orcb', import.meta.url)
+const darwinLauncherAsset = new URL('../../../resources/darwin/bin/orcb', import.meta.url)
 const unixLauncherFixtures = [
   {
     name: 'Linux',
     asset: linuxLauncherAsset,
     appDir: ['orcb'],
-    launcher: ['resources', 'bin', 'orca-ide'],
+    launcher: ['resources', 'bin', 'orcb'],
     executable: ['orcb'],
     cli: ['resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
   },
@@ -32,7 +32,7 @@ const unixLauncherFixtures = [
     name: 'macOS',
     asset: darwinLauncherAsset,
     appDir: ['orcb.app'],
-    launcher: ['Contents', 'Resources', 'bin', 'orca'],
+    launcher: ['Contents', 'Resources', 'bin', 'orcb'],
     executable: ['Contents', 'MacOS', 'orcb'],
     cli: ['Contents', 'Resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
   }

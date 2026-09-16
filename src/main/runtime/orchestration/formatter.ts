@@ -1,6 +1,7 @@
 import type { MessageRow } from './types'
 import { ORCHESTRATION_LEGACY_RUN_ID } from '../../../shared/orchestration-rpc-contract'
 import type { OrchestrationCliCommand } from './cli-command'
+import { ORCB_CLI_COMMAND_NAME } from '../../../shared/orcb-local-distribution'
 
 const BANNER_WIDTH = 60
 const SEPARATOR = '─'.repeat(BANNER_WIDTH)
@@ -91,7 +92,9 @@ export function formatMessageBanner(
       msg.to_handle.startsWith('run:') || msg.to_handle.startsWith('dispatch:')
         ? ''
         : ` --from ${msg.to_handle}`
-    lines.push(`[Reply: orca orchestration reply --id ${msg.id}${explicitFrom} --body "..."]`)
+    lines.push(
+      `[Reply: ${ORCB_CLI_COMMAND_NAME} orchestration reply --id ${msg.id}${explicitFrom} --body "..."]`
+    )
   }
   lines.push(SEPARATOR)
 
@@ -112,7 +115,7 @@ export function formatMessagesForInjection(messages: MessageRow[]): string {
 export function formatMessagePointer(
   count: number,
   mailboxHandle?: string,
-  cliCommand: OrchestrationCliCommand = 'orca'
+  cliCommand: OrchestrationCliCommand = ORCB_CLI_COMMAND_NAME
 ): string {
   const noun = count === 1 ? 'message' : 'messages'
   const runFlag = mailboxHandle?.startsWith('run:')

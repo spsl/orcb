@@ -1,4 +1,8 @@
 import { RuntimeClientError } from '../../runtime-client'
+import {
+  ORCB_CLI_COMMAND_NAME,
+  ORCB_DEV_CLI_COMMAND_NAME
+} from '../../../shared/orcb-local-distribution'
 
 export function resolveCompatibilityCliCommand(): 'orca' | 'orca-ide' | 'orca-dev' {
   const configured = process.env.ORCA_CLI_COMMAND
@@ -6,6 +10,14 @@ export function resolveCompatibilityCliCommand(): 'orca' | 'orca-ide' | 'orca-de
     return configured
   }
   return process.platform === 'linux' ? 'orca-ide' : 'orca'
+}
+
+export function resolveOrcbCompatibilityCliCommand(): 'orcb' | 'orcb-dev' {
+  const configured = process.env.ORCA_CLI_COMMAND
+  if (configured === ORCB_CLI_COMMAND_NAME || configured === ORCB_DEV_CLI_COMMAND_NAME) {
+    return configured
+  }
+  return isDevCliInvocation() ? ORCB_DEV_CLI_COMMAND_NAME : ORCB_CLI_COMMAND_NAME
 }
 
 export function resolvePackagedWindowsCompatibilityCommand(): 'orca' | 'orca-ide' | undefined {
@@ -16,9 +28,27 @@ export function resolvePackagedWindowsCompatibilityCommand(): 'orca' | 'orca-ide
   if (command === 'orca' || command === 'orca-ide') {
     return command
   }
+  if (command === ORCB_CLI_COMMAND_NAME || command === ORCB_DEV_CLI_COMMAND_NAME) {
+    // Why: old runtimes reject the new command enum. They receive this legacy
+    // value while current ORCB runtimes use compatibilityOrcbWindowsCommand.
+    return 'orca'
+  }
   throw new RuntimeClientError(
     'invalid_argument',
     'The packaged Orca launcher did not provide a valid resume command. No question was created.'
+  )
+}
+
+export function resolvePackagedOrcbWindowsCompatibilityCommand(): 'orcb' | undefined {
+  if (process.env.ORCA_WINDOWS_PACKAGED_CLI_LAUNCHER !== '1') {
+    return undefined
+  }
+  if (process.env.ORCA_CLI_COMMAND === ORCB_CLI_COMMAND_NAME) {
+    return ORCB_CLI_COMMAND_NAME
+  }
+  throw new RuntimeClientError(
+    'invalid_argument',
+    'The packaged ORCB launcher did not provide a valid resume command. No question was created.'
   )
 }
 
@@ -37,6 +67,6 @@ export async function flushOrchestrationStdout(): Promise<void> {
 export function isDevCliInvocation(): boolean {
   return (
     process.env.ORCA_DEV_CLI_INVOCATION === '1' ||
-    (process.env.ORCA_USER_DATA_PATH?.includes('orca-dev') ?? false)
+    (process.env.ORCA_USER_DATA_PATH?.includes(ORCB_DEV_CLI_COMMAND_NAME) ?? false)
   )
 }

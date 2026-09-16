@@ -32,6 +32,7 @@ import {
   resolveRemoteOrchestrationSender
 } from './ssh-remote-orchestration-send'
 import { formatInProcessRemoteCliResult } from './ssh-remote-cli-in-process-result'
+import { ORCB_CLI_COMMAND_NAME } from '../../shared/orcb-local-distribution'
 
 export type { RemoteOrcaCliRequest, RemoteOrcaCliResult } from './ssh-remote-cli-host-passthrough'
 
@@ -40,13 +41,13 @@ export type { RemoteOrcaCliRequest, RemoteOrcaCliResult } from './ssh-remote-cli
 // cannot host. Everything else routes through the full host CLI.
 const HOST_INTERACTIVE_COMMANDS: Record<string, string> = {
   serve:
-    'orca serve starts a foreground headless Orca server and cannot run through the SSH relay bridge. Run it directly on the machine that should host Orca.',
+    'orcb serve starts a foreground headless ORCB server and cannot run through the SSH relay bridge. Run it directly on the machine that should host ORCB.',
   'claude-teams':
-    'orca claude-teams starts an interactive Claude Code session and cannot run through the SSH relay bridge. Run it in a terminal on the Orca host machine.',
+    'orcb claude-teams starts an interactive Claude Code session and cannot run through the SSH relay bridge. Run it in a terminal on the ORCB host machine.',
   'agent-teams-tmux':
-    'orca agent-teams-tmux is a tmux pane shim for the Orca host machine and cannot run through the SSH relay bridge.',
+    'orcb agent-teams-tmux is a tmux pane shim for the ORCB host machine and cannot run through the SSH relay bridge.',
   'account add':
-    'orca account add runs an interactive agent login and cannot run through the buffered SSH relay bridge. Run it directly in a terminal on the Orca host machine.'
+    'orcb account add runs an interactive agent login and cannot run through the buffered SSH relay bridge. Run it directly in a terminal on the ORCB host machine.'
 }
 
 export async function runRemoteOrcaCli(
@@ -238,6 +239,9 @@ async function dispatchRemoteCli(
           types: optionalRemoteCliString(parsed.flags, 'types'),
           format: parsed.flags.has('format') ? true : undefined,
           inject: parsed.flags.has('inject') ? true : undefined,
+          // Why: old runtimes reject `orcb` in the legacy enum. New ORCB
+          // runtimes consume the optional field and old peers ignore it.
+          compatibilityOrcbCliCommand: ORCB_CLI_COMMAND_NAME,
           compatibilityCliCommand: 'orca',
           run: optionalRemoteCliString(parsed.flags, 'run'),
           ack: optionalRemoteCliString(parsed.flags, 'ack'),
@@ -258,6 +262,7 @@ async function dispatchRemoteCli(
           timeoutMs: optionalRemoteCliNumber(parsed.flags, 'timeout-ms'),
           from: resolveRemoteCliHandle(parsed.flags, env, 'from'),
           run: optionalRemoteCliString(parsed.flags, 'run'),
+          compatibilityOrcbCliCommand: ORCB_CLI_COMMAND_NAME,
           compatibilityCliCommand: 'orca'
         },
         {
@@ -291,7 +296,7 @@ async function dispatchRemoteCli(
       // include that root cause so users can fix the install instead of
       // assuming the command family is unsupported over SSH.
       throw new Error(
-        `Unsupported SSH Orca CLI command: ${command} (full Orca CLI bridge unavailable: ${passthroughFailureReason})`
+        `Unsupported SSH ORCB CLI command: ${command} (full ORCB CLI bridge unavailable: ${passthroughFailureReason})`
       )
   }
 }

@@ -9,6 +9,7 @@ import {
   parseLegacyMailAck,
   parseLegacyQuestionAck,
   parseLegacyTypes,
+  resolveLegacyCompatibilityCliCommand,
   supportedLegacyHints,
   type LegacyCheckParams,
   type LegacyReplyParams
@@ -102,7 +103,11 @@ export async function handleLegacyCheck(args: {
               authority: formattingAuthority,
               supportedActionHints: readOnly
                 ? []
-                : supportedLegacyHints(message, principal, params.compatibilityCliCommand ?? 'orca')
+                : supportedLegacyHints(
+                    message,
+                    principal,
+                    resolveLegacyCompatibilityCliCommand(params)
+                  )
             })
           )
           .join('\n\n')
@@ -111,8 +116,8 @@ export async function handleLegacyCheck(args: {
     principal.role === 'coordinator' && db.hasPendingCurrentDelivery(principal.run_id)
       ? {
           runId: principal.run_id,
-          checkCommand: `${params.compatibilityCliCommand ?? 'orca'} orchestration check --run ${principal.run_id}`,
-          ackCommand: `${params.compatibilityCliCommand ?? 'orca'} orchestration check --run ${principal.run_id} --ack <delivery-id>`
+          checkCommand: `${resolveLegacyCompatibilityCliCommand(params)} orchestration check --run ${principal.run_id}`,
+          ackCommand: `${resolveLegacyCompatibilityCliCommand(params)} orchestration check --run ${principal.run_id} --ack <delivery-id>`
         }
       : undefined
   return {

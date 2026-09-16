@@ -4,6 +4,7 @@ import {
   resolveOrchestrationCliExecutable
 } from './runtime/orchestration-recovery-command'
 import { quoteWindowsCmdArgument } from '../shared/child-process/windows-command-line'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 import { quotePowerShellNativeArgument } from '../shared/powershell-native-argument'
 import { resolveWindowsShellStartupFamily } from '../shared/windows-terminal-shell'
 import type { AgentStartupShell } from '../shared/tui-agent-startup-shell'
@@ -174,7 +175,7 @@ export function renderResolvedOrchestrationCommand(
   env: NodeJS.ProcessEnv = process.env
 ): string {
   const parts = parseCommandLine(command)
-  if (parts?.[0] !== 'orca') {
+  if (parts?.[0] !== ORCB_CLI_COMMAND_NAME) {
     return command
   }
   return renderCommand([executable, ...parts.slice(1)], platform, env)

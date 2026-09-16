@@ -1,8 +1,7 @@
 import type { ProjectExecutionRuntimeResolution } from '../../../shared/project-execution-runtime'
-import { isWslUncPath } from '../../../shared/wsl-paths'
-import { splitWorktreeIdForFilesystem } from '../../../shared/worktree/id'
+import { ORCB_CLI_COMMAND_NAME, ORCB_DEV_CLI_COMMAND_NAME } from '../../../shared/orcb-local-distribution'
 
-export type OrchestrationCliCommand = 'orca' | 'orca-dev' | 'orca-ide'
+export type OrchestrationCliCommand = typeof ORCB_CLI_COMMAND_NAME | typeof ORCB_DEV_CLI_COMMAND_NAME
 
 export function resolveTerminalOrchestrationCliCommand(args: {
   connectionId: string | null
@@ -12,18 +11,18 @@ export function resolveTerminalOrchestrationCliCommand(args: {
   runtimeCliCommand?: OrchestrationCliCommand
 }): OrchestrationCliCommand {
   if (args.connectionId) {
-    return 'orca'
+    return ORCB_CLI_COMMAND_NAME
   }
   if (args.runtimeCliCommand) {
     return args.runtimeCliCommand
   }
   if (args.isWsl !== null && args.isWsl !== undefined) {
-    return args.isWsl ? 'orca-ide' : 'orca'
+    return ORCB_CLI_COMMAND_NAME
   }
   if (args.projectRuntime?.status === 'resolved' && args.projectRuntime.runtime.kind === 'wsl') {
-    return 'orca-ide'
+    return ORCB_CLI_COMMAND_NAME
   }
 
-  const worktreePath = splitWorktreeIdForFilesystem(args.worktreeId)?.worktreePath
-  return worktreePath && isWslUncPath(worktreePath) ? 'orca-ide' : 'orca'
+  void args.worktreeId
+  return ORCB_CLI_COMMAND_NAME
 }

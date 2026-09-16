@@ -33,7 +33,7 @@ internal static class OrcaCliLauncher
 
             if (!File.Exists(cliPath))
             {
-                Console.Error.WriteLine("Unable to locate the Orca CLI entrypoint at \"{0}\"", cliPath);
+                Console.Error.WriteLine("Unable to locate the ORCB CLI entrypoint at \"{0}\"", cliPath);
                 return 1;
             }
 
@@ -55,7 +55,7 @@ internal static class OrcaCliLauncher
             string requestedCliCommand = Environment.GetEnvironmentVariable("ORCA_CLI_COMMAND");
             Environment.SetEnvironmentVariable(
                 "ORCA_CLI_COMMAND",
-                requestedCliCommand == "orca-ide" ? "orca-ide" : "orca"
+                requestedCliCommand == "orcb-dev" ? "orcb-dev" : "orcb"
             );
 
             using (Process child = Process.Start(startInfo))
@@ -66,7 +66,7 @@ internal static class OrcaCliLauncher
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine("Unable to start the Orca CLI: {0}", error.Message);
+            Console.Error.WriteLine("Unable to start the ORCB CLI: {0}", error.Message);
             return 1;
         }
     }

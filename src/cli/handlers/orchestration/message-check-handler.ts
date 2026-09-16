@@ -12,7 +12,11 @@ import {
 import { startCheckKeepalive } from './check-keepalive'
 import { callOrchestrationMutation } from './mutation-request'
 import { getOptionalPositiveIntegerValueFlag } from './numeric-flags'
-import { flushOrchestrationStdout, resolveCompatibilityCliCommand } from './runtime-compatibility'
+import {
+  flushOrchestrationStdout,
+  resolveCompatibilityCliCommand,
+  resolveOrcbCompatibilityCliCommand
+} from './runtime-compatibility'
 import { resolveOrchestrationTerminalHandle } from './terminal-identity'
 
 type CheckResult = {
@@ -54,6 +58,7 @@ export const ORCHESTRATION_CHECK_HANDLER: Record<string, CommandHandler> = {
         types: getOptionalStringFlag(flags, 'types'),
         format: flags.has('format') ? true : undefined,
         inject: flags.has('inject') ? true : undefined,
+        compatibilityOrcbCliCommand: resolveOrcbCompatibilityCliCommand(),
         compatibilityCliCommand: resolveCompatibilityCliCommand(),
         run: getOptionalStringFlag(flags, 'run'),
         ack: getOptionalStringFlag(flags, 'ack'),

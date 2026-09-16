@@ -1,5 +1,6 @@
 import { specPaths, type CommandSpec } from './command-spec'
 import { levenshtein } from '../shared/edit-distance'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 
 export { levenshtein } from '../shared/edit-distance'
 
@@ -99,7 +100,7 @@ export function suggestCommands(specs: CommandSpec[], commandPath: string[]): st
 export function unknownCommandData(specs: CommandSpec[], commandPath: string[]): CommandErrorData {
   const suggestions = suggestCommands(specs, commandPath)
   const nextSteps = suggestions.length
-    ? [`Did you mean: ${suggestions.map((path) => `orca ${path}`).join(', ')}`]
+    ? [`Did you mean: ${suggestions.map((path) => `${ORCB_CLI_COMMAND_NAME} ${path}`).join(', ')}`]
     : []
   return { suggestions, nextSteps }
 }

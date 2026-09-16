@@ -65,7 +65,7 @@ export class CdpBridgeState {
     } else {
       throw new BrowserError(
         'browser_no_tab',
-        "Multiple browser tabs are open. Run 'orca tab list' and 'orca tab switch --index <n>' to select one."
+        "Multiple browser tabs are open. Run 'orcb tab list' and 'orcb tab switch --index <n>' to select one."
       )
     }
 
@@ -74,7 +74,7 @@ export class CdpBridgeState {
       this.activeWebContentsId = null
       throw new BrowserError(
         'browser_debugger_detached',
-        "The active browser tab was closed. Run 'orca tab list' to find remaining tabs."
+        "The active browser tab was closed. Run 'orcb tab list' to find remaining tabs."
       )
     }
     return guest

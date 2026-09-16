@@ -13,7 +13,7 @@ function readAppDirArg(argv) {
     return explicit.slice('--app-dir='.length)
   }
   if (process.platform === 'darwin') {
-    return 'dist/mac-arm64/Orca.app'
+    return 'dist/mac-arm64/orcb.app'
   }
   if (process.platform === 'win32') {
     return 'dist/win-unpacked'
@@ -23,16 +23,16 @@ function readAppDirArg(argv) {
 
 function getPackagedCliPath(appDir) {
   if (process.platform === 'darwin' || appDir.endsWith('.app')) {
-    return join(appDir, 'Contents', 'Resources', 'bin', 'orca')
+    return join(appDir, 'Contents', 'Resources', 'bin', 'orcb')
   }
   if (process.platform === 'win32') {
-    return join(appDir, 'resources', 'bin', 'orca.exe')
+    return join(appDir, 'resources', 'bin', 'orcb.exe')
   }
-  return join(appDir, 'resources', 'bin', 'orca-ide')
+  return join(appDir, 'resources', 'bin', 'orcb')
 }
 
 const appDir = resolve(readAppDirArg(process.argv.slice(2)))
-const tempRoot = await mkdtemp(join(tmpdir(), 'orca-packaged-cli-smoke-'))
+const tempRoot = await mkdtemp(join(tmpdir(), 'orcb-packaged-cli-smoke-'))
 const copiedAppDir = join(tempRoot, basename(appDir))
 
 let smokeFailure = null
@@ -78,7 +78,7 @@ try {
   smokeFailure = error
 }
 
-// Why: on Windows the launcher above spawns the copied Orca.exe (and its crashpad/utility children)
+// Why: on Windows the launcher above spawns the copied orcb.exe (and its crashpad/utility children)
 // once per command; those handles can outlive execFile's exit by a few ms, so this cleanup hits
 // EBUSY on our own just-exited process after every assertion already passed. Same retry treatment
 // as removeHostTree(); a lock that never clears still throws — unless the smoke run itself failed,

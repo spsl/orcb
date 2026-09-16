@@ -7,6 +7,7 @@ import { automationOwnerConflictRecovery } from './automation-owner-conflict-rec
 import { worktreeSelectorRecovery } from './worktree-selector-recovery'
 import type { RuntimeRpcFailure } from './runtime-client'
 import { RuntimeClientError, RuntimeRpcFailureError } from './runtime/types'
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
 
 export type CliErrorContext = {
   commandPath?: readonly string[]
@@ -47,7 +48,7 @@ export function formatCliError(error: unknown, context: CliErrorContext = {}): s
     if (hasOrchestrationRequestId(error.data)) {
       return message
     }
-    return `${message}\nOrca is not running. Run 'orca open' first.`
+    return `${message}\nORCB is not running. Run '${ORCB_CLI_COMMAND_NAME} open' first.`
   }
   // Why: error-specific recovery must win over the generic computer fallback.
   // Classified from the whole error, not just `.code`: a hop that flattens the class leaves only the token.
@@ -71,7 +72,7 @@ export function formatCliError(error: unknown, context: CliErrorContext = {}): s
     error instanceof RuntimeRpcFailureError &&
     error.response.error.code === 'runtime_unavailable'
   ) {
-    return `${message}\nOrca is not running. Run 'orca open' first.`
+    return `${message}\nORCB is not running. Run '${ORCB_CLI_COMMAND_NAME} open' first.`
   }
   if (error instanceof RuntimeRpcFailureError) {
     return formatMessageWithNextSteps(message, nextStepsFromData(error.response.error.data))

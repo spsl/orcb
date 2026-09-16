@@ -15,20 +15,31 @@ import {
 } from '@/components/ui/dialog'
 import { useAppMenuPaste } from '@/hooks/useAppMenuPaste'
 import { useAppMenuSelectionActions } from '@/hooks/useAppMenuSelectionActions'
+import { useAppStore } from '@/store'
 import { SessionObserverBoard } from './SessionObserverBoard'
 import { SessionObserverDetailDialog } from './SessionObserverDetailDialog'
 import { SessionObserverAnalyzerSettings } from './SessionObserverAnalyzerSettings'
+import {
+  buildSessionObserverProjectFilter,
+  filterSessionObserverSessionsByProject,
+  retainAvailableSessionObserverProjectSelection,
+  type SessionObserverProjectKey
+} from './session-observer-project-filter'
 
 const EMPTY_SNAPSHOT: SessionObserverSnapshot = { generatedAt: 0, sessions: [] }
 const TERMINAL_STATE_REFRESH_MS = 3_000
 
 export function SessionObserverRoot(): React.JSX.Element {
+  const repos = useAppStore((state) => state.repos)
   const [snapshot, setSnapshot] = useState<SessionObserverSnapshot>(EMPTY_SNAPSHOT)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [reanalysisPendingId, setReanalysisPendingId] = useState<string | null>(null)
   const [statusUpdatePendingId, setStatusUpdatePendingId] = useState<string | null>(null)
   const [closePendingId, setClosePendingId] = useState<string | null>(null)
   const [analyzerSettingsOpen, setAnalyzerSettingsOpen] = useState(false)
+  const [selectedProjectKeys, setSelectedProjectKeys] = useState<Set<SessionObserverProjectKey>>(
+    () => new Set()
+  )
   useAppMenuPaste()
   useAppMenuSelectionActions()
 
@@ -57,6 +68,47 @@ export function SessionObserverRoot(): React.JSX.Element {
     [selectedSessionId, snapshot.sessions]
   )
   const liveTerminalCount = snapshot.sessions.filter((session) => session.ptyId !== null).length
+  const projectFilter = useMemo(
+    () => buildSessionObserverProjectFilter(snapshot.sessions, repos),
+    [repos, snapshot.sessions]
+  )
+  const filteredSessions = useMemo(
+    () =>
+      filterSessionObserverSessionsByProject(
+        snapshot.sessions,
+        projectFilter.projectKeyBySessionId,
+        selectedProjectKeys
+      ),
+    [projectFilter.projectKeyBySessionId, selectedProjectKeys, snapshot.sessions]
+  )
+
+  useEffect(() => {
+    setSelectedProjectKeys((current) => {
+      const retained = retainAvailableSessionObserverProjectSelection(
+        current,
+        projectFilter.options
+      )
+      if (retained.size === current.size && Array.from(retained).every((key) => current.has(key))) {
+        return current
+      }
+      return retained
+    })
+  }, [projectFilter.options])
+
+  const toggleProject = (projectKey: SessionObserverProjectKey | null): void => {
+    setSelectedProjectKeys((current) => {
+      if (projectKey === null) {
+        return new Set()
+      }
+      const next = new Set(current)
+      if (next.has(projectKey)) {
+        next.delete(projectKey)
+      } else {
+        next.add(projectKey)
+      }
+      return next
+    })
+  }
 
   const reanalyze = (sessionId: string): void => {
     setReanalysisPendingId(sessionId)
@@ -153,9 +205,13 @@ export function SessionObserverRoot(): React.JSX.Element {
       </header>
       <main className="flex min-h-0 flex-1">
         <SessionObserverBoard
-          sessions={snapshot.sessions}
+          sessions={filteredSessions}
+          totalSessionCount={snapshot.sessions.length}
+          projectOptions={projectFilter.options}
+          selectedProjectKeys={selectedProjectKeys}
           selectedSessionId={selectedSessionId}
           onSelect={setSelectedSessionId}
+          onToggleProject={toggleProject}
         />
       </main>
       <Dialog open={analyzerSettingsOpen} onOpenChange={setAnalyzerSettingsOpen}>

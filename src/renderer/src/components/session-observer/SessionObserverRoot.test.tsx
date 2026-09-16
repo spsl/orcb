@@ -8,30 +8,59 @@ import type {
   SessionObserverSnapshot
 } from '../../../../shared/session-observer'
 
-const mocks = vi.hoisted(() => ({
-  requestSnapshot: vi.fn<() => Promise<void>>(),
-  close: vi.fn<(args: unknown) => Promise<boolean>>(),
-  onSnapshot: vi.fn(),
-  snapshotListener: null as ((snapshot: SessionObserverSnapshot) => void) | null
-}))
+const mocks = vi.hoisted(() => {
+  const appState = { repos: [] as { id: string; displayName: string; path: string }[] }
+  return {
+    requestSnapshot: vi.fn<() => Promise<void>>(),
+    close: vi.fn<(args: unknown) => Promise<boolean>>(),
+    onSnapshot: vi.fn(),
+    snapshotListener: null as ((snapshot: SessionObserverSnapshot) => void) | null,
+    appState,
+    useAppStore: (selector: (state: typeof appState) => unknown) => selector(appState)
+  }
+})
 
 vi.mock('@/hooks/useAppMenuPaste', () => ({ useAppMenuPaste: () => undefined }))
 vi.mock('@/hooks/useAppMenuSelectionActions', () => ({
   useAppMenuSelectionActions: () => undefined
 }))
+vi.mock('@/store', () => ({ useAppStore: mocks.useAppStore }))
 vi.mock('./SessionObserverBoard', () => ({
   SessionObserverBoard: ({
     sessions,
-    onSelect
+    projectOptions,
+    selectedProjectKeys,
+    onSelect,
+    onToggleProject
   }: {
     sessions: SessionObserverSessionView[]
+    projectOptions: { key: string; label: string }[]
+    selectedProjectKeys: ReadonlySet<string>
     onSelect: (sessionId: string) => void
-  }) =>
-    sessions.length > 0 ? (
-      <button type="button" onClick={() => onSelect(sessions[0].id)}>
-        选择会话
+    onToggleProject: (projectKey: string | null) => void
+  }) => (
+    <>
+      <span data-testid="筛选会话">{sessions.map(({ id }) => id).join(',')}</span>
+      <button type="button" onClick={() => onToggleProject(null)}>
+        全部项目
       </button>
-    ) : null
+      {projectOptions.map((project) => (
+        <button
+          key={project.key}
+          type="button"
+          aria-pressed={selectedProjectKeys.has(project.key)}
+          onClick={() => onToggleProject(project.key)}
+        >
+          项目 {project.label}
+        </button>
+      ))}
+      {sessions.length > 0 ? (
+        <button type="button" onClick={() => onSelect(sessions[0].id)}>
+          选择会话
+        </button>
+      ) : null}
+    </>
+  )
 }))
 vi.mock('./SessionObserverDetailDialog', () => ({
   SessionObserverDetailDialog: ({
@@ -95,6 +124,7 @@ describe('SessionObserverRoot', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.snapshotListener = null
+    mocks.appState.repos = []
     mocks.requestSnapshot.mockResolvedValue(undefined)
     mocks.onSnapshot.mockImplementation((listener: (snapshot: SessionObserverSnapshot) => void) => {
       mocks.snapshotListener = listener
@@ -165,5 +195,32 @@ describe('SessionObserverRoot', () => {
     fireEvent.click(screen.getByRole('button', { name: '分析设置' }))
     expect(screen.getByRole('dialog')).toHaveTextContent('分析配置')
     expect(screen.getByText('分析配置表单')).toBeInTheDocument()
+  })
+
+  it('filters multiple projects locally and restores all projects after the final deselection', () => {
+    mocks.appState.repos = [
+      { id: 'repo-orca', displayName: 'Orca', path: '/work/orca' },
+      { id: 'repo-console', displayName: 'Console', path: '/work/console' }
+    ]
+    const orca = { ...session(), id: 'orca', paneKey: 'orca', worktreeId: 'repo-orca::/work/orca' }
+    const console = {
+      ...session(),
+      id: 'console',
+      paneKey: 'console',
+      worktreeId: 'repo-console::/work/console'
+    }
+    render(<SessionObserverRoot />)
+    act(() => {
+      mocks.snapshotListener?.({ generatedAt: 1, sessions: [orca, console] })
+    })
+
+    expect(screen.getByTestId('筛选会话')).toHaveTextContent('orca,console')
+    fireEvent.click(screen.getByRole('button', { name: '项目 Orca' }))
+    expect(screen.getByTestId('筛选会话')).toHaveTextContent('orca')
+    fireEvent.click(screen.getByRole('button', { name: '项目 Console' }))
+    expect(screen.getByTestId('筛选会话')).toHaveTextContent('orca,console')
+    fireEvent.click(screen.getByRole('button', { name: '项目 Orca' }))
+    fireEvent.click(screen.getByRole('button', { name: '项目 Console' }))
+    expect(screen.getByTestId('筛选会话')).toHaveTextContent('orca,console')
   })
 })

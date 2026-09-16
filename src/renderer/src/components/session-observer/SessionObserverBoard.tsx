@@ -1,5 +1,6 @@
 import { Circle, Loader2 } from 'lucide-react'
 import type { SessionObserverSessionView } from '../../../../shared/session-observer'
+import { Button } from '@/components/ui/button'
 import { formatShortTimeAgo } from '@/lib/short-time-ago'
 import { cn } from '@/lib/utils'
 import {
@@ -12,6 +13,10 @@ import {
   sessionWorkspaceLabel,
   type SessionObserverColumnId
 } from './session-observer-presentation'
+import type {
+  SessionObserverProjectFilterOption,
+  SessionObserverProjectKey
+} from './session-observer-project-filter'
 
 const COLUMN_TONE: Record<SessionObserverColumnId, string> = {
   unclear: 'text-muted-foreground',
@@ -105,21 +110,74 @@ function SessionCard({
 
 export function SessionObserverBoard({
   sessions,
+  totalSessionCount,
+  projectOptions,
+  selectedProjectKeys,
   selectedSessionId,
-  onSelect
+  onSelect,
+  onToggleProject
 }: {
   sessions: readonly SessionObserverSessionView[]
+  totalSessionCount: number
+  projectOptions: readonly SessionObserverProjectFilterOption[]
+  selectedProjectKeys: ReadonlySet<SessionObserverProjectKey>
   selectedSessionId: string | null
   onSelect: (sessionId: string) => void
+  onToggleProject: (projectKey: SessionObserverProjectKey | null) => void
 }): React.JSX.Element {
+  const allProjectsSelected = selectedProjectKeys.size === 0
+  const countLabel = allProjectsSelected
+    ? `${totalSessionCount} 个会话`
+    : `${sessions.length} / ${totalSessionCount} 个会话`
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label="会话状态看板">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <div>
-          <h2 className="text-sm font-semibold">会话看板</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">根据当前执行状态与最新分析结论归类</p>
+      <div className="border-b border-border px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">会话看板</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              根据当前执行状态与最新分析结论归类
+            </p>
+          </div>
+          <span className="shrink-0 text-xs text-muted-foreground">{countLabel}</span>
         </div>
-        <span className="text-xs text-muted-foreground">{sessions.length} 个会话</span>
+        {projectOptions.length > 0 ? (
+          <div
+            className="scrollbar-sleek mt-3 max-h-20 overflow-y-auto"
+            aria-label="按项目筛选会话"
+          >
+            <div className="flex flex-wrap gap-1.5">
+              <Button
+                type="button"
+                variant={allProjectsSelected ? 'secondary' : 'outline'}
+                size="xs"
+                aria-pressed={allProjectsSelected}
+                onClick={() => onToggleProject(null)}
+              >
+                全部项目（{totalSessionCount}）
+              </Button>
+              {projectOptions.map((project) => {
+                const selected = selectedProjectKeys.has(project.key)
+                return (
+                  <Button
+                    key={project.key}
+                    type="button"
+                    variant={selected ? 'secondary' : 'outline'}
+                    size="xs"
+                    className="max-w-full"
+                    title={project.label}
+                    aria-pressed={selected}
+                    onClick={() => onToggleProject(project.key)}
+                  >
+                    <span className="truncate">
+                      {project.label}（{project.count}）
+                    </span>
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
       <div className="scrollbar-sleek min-h-0 flex-1 overflow-x-auto overflow-y-hidden p-3">
         <div className="grid h-full min-w-[1150px] grid-cols-5 gap-3">

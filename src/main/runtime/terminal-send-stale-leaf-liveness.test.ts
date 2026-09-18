@@ -4,7 +4,7 @@ import { OrcaRuntimeService } from './orca-runtime'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 
-// STA repro (silent-send incident): `orca terminal send` to a leaf whose ptyId
+// STA repro (silent-send incident): `orcb terminal send` to a leaf whose ptyId
 // no provider in this process owns was a silent no-op reported as success —
 // the stale graph mirror answers writable=true and provider writes to unknown
 // ids are accepted fire-and-forget. The leaf branch must reject ONLY on

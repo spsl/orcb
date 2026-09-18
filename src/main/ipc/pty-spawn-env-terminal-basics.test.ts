@@ -58,7 +58,7 @@ describe('registerPtyHandlers', () => {
   const { handlers, mainWindow, spawnAndGetEnv, withBundledCli } = setupPtyIpcSuite()
 
   describe('spawn environment', () => {
-    it('routes headless browser launches through the owning Orca workspace', () => {
+    it('routes headless browser launches through the owning ORCB workspace', () => {
       const inheritedBrowser = process.env.BROWSER
       delete process.env.BROWSER
       try {
@@ -67,14 +67,14 @@ describe('registerPtyHandlers', () => {
           {},
           {
             isPackaged: true,
-            userDataPath: '/tmp/orca-user-data',
+            userDataPath: '/tmp/orcb-user-data',
             selectedCodexHomePath: null,
             agentStatusHooksEnabled: false,
             routeBrowserOpensToClient: true
           }
         )
 
-        expect(env.BROWSER).toBe('orca open-url --url %s')
+        expect(env.BROWSER).toBe('orcb open-url --url %s')
       } finally {
         if (inheritedBrowser === undefined) {
           delete process.env.BROWSER
@@ -90,7 +90,7 @@ describe('registerPtyHandlers', () => {
         { BROWSER: 'custom-browser %s' },
         {
           isPackaged: true,
-          userDataPath: '/tmp/orca-user-data',
+          userDataPath: '/tmp/orcb-user-data',
           selectedCodexHomePath: null,
           agentStatusHooksEnabled: false,
           routeBrowserOpensToClient: true
@@ -109,7 +109,7 @@ describe('registerPtyHandlers', () => {
           {},
           {
             isPackaged: true,
-            userDataPath: '/tmp/orca-user-data',
+            userDataPath: '/tmp/orcb-user-data',
             selectedCodexHomePath: null,
             isWsl: true,
             agentStatusHooksEnabled: false,
@@ -117,7 +117,7 @@ describe('registerPtyHandlers', () => {
           }
         )
 
-        expect(env.BROWSER).toBe('orca-ide open-url --url %s')
+        expect(env.BROWSER).toBe('orcb open-url --url %s')
       } finally {
         if (inheritedBrowser === undefined) {
           delete process.env.BROWSER

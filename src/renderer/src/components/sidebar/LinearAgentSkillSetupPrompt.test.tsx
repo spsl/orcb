@@ -120,15 +120,15 @@ function installLocalStorageShim(): void {
 function cliStatus(overrides: Partial<CliInstallStatus>): CliInstallStatus {
   return {
     platform: 'darwin',
-    commandName: 'orca',
-    commandPath: '/usr/local/bin/orca',
+    commandName: 'orcb',
+    commandPath: '/usr/local/bin/orcb',
     pathDirectory: '/usr/local/bin',
     pathConfigured: true,
-    launcherPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+    launcherPath: '/Applications/ORCB.app/Contents/MacOS/Orca',
     installMethod: 'symlink',
     supported: true,
     state: 'installed',
-    currentTarget: '/Applications/Orca.app/Contents/MacOS/Orca',
+    currentTarget: '/Applications/ORCB.app/Contents/MacOS/Orca',
     unsupportedReason: null,
     detail: null,
     ...overrides

@@ -170,7 +170,7 @@ export function runMainProcessPreflight(options: MainProcessPreflightOptions): b
   configureOrcaUserDataPathEnv()
   // Why these four lines are one step (#16761): the two above decide where userData lives, and
   // everything below may resolve a path. Installing the accessor any later leaves a window where an
-  // early resolve either throws — which is what killed `orca serve` — or, worse, memoizes the
+  // early resolve either throws — which is what killed `orcb serve` — or, worse, memoizes the
   // pre-override directory and silently writes user state to the wrong place for the whole session.
   // Safe this early: ElectronAppEnvironment holds no state and calls `app` lazily per accessor, so it
   // changes no timing, and initDataPath only joins strings.
@@ -226,7 +226,7 @@ export function runMainProcessPreflight(options: MainProcessPreflightOptions): b
   // Why at process level, not per-window: pty.ts registers against injected surfaces so
   // it can load without electron, and an Electron main process always has ipcMain —
   // whether a window exists is irrelevant. Installing this in attachMainWindowServices
-  // meant `orca serve` registered its PTY handlers against no-ops before any window
+  // meant `orcb serve` registered its PTY handlers against no-ops before any window
   // attached, so a paired desktop owner never received them.
   setPtyHostBindings({ ipc: ipcMain, power: powerMonitor })
   // Why also at process level: the runtime's notification, window-lookup and
@@ -249,14 +249,14 @@ export function runMainProcessPreflight(options: MainProcessPreflightOptions): b
   // request in. A host without them rejects speech calls rather than pretending.
   setSpeechServiceFactories(electronSpeechServiceFactories)
   setWorktreeWatcherRemoval(desktopWorktreeWatcherRemoval)
-  // Why: couple to dev-parent only for electron-vite desktop runs; `orca serve`'s parent (CLI shim/background shell) isn't the intended server lifetime.
+  // Why: couple to dev-parent only for electron-vite desktop runs; `orcb serve`'s parent (CLI shim/background shell) isn't the intended server lifetime.
   const shouldCoupleToDevParent = isDev && !state.isServeMode
   installDevParentDisconnectQuit(shouldCoupleToDevParent)
   installDevParentWatchdog(shouldCoupleToDevParent)
   installDevParentSignalQuit(shouldCoupleToDevParent)
   // Why not at module scope with the other lifetime couplings (#16761): this resolves the handoff
   // path, so it throws until setAppEnvironment() above installs the accessor — which killed every
-  // `orca serve` process before it could listen. After initDataPath() specifically, so the
+  // `orcb serve` process before it could listen. After initDataPath() specifically, so the
   // path-equality check against the CLI's env var uses the dir captured before app.setName().
   // Safe to defer, and must stay synchronous: no 'disconnect' can be delivered until this module
   // finishes evaluating, so moving this behind an await would open a real orphan window.

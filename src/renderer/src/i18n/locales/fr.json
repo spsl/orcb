@@ -2382,6 +2382,10 @@
                 "7c302f8174": "Sans titre"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "Cette vue ne contient encore aucun élément.",
+            "7e4a2f80c6": "Les éléments ajoutés récemment peuvent mettre un moment à apparaître."
           }
         },
         "GitHubMarkdownComposer": {
@@ -5838,7 +5842,7 @@
           "pairingCode": "Code d'appairage",
           "pairingCodePlaceholder": "orca://pair?code=...",
           "pairingHelpPrefix": "Exécution",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "orcb serve --pairing-address <host>",
           "pairingHelpSuffix": "sur le serveur et collez l'URL d'appairage affichée.",
           "sshImportAlreadySynced": "~/.ssh/config est déjà à jour.",
           "sshImportSynced": "Ajout de {{value0}} hôte{{value1}} à Orca.",
@@ -7700,7 +7704,7 @@
           "9a3758d983": "Aucun serveur enregistré.",
           "9bee6bbeeb": "Ajouter un serveur",
           "55fcc964cd": "sur le serveur et collez l'URL d'appairage affichée.",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "960e901ae4": "orcb serve --pairing-address <host>",
           "163671f7b5": "Exécution",
           "c3d772c514": "orca://pair?code=...",
           "9bc9b83474": "Code d'appairage",
@@ -8493,7 +8497,7 @@
           "e49688f67f": "Enregistrer `{{value0}}` dans WSL ?",
           "61ac55278e": "Supprimer `{{value0}}` de WSL ?",
           "e2b0ee267f": "périmé",
-          "7aa456a460": "Enregistre `orca-ide` dans ~/.local/bin au sein de WSL.",
+          "7aa456a460": "Enregistre `orcb` dans ~/.local/bin au sein de WSL.",
           "0307677bb9": "Vérification de l'enregistrement de la CLI WSL..."
         },
         "accounts": {
@@ -11100,7 +11104,7 @@
           "advanced": "Avancé",
           "sshTunnel": "J'utilise un tunnel SSH vers cette adresse locale",
           "sshTunnelHelp": "Gardez le tunnel actif tant que cette connexion est utilisée.",
-          "headlessHelp": "Vous utilisez orca serve sans interface ? Exécutez orca serve --pairing-address <reachable-host> sur l'autre ordinateur.",
+          "headlessHelp": "Vous utilisez orcb serve sans interface ? Exécutez orcb serve --pairing-address <reachable-host> sur l'autre ordinateur.",
           "cancel": "Annuler",
           "addWithTunnel": "Ajouter l'hôte via un tunnel",
           "addHost": "Ajouter un hôte",
@@ -13841,7 +13845,7 @@
             "4795ac2d4a": "Essayez de demander :",
             "53905bd076": "Aperçu de développement : ouverture du terminal de configuration des skills.",
             "1da82af45b": "L'Orca CLI requiert votre attention",
-            "ce13a742d0": "`orca` enregistré dans le PATH.",
+            "ce13a742d0": "`orcb` enregistré dans le PATH.",
             "d1a86c7eb5": "Ouvrez les paramètres pour terminer la configuration du CLI."
           },
           "CmdJPaletteFeatureTipVisual": {
@@ -13951,9 +13955,9 @@
           },
           "MobileEmulatorAgentSetupGuideSteps": {
             "9b49d892e3": "Activer Orca CLI",
-            "3d8dc52c93": "Enregistre la commande orca de contrôle de l'émulateur dans les shells des agents.",
+            "3d8dc52c93": "Enregistre la commande orcb de contrôle de l'émulateur dans les shells des agents.",
             "21f5687c07": "Compétence CLI Orca",
-            "64fb057667": "Apprend aux agents les commandes orca de l'émulateur pour ce worktree.",
+            "64fb057667": "Apprend aux agents les commandes orcb de l'émulateur pour ce worktree.",
             "5c59ea96ca": "Configuration de la skill Orca CLI de l'émulateur mobile",
             "bff5341ac3": "Terminal d'installation de la skill Orca CLI de l'émulateur mobile",
             "3d34423e88": "Enregistrement de la CLI Orca",
@@ -16029,7 +16033,8 @@
         "chooseInAgentPicker": "Choisir dans le sélecteur d'agents…",
         "toggleOption": "Basculer {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "Valeur actuelle inconnue — choisissez Activé ou Désactivé",
+        "valueIsDefault": "Par défaut",
+        "valueNotReported": "Non signalé",
         "sentNotConfirmed": "Envoyé à l'agent — non confirmé",
         "setWhenSessionStarts": "Défini au démarrage de la session.",
         "availableAfterSessionStarts": "Disponible après le démarrage de la session.",
@@ -16042,9 +16047,7 @@
           "high": "Haute",
           "xhigh": "Extra élevé",
           "max": "Max",
-          "ultra": "Ultra",
-          "on": "Activé",
-          "off": "Désactivé"
+          "ultra": "Ultra"
         }
       },
       "tool": {

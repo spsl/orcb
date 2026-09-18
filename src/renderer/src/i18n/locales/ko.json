@@ -2223,6 +2223,10 @@
                 "7c302f8174": "제목 없음"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "이 보기에는 아직 항목이 없습니다.",
+            "7e4a2f80c6": "최근에 추가한 항목은 표시되기까지 시간이 걸릴 수 있습니다."
           }
         },
         "GitHubMarkdownComposer": {
@@ -5235,7 +5239,7 @@
           "pairingCode": "페어링 코드",
           "pairingCodePlaceholder": "orca://pair?code=...",
           "pairingHelpPrefix": "서버에서 실행",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "orcb serve --pairing-address <host>",
           "pairingHelpSuffix": "한 다음 출력된 페어링 URL을 붙여넣으세요.",
           "sshImportAlreadySynced": "~/.ssh/config가 이미 동기화되어 있습니다.",
           "sshImportSynced": "{{value0}} 호스트{{value1}}을(를) Orca에 추가했습니다.",
@@ -6848,7 +6852,7 @@
           "9a3758d983": "저장된 서버가 없습니다.",
           "9bee6bbeeb": "서버 추가",
           "55fcc964cd": "을(를) 서버에서 실행하고 출력된 페어링 URL을 붙여넣으세요.",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "960e901ae4": "orcb serve --pairing-address <host>",
           "163671f7b5": "실행",
           "c3d772c514": "orca://pair?code=...",
           "9bc9b83474": "페어링 코드",
@@ -7644,7 +7648,7 @@
           "e49688f67f": "WSL에 `{{value0}}`을(를) 등록하시겠습니까?",
           "61ac55278e": "WSL에서 `{{value0}}`을(를) 제거하시겠습니까?",
           "e2b0ee267f": "오래됨",
-          "7aa456a460": "WSL 내부의 ~/.local/bin에 `orca-ide`를 등록합니다.",
+          "7aa456a460": "WSL 내부의 ~/.local/bin에 `orcb`를 등록합니다.",
           "0307677bb9": "WSL CLI 등록 확인 중..."
         },
         "accounts": {
@@ -10268,7 +10272,7 @@
           "advanced": "고급",
           "sshTunnel": "이 로컬 주소에 SSH 터널을 사용하고 있습니다",
           "sshTunnelHelp": "이 연결을 사용하는 동안 터널을 유지하세요.",
-          "headlessHelp": "헤드리스 orca serve를 사용하나요? 다른 컴퓨터에서 orca serve --pairing-address <reachable-host>를 실행하세요.",
+          "headlessHelp": "헤드리스 orcb serve를 사용하나요? 다른 컴퓨터에서 orcb serve --pairing-address <reachable-host>를 실행하세요.",
           "cancel": "취소",
           "addWithTunnel": "터널을 사용해 호스트 추가",
           "addHost": "호스트 추가",
@@ -12659,7 +12663,7 @@
             "4795ac2d4a": "다음과 같이 질문해 보세요.",
             "53905bd076": "개발 미리보기: 스킬 설정 terminal 열기.",
             "1da82af45b": "Orca CLI에 주의가 필요합니다",
-            "ce13a742d0": "PATH에 'orca'를 등록했습니다.",
+            "ce13a742d0": "PATH에 'orcb'를 등록했습니다.",
             "d1a86c7eb5": "설정을 열어 CLI 설정을 완료하세요."
           },
           "CmdJPaletteFeatureTipVisual": {
@@ -12769,9 +12773,9 @@
           },
           "MobileEmulatorAgentSetupGuideSteps": {
             "9b49d892e3": "Orca CLI 활성화",
-            "3d8dc52c93": "agents 셸에서 에뮬레이터 제어를 위해 orca 명령을 등록합니다.",
+            "3d8dc52c93": "agents 셸에서 에뮬레이터 제어를 위해 orcb 명령을 등록합니다.",
             "21f5687c07": "Orca CLI 스킬",
-            "64fb057667": "이 워크트리의 orca 에뮬레이터 명령을 agents에게 알려줍니다.",
+            "64fb057667": "이 워크트리의 orcb 에뮬레이터 명령을 agents에게 알려줍니다.",
             "5c59ea96ca": "모바일 에뮬레이터 Orca CLI 스킬 설정",
             "bff5341ac3": "모바일 에뮬레이터 Orca CLI 스킬 설치 terminal",
             "3d34423e88": "Orca CLI를 등록하는 중",
@@ -14728,7 +14732,8 @@
         "chooseInAgentPicker": "에이전트 선택기에서 선택…",
         "toggleOption": "{{value0}} 전환",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "현재 값을 알 수 없음 — 켜짐 또는 꺼짐을 선택하세요",
+        "valueIsDefault": "기본값",
+        "valueNotReported": "미보고",
         "sentNotConfirmed": "에이전트에 전송됨 — 확인되지 않음",
         "setWhenSessionStarts": "세션을 시작할 때 설정하세요.",
         "availableAfterSessionStarts": "세션이 시작된 후 사용할 수 있습니다.",
@@ -14741,9 +14746,7 @@
           "high": "높음",
           "xhigh": "매우 높음",
           "max": "최대",
-          "ultra": "울트라",
-          "on": "켜짐",
-          "off": "꺼짐"
+          "ultra": "울트라"
         },
         "noCommandsOrSkills": "일치하는 명령어 또는 스킬이 없습니다",
         "commands": "명령어",

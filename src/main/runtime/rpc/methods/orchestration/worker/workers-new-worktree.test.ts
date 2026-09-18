@@ -66,7 +66,7 @@ describe('orchestration new-worktree workers', () => {
     vi.spyOn(runtime, 'waitForSetupTerminalCompletion').mockReturnValue(
       new Promise(() => undefined)
     )
-    vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
+    vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orcb')
     vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
       handle: 'term_worker',
       accepted: true,
@@ -225,14 +225,14 @@ describe('orchestration new-worktree workers', () => {
 
   it('injects the execution host CLI command and Dispatch capability together', async () => {
     mockCreatedWorktree()
-    vi.mocked(runtime.getTerminalOrchestrationCliCommand).mockReturnValue('orca-ide')
+    vi.mocked(runtime.getTerminalOrchestrationCliCommand).mockReturnValue('orcb')
 
     await startWorker({ worktree: 'new-top-level' })
 
     const prompt = vi.mocked(runtime.sendTerminalAgentPrompt).mock.calls[0]?.[1] ?? ''
-    expect(prompt).toContain('orca-ide orchestration send')
+    expect(prompt).toContain('orcb orchestration send')
     expect(prompt).toMatch(/--dispatch-capability dcap_[A-Za-z0-9_-]+/)
-    expect(prompt).not.toMatch(/(^|\s)orca orchestration send/)
+    expect(prompt).not.toMatch(/(^|\s)orcb orchestration send/)
   })
 
   it('passes exact repo, base, metadata, lineage, and setup choices to worktree creation', async () => {

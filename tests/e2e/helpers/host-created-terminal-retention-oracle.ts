@@ -1,7 +1,7 @@
 /**
  * Shared oracle for "a host-created terminal stays the live terminal".
  *
- * Every retention spec (paired desktop host, windowless `orca serve`, local
+ * Every retention spec (paired desktop host, windowless `orcb serve`, local
  * unpaired CLI) imports this file unchanged, so the topologies are judged by
  * identical code and none can be claimed to prove another by accident.
  *
@@ -117,7 +117,7 @@ function readySignatures(sinkPath: string): string[] {
 }
 
 /**
- * `orca terminal create`: the host-initiated background create. Sibling paths
+ * `orcb terminal create`: the host-initiated background create. Sibling paths
  * are deliberately NOT used — `session.tabs.createTerminal` routes through
  * createRuntimeOwnedMobileSessionTerminal, which persists its binding on every
  * revision and would pass without exercising this seam at all.

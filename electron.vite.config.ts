@@ -8,9 +8,10 @@ import { createPlainNodeEntryGuardPlugin } from './config/build-plugins/plain-no
 import packageJson from './package.json' with { type: 'json' }
 
 const BUNDLED_MAIN_DEPENDENCIES = new Set([
+  '@streamparser/json',
   '@xterm/headless',
   '@xterm/addon-serialize',
-  'psl',
+  'tldts',
   // Why: Windows NSIS deploys app.asar before external resources; bootstrap must
   // not race the later resources/node_modules copy.
   'zod'
@@ -249,7 +250,7 @@ export const electronViteConfig: UserConfig = {
             'src/main/hang-watchdog/main-thread-hang-watchdog-entry.ts'
           ),
           // Why: electron-vite cleans out/main in dev. The dev CLI imports
-          // this path for `orca agent hooks ...`, so it must survive rebuilds.
+          // this path for `orcb agent hooks ...`, so it must survive rebuilds.
           'agent-hooks/managed-agent-hook-controls': resolve(
             'src/main/agent-hooks/managed-agent-hook-controls.ts'
           ),
@@ -291,7 +292,7 @@ export const electronViteConfig: UserConfig = {
   preload: {
     build: {
       externalizeDeps: {
-        exclude: ['@electron-toolkit/preload', 'zod']
+        exclude: ['zod']
       }
     }
   },

@@ -63,17 +63,15 @@ describe('orca-linear skill guidance', () => {
     }
   })
 
-  // Why: a bare `orca` at line start resolves to the GNOME Orca screen reader on Linux and
-  // starts speech on the user's machine, so guide examples use the resolved-executable
-  // placeholder instead.
-  it('keeps Linear guide examples off a bare orca command name', () => {
+  // Why: guides use the cross-shell resolved-executable placeholder rather than a literal command.
+  it('keeps Linear guide examples on the resolved-executable placeholder', () => {
     for (const guidePath of [canonicalGuidePath, legacyGuidePath]) {
       const skill = readFileSync(guidePath, 'utf8')
 
       expect(skill, guidePath).toContain(
         '`ORCA` is a placeholder for the executable you resolved in the stub'
       )
-      expect(skill, guidePath).not.toMatch(/^orca /mu)
+      expect(skill, guidePath).not.toMatch(/^orca(?:-dev|-ide)? /mu)
       expect(skill, guidePath).not.toMatch(/\$ORCA(?:_|\b)/u)
     }
   })
@@ -102,12 +100,11 @@ describe('orca-linear install stubs', () => {
 
       expect(stub).toContain('discovery stub')
       expect(stub).toContain(`ORCA skills get ${name}`)
-      // The safe CLI-resolution contract must survive in the stub, never a bare `orca`.
+      // The safe CLI-resolution contract must survive in the stub.
       expect(stub).toContain('ORCA_CLI_COMMAND')
-      expect(stub).toContain('orca-dev')
-      expect(stub).toContain('orca-ide')
-      expect(stub).toContain('GNOME Orca screen reader')
-      expect(stub).not.toMatch(/^orca /mu)
+      expect(stub).toContain('orcb-dev')
+      expect(stub).toContain('Otherwise, use `orcb`.')
+      expect(stub).not.toMatch(/^orca(?:-dev|-ide)? /mu)
     })
 
     it(`keeps the Linear untrusted-source boundary in the ${name} stub`, () => {

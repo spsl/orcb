@@ -8,7 +8,7 @@ import type { BrowserManager } from './browser-manager'
 import type { AgentBrowserBridge } from './agent-browser-bridge'
 import { browserSessionRegistry } from './browser-session-registry'
 
-// Why: headless orca serve has no renderer window to host a <webview>, so each
+// Why: headless orcb serve has no renderer window to host a <webview>, so each
 // browser page is backed by a main-process offscreen BrowserWindow. The window
 // is never shown — it exists only so its WebContents can be driven over CDP and
 // streamed via the existing screencast path. Verified on macOS and on headless

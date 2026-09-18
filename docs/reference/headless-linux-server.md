@@ -1,16 +1,16 @@
 # Headless Linux Server
 
-Use this guide when you want to run `orca serve` on a Linux machine without a
+Use this guide when you want to run `orcb serve` on a Linux machine without a
 desktop session, such as an Ubuntu VPS or a remote build box.
 
-`orca serve` starts the Orca runtime without opening the desktop window. On
+`orcb serve` starts the Orca runtime without opening the desktop window. On
 Linux, the packaged AppImage still needs the libraries that Electron expects at
-startup. Current Orca builds start Xvfb automatically for `orca serve` when no
+startup. Current Orca builds start Xvfb automatically for `orcb serve` when no
 `DISPLAY` is set, but Xvfb must be installed first. A separate D-Bus session is
 not required. When `DISPLAY` is set, Orca uses that display instead of starting
 a competing Xvfb process, provided the display is usable: its socket must exist,
 and if an X lock file is present it must name a running process. A `DISPLAY`
-whose lock names a dead process is refused rather than replaced, and `orca serve`
+whose lock names a dead process is refused rather than replaced, and `orcb serve`
 exits — unset `DISPLAY` to let Orca start its own Xvfb. A socket published with
 no lock at all (a container bind-mounting `/tmp/.X11-unix`, or WSLg) is accepted.
 
@@ -23,7 +23,7 @@ differ on other Debian-derived releases.
 
 Install the CLI tools, Xvfb, and the shared libraries Electron links against.
 A minimal server or container image ships none of the Electron libraries, and
-`orca serve` then fails before Electron starts:
+`orcb serve` then fails before Electron starts:
 
 ```bash
 sudo apt-get update
@@ -67,20 +67,20 @@ FUSE.
 Download and make the AppImage executable:
 
 ```bash
-sudo mkdir -p /opt/orca
+sudo mkdir -p /opt/orcb
 sudo curl -L https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage \
-  -o /opt/orca/orca-linux.AppImage
-sudo chmod +x /opt/orca/orca-linux.AppImage
+  -o /opt/orcb/orca-linux.AppImage
+sudo chmod +x /opt/orcb/orca-linux.AppImage
 ```
 
 To extract it without FUSE, run the extraction as root because the installation
 directory is root-owned:
 
 ```bash
-cd /opt/orca
+cd /opt/orcb
 sudo ./orca-linux.AppImage --appimage-extract
-sudo chmod -R a+rX /opt/orca/squashfs-root
-/opt/orca/squashfs-root/AppRun serve --port 6768
+sudo chmod -R a+rX /opt/orcb/squashfs-root
+/opt/orcb/squashfs-root/AppRun serve --port 6768
 ```
 
 The `chmod` is required whenever the extraction runs as a different user than
@@ -106,14 +106,14 @@ command -v Xvfb
 Start with a foreground run before creating a service:
 
 ```bash
-LIBGL_ALWAYS_SOFTWARE=1 /opt/orca/orca-linux.AppImage serve --port 6768
+LIBGL_ALWAYS_SOFTWARE=1 /opt/orcb/orca-linux.AppImage serve --port 6768
 ```
 
 For remote clients, pass the address they should use to reach this server. A
 Tailscale address is usually the safest option for private servers:
 
 ```bash
-LIBGL_ALWAYS_SOFTWARE=1 /opt/orca/orca-linux.AppImage serve \
+LIBGL_ALWAYS_SOFTWARE=1 /opt/orcb/orca-linux.AppImage serve \
   --port 6768 \
   --pairing-address 100.64.1.20
 ```
@@ -139,7 +139,7 @@ Pairing URL: orca://pair?code=...
 For supervisors, request the versioned single-line JSON contract:
 
 ```bash
-/opt/orca/orca-linux.AppImage serve --port 6768 \
+/opt/orcb/orca-linux.AppImage serve --port 6768 \
   --pairing-address 100.64.1.20 --json
 ```
 
@@ -187,22 +187,22 @@ AppImage, but must not be able to replace it or the rollback artifacts.
 
 ```bash
 sudo useradd --system --create-home --shell /usr/sbin/nologin orca
-sudo chown root:root /opt/orca /opt/orca/orca-linux.AppImage
-sudo chmod 755 /opt/orca /opt/orca/orca-linux.AppImage
+sudo chown root:root /opt/orcb /opt/orcb/orca-linux.AppImage
+sudo chmod 755 /opt/orcb /opt/orcb/orca-linux.AppImage
 # Only if you ran --appimage-extract: extraction leaves squashfs-root root-only.
-sudo chmod -R a+rX /opt/orca/squashfs-root
+sudo chmod -R a+rX /opt/orcb/squashfs-root
 ```
 
 The last line matters because the two halves of this guide combine badly without
 it. `--appimage-extract` writes `squashfs-root` as `drwx------ root root`, so the
 `orca` service user cannot read or traverse the extracted tree and the unit fails
-at startup. `chmod 755 /opt/orca` alone does not reach into it.
+at startup. `chmod 755 /opt/orcb` alone does not reach into it.
 
-For most hosts, one `orca serve` service is enough because Orca starts Xvfb on
+For most hosts, one `orcb serve` service is enough because Orca starts Xvfb on
 display `:99` when no display exists:
 
 ```ini
-# /etc/systemd/system/orca-serve.service
+# /etc/systemd/system/orcb-serve.service
 [Unit]
 Description=Orca runtime server
 After=network-online.target
@@ -215,7 +215,7 @@ Type=simple
 User=orca
 WorkingDirectory=/home/orca
 Environment=LIBGL_ALWAYS_SOFTWARE=1
-ExecStart=/opt/orca/orca-linux.AppImage serve --port 6768 --pairing-address 100.64.1.20
+ExecStart=/opt/orcb/orca-linux.AppImage serve --port 6768 --pairing-address 100.64.1.20
 StandardOutput=journal
 StandardError=journal
 KillMode=mixed
@@ -234,7 +234,7 @@ clients should use.
 then retains systemd's cgroup-wide `SIGKILL` fallback if shutdown times out.
 This lets Orca keep its owned Xvfb alive until Electron disconnects cleanly.
 It does **not** preserve the detached terminal daemon: the daemon and its PTYs
-remain in `orca-serve.service`'s cgroup and are killed when the stop completes.
+remain in `orcb-serve.service`'s cgroup and are killed when the stop completes.
 Every `systemctl stop` or `restart` therefore ends live terminals and agent
 processes, even though their persisted layout and terminal history remain.
 
@@ -245,7 +245,7 @@ cannot succeed. Any other permanent startup fault is capped at 5 starts per
 `RestartSec=5`, which is how one bad launch could restart thousands of times.
 The start limit counts operator-initiated starts too, so once it trips systemd
 refuses a plain `systemctl start` until the 5-minute window rolls over. Run
-`sudo systemctl reset-failed orca-serve.service` first to clear it — the
+`sudo systemctl reset-failed orcb-serve.service` first to clear it — the
 [Upgrade](#upgrade-steps) and [Roll back](#roll-back) scripts already do.
 On systemd older than 230 those two directives are spelled
 `StartLimitInterval=`/`StartLimitBurst=` and belong in `[Service]`; Ubuntu
@@ -255,8 +255,8 @@ Enable the service:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now orca-serve.service
-sudo journalctl -u orca-serve.service -f
+sudo systemctl enable --now orcb-serve.service
+sudo journalctl -u orcb-serve.service -f
 ```
 
 `journalctl -o cat` removes journal metadata but still mixes the service's
@@ -264,7 +264,7 @@ stdout and stderr. Parse each line as JSON and require the readiness type and
 schema before treating the service as ready:
 
 ```bash
-sudo journalctl -u orca-serve.service -o cat \
+sudo journalctl -u orcb-serve.service -o cat \
   | jq -Rrc 'fromjson? | select(.type == "orca_server_ready" and .schemaVersion == 1)'
 ```
 
@@ -278,7 +278,7 @@ If you prefer to own the virtual display lifecycle in systemd, run Xvfb as a
 separate service and set `DISPLAY=:99` for Orca.
 
 ```ini
-# /etc/systemd/system/orca-xvfb.service
+# /etc/systemd/system/orcb-xvfb.service
 [Unit]
 Description=Virtual X display for Orca
 After=network-online.target
@@ -300,11 +300,11 @@ absolute path.
 Then add the display dependency to the Orca service:
 
 ```ini
-# /etc/systemd/system/orca-serve.service
+# /etc/systemd/system/orcb-serve.service
 [Unit]
 Description=Orca runtime server
-After=network-online.target orca-xvfb.service
-Wants=network-online.target orca-xvfb.service
+After=network-online.target orcb-xvfb.service
+Wants=network-online.target orcb-xvfb.service
 StartLimitIntervalSec=300
 StartLimitBurst=5
 
@@ -314,7 +314,7 @@ User=orca
 WorkingDirectory=/home/orca
 Environment=DISPLAY=:99
 Environment=LIBGL_ALWAYS_SOFTWARE=1
-ExecStart=/opt/orca/orca-linux.AppImage serve --port 6768 --pairing-address 100.64.1.20
+ExecStart=/opt/orcb/orca-linux.AppImage serve --port 6768 --pairing-address 100.64.1.20
 Restart=on-failure
 RestartPreventExitStatus=3
 RestartSec=5
@@ -327,50 +327,32 @@ Enable both units:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now orca-xvfb.service orca-serve.service
+sudo systemctl enable --now orcb-xvfb.service orcb-serve.service
 ```
 
 ## CLI Install Note
 
-The registered Linux CLI command is `orca-ide`, not `orca`, to avoid shadowing
-the GNOME Orca screen reader. Desktop-managed terminals receive a
-terminal-scoped bare-`orca` shim. A packaged headless `orca serve` also makes a
-best-effort dispatcher at `$HOME/.local/bin/orca` for the service user's own
-shell, so the Claude Teams launcher can resolve its bare command; it does not
-replace another user's `orca`. From an ordinary shell outside that service
-user's managed environment, substitute `orca-ide` for `orca` in commands below.
+The registered Linux CLI command is `orcb`. It does not claim or replace an
+existing `orca` executable. The `.deb` and `.rpm` packages put it on
+`PATH`; with the AppImage it arrives as `~/.local/bin/orcb` when the CLI is
+registered.
 
 On a headless host, you do not need to open the desktop UI just to run the
 server. Invoke the AppImage directly:
 
 ```bash
-/opt/orca/orca-linux.AppImage serve --help
+/opt/orcb/orca-linux.AppImage serve --help
 ```
 
 Running an AppImage as root requires Chromium's `--no-sandbox` switch before
 the command:
 
 ```bash
-/opt/orca/orca-linux.AppImage --no-sandbox serve --port 6768
+/opt/orcb/orca-linux.AppImage --no-sandbox serve --port 6768
 ```
 
 This disables a security boundary. Prefer a dedicated unprivileged service
 user, especially when the listener is reachable beyond localhost.
-
-The Linux CLI is named `orca-ide`, not `orca`, so it never shadows the GNOME
-Orca screen reader at `/usr/bin/orca`. The `.deb` and `.rpm` packages put
-`orca-ide` on `PATH` themselves at install time; with the AppImage it arrives
-as `~/.local/bin/orca-ide` when the CLI is registered.
-
-A packaged `orca serve` start also writes a bare `orca` into `~/.local/bin`
-that execs the same launcher, which is why the skills commands below can be
-typed as `orca`. It writes it while starting, so it is never the command that
-starts the server — the first launch is `orca-ide serve`, or the AppImage
-invoked directly as above. The write is best-effort: it is gated on a packaged
-build, it is skipped when no bundled launcher resolves, and it is skipped when
-a file Orca does not own already holds that name (ownership is a marker on the
-second line of the file). A host that really does run the screen reader keeps
-its own `orca`.
 
 ## Pairing troubleshooting
 
@@ -406,7 +388,7 @@ depend on an interactive shell profile.
 
 ## Upgrade
 
-`orca serve` never updates itself. In headless mode Orca wires up no auto-updater
+`orcb serve` never updates itself. In headless mode Orca wires up no auto-updater
 at all — the built-in updater only runs in the desktop GUI, and no paired mobile
 or web client can trigger it remotely. Upgrading is always a deliberate step:
 replace the AppImage and restart the service.
@@ -415,7 +397,7 @@ Two facts make the persisted-state transition predictable:
 
 - **State lives in the service user's home, not next to the binary.** Persisted
   data is under `/home/orca/.config/` (Orca uses both an `orca` and an `Orca`
-  directory there), fully independent of `/opt/orca/orca-linux.AppImage`.
+  directory there), fully independent of `/opt/orcb/orca-linux.AppImage`.
   Replacing the binary never touches projects, worktree metadata, terminal
   history, orchestration state, or paired-device keys — so mobile and web
   clients reconnect after an upgrade without re-pairing.
@@ -430,9 +412,9 @@ but its current process and any in-flight command are gone.
 Immediately before stopping the service, obtain a fresh census as the service's
 OS account and home. Use the installer's absolute launcher path so `sudo`'s
 `secure_path` cannot hide a per-user registration:
-`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`.
+`sudo -Hu orca /home/orca/.local/bin/orcb terminal list --json`.
 Replace both `orca` and `/home/orca` with the service account and home used by
-your unit; for an extracted deployment, use its absolute `resources/bin/orca-ide`
+your unit; for an extracted deployment, use its absolute `resources/bin/orcb`
 launcher instead. Proceed only when the result is
 untruncated, has an explicit `hostScope`, covers every execution host affected
 by this service stop, and lists no terminals on those hosts. Every
@@ -447,17 +429,17 @@ Rolling back is the case that needs care — see [Roll back](#roll-back).
 
 ### Record the version you deploy
 
-The bundled CLI launcher prints the Orca build with `orca-ide --version`. For an
+The bundled CLI launcher prints the Orca build with `orcb --version`. For an
 extracted deployment, that launcher is
-`squashfs-root/resources/bin/orca-ide`; deb/rpm installs and CLI registration put
+`squashfs-root/resources/bin/orcb`; deb/rpm installs and CLI registration put
 it on `PATH`. Do not use `orca-linux.AppImage --version` for this audit because
 Electron owns the direct binary's version flags and may report its own runtime
 version. For an AppImage service, choose a release tag explicitly and record it
-next to the binary. The steps below keep that record in `/opt/orca/VERSION`.
+next to the binary. The steps below keep that record in `/opt/orcb/VERSION`.
 
 ### Upgrade steps
 
-Never download straight onto `/opt/orca/orca-linux.AppImage`. The AppImage is
+Never download straight onto `/opt/orcb/orca-linux.AppImage`. The AppImage is
 FUSE-mounted, so overwriting it in place while the service runs can crash or
 corrupt the live process — and even with the service stopped, a failed or partial
 download would clobber the working binary. Instead download to a temporary name
@@ -466,19 +448,19 @@ on the same filesystem, verify it, then swap it in with an atomic rename.
 Check capacity before starting:
 
 ```bash
-sudo chown root:root /opt/orca
-sudo chmod 755 /opt/orca
-sudo test ! -L /opt/orca/orca-linux.AppImage
-sudo chown root:root /opt/orca/orca-linux.AppImage
-sudo chmod 755 /opt/orca/orca-linux.AppImage
+sudo chown root:root /opt/orcb
+sudo chmod 755 /opt/orcb
+sudo test ! -L /opt/orcb/orca-linux.AppImage
+sudo chown root:root /opt/orcb/orca-linux.AppImage
+sudo chmod 755 /opt/orcb/orca-linux.AppImage
 # Clear predictable staging names left by an older attempt after locking the directory
-sudo rm -f /opt/orca/orca-linux.AppImage.new /opt/orca/VERSION.new \
-  /opt/orca/orca-linux.AppImage.recovering /opt/orca/VERSION.recovering
+sudo rm -f /opt/orcb/orca-linux.AppImage.new /opt/orcb/VERSION.new \
+  /opt/orcb/orca-linux.AppImage.recovering /opt/orcb/VERSION.recovering
 sudo du -sh /home/orca/.config
-df -h /opt/orca /home/orca
+df -h /opt/orcb /home/orca
 ```
 
-`/opt/orca` needs room for the compressed Orca profile archive, the staged
+`/opt/orcb` needs room for the compressed Orca profile archive, the staged
 build, and the rollback binary. A rollback extracts the old profile and preserves
 the post-upgrade Orca profile directories, so `/home` needs room for both copies.
 
@@ -516,8 +498,8 @@ recover_failed_upgrade() {
   trap - EXIT
   set +e
   if ((exit_status != 0)); then
-    sudo rm -f /opt/orca/orca-linux.AppImage.new /opt/orca/VERSION.new \
-      /opt/orca/orca-linux.AppImage.recovering /opt/orca/VERSION.recovering
+    sudo rm -f /opt/orcb/orca-linux.AppImage.new /opt/orcb/VERSION.new \
+      /opt/orcb/orca-linux.AppImage.recovering /opt/orcb/VERSION.recovering
   fi
   if ((exit_status != 0)) && [[ -n "$ORCA_ROLLBACK_NEW" ]] && \
     sudo test -d "$ORCA_ROLLBACK_NEW"; then
@@ -527,26 +509,26 @@ recover_failed_upgrade() {
     recovery_ok=1
     if ((ORCA_BINARY_PROMOTED)); then
       if ! sudo cp -a "$ORCA_ROLLBACK/orca-linux.AppImage" \
-        /opt/orca/orca-linux.AppImage.recovering || \
-        ! sudo mv -f /opt/orca/orca-linux.AppImage.recovering \
-          /opt/orca/orca-linux.AppImage; then
+        /opt/orcb/orca-linux.AppImage.recovering || \
+        ! sudo mv -f /opt/orcb/orca-linux.AppImage.recovering \
+          /opt/orcb/orca-linux.AppImage; then
         recovery_ok=0
       fi
       if sudo test -f "$ORCA_ROLLBACK/VERSION"; then
-        if ! sudo cp -a "$ORCA_ROLLBACK/VERSION" /opt/orca/VERSION.recovering || \
-          ! sudo mv -f /opt/orca/VERSION.recovering /opt/orca/VERSION; then
+        if ! sudo cp -a "$ORCA_ROLLBACK/VERSION" /opt/orcb/VERSION.recovering || \
+          ! sudo mv -f /opt/orcb/VERSION.recovering /opt/orcb/VERSION; then
           recovery_ok=0
         fi
-      elif ! sudo rm -f /opt/orca/VERSION; then
+      elif ! sudo rm -f /opt/orcb/VERSION; then
         recovery_ok=0
       fi
     fi
-    sudo rm -f /opt/orca/orca-linux.AppImage.recovering \
-      /opt/orca/VERSION.recovering
+    sudo rm -f /opt/orcb/orca-linux.AppImage.recovering \
+      /opt/orcb/VERSION.recovering
     if ((recovery_ok)); then
       # A tripped StartLimitBurst refuses a plain start
-      sudo systemctl reset-failed orca-serve.service || true
-      sudo systemctl start orca-serve.service || true
+      sudo systemctl reset-failed orcb-serve.service || true
+      sudo systemctl start orcb-serve.service || true
     else
       echo 'Upgrade recovery failed; service remains stopped' >&2
     fi
@@ -557,33 +539,33 @@ trap recover_failed_upgrade EXIT
 
 # 1. Stage and verify the new build while the server stays online
 sudo curl -fL --retry 3 "https://github.com/stablyai/orca/releases/download/${ORCA_VERSION}/${ORCA_ASSET}" \
-  -o /opt/orca/orca-linux.AppImage.new
-sudo chown root:root /opt/orca/orca-linux.AppImage.new
-sudo chmod 755 /opt/orca/orca-linux.AppImage.new
+  -o /opt/orcb/orca-linux.AppImage.new
+sudo chown root:root /opt/orcb/orca-linux.AppImage.new
+sudo chmod 755 /opt/orcb/orca-linux.AppImage.new
 
 # Both checks must match; either grep stops this fail-fast block otherwise
-ORCA_FILE_INFO=$(LC_ALL=C file /opt/orca/orca-linux.AppImage.new)
+ORCA_FILE_INFO=$(LC_ALL=C file /opt/orcb/orca-linux.AppImage.new)
 grep 'ELF .* executable' <<<"$ORCA_FILE_INFO"
 grep -F "$ORCA_FILE_MACHINE" <<<"$ORCA_FILE_INFO"
 
 # 2. Assemble the prior binary and version in a root-only rollback bundle
-ORCA_ROLLBACK_BASE=/opt/orca/orca-rollback-$(date +%F-%H%M%S-%N)
+ORCA_ROLLBACK_BASE=/opt/orcb/orca-rollback-$(date +%F-%H%M%S-%N)
 ORCA_ROLLBACK_NEW=${ORCA_ROLLBACK_BASE}.new
 ORCA_ROLLBACK=${ORCA_ROLLBACK_BASE}.ready
 sudo install -d -m 700 "$ORCA_ROLLBACK_NEW"
-sudo cp -a /opt/orca/orca-linux.AppImage "$ORCA_ROLLBACK_NEW/orca-linux.AppImage"
-if sudo test -f /opt/orca/VERSION; then
-  sudo cp -a /opt/orca/VERSION "$ORCA_ROLLBACK_NEW/VERSION"
+sudo cp -a /opt/orcb/orca-linux.AppImage "$ORCA_ROLLBACK_NEW/orca-linux.AppImage"
+if sudo test -f /opt/orcb/VERSION; then
+  sudo cp -a /opt/orcb/VERSION "$ORCA_ROLLBACK_NEW/VERSION"
 fi
 
 # Stage the new version record before the stop window
-printf '%s\n' "$ORCA_VERSION" | sudo tee /opt/orca/VERSION.new >/dev/null
-sudo chown root:root /opt/orca/VERSION.new
-sudo chmod 644 /opt/orca/VERSION.new
+printf '%s\n' "$ORCA_VERSION" | sudo tee /opt/orcb/VERSION.new >/dev/null
+sudo chown root:root /opt/orcb/VERSION.new
+sudo chmod 644 /opt/orcb/VERSION.new
 
 # 3. Stop the server so the profile backup is consistent
 ORCA_SERVICE_STOPPED=1
-sudo systemctl stop orca-serve.service
+sudo systemctl stop orcb-serve.service
 
 # Add only Orca-owned profile directories, then publish the complete bundle
 ORCA_PROFILE_DIRS=()
@@ -611,11 +593,11 @@ sudo mv "$ORCA_ROLLBACK_NEW" "$ORCA_ROLLBACK"
 
 # 4. Atomically replace the binary and version record, then start
 ORCA_BINARY_PROMOTED=1
-sudo mv -f /opt/orca/orca-linux.AppImage.new /opt/orca/orca-linux.AppImage
-sudo mv -f /opt/orca/VERSION.new /opt/orca/VERSION
+sudo mv -f /opt/orcb/orca-linux.AppImage.new /opt/orcb/orca-linux.AppImage
+sudo mv -f /opt/orcb/VERSION.new /opt/orcb/VERSION
 # Clears a start-limit hit left by the version being replaced
-sudo systemctl reset-failed orca-serve.service
-sudo systemctl start orca-serve.service
+sudo systemctl reset-failed orcb-serve.service
+sudo systemctl start orcb-serve.service
 ORCA_SERVICE_STOPPED=0
 trap - EXIT
 ```
@@ -624,12 +606,12 @@ The profile archive created in step 3 captures both Orca profile directory names
 when present without rewinding unrelated tools under `/home/orca/.config`. The
 `.ready` suffix is published only after the prior binary, version record, and
 profile archive are complete. If you run the managed Xvfb unit, only
-`orca-serve.service` needs restarting — leave `orca-xvfb.service` running.
+`orcb-serve.service` needs restarting — leave `orcb-xvfb.service` running.
 
 ### Verify
 
 ```bash
-sudo journalctl -u orca-serve.service -f
+sudo journalctl -u orcb-serve.service -f
 ```
 
 A healthy start prints one `Orca server ready` block with the actual bound and
@@ -642,7 +624,7 @@ removing it:
 
 ```bash
 shopt -s nullglob
-ORCA_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
+ORCA_ROLLBACK_SETS=(/opt/orcb/orca-rollback-*.ready)
 ((${#ORCA_ROLLBACK_SETS[@]} > 0))
 ORCA_ROLLBACK=${ORCA_ROLLBACK_SETS[${#ORCA_ROLLBACK_SETS[@]} - 1]}
 printf 'Removing rollback bundle: %s\n' "$ORCA_ROLLBACK"
@@ -668,7 +650,7 @@ set -euo pipefail
 
 # Select and validate one complete generation before taking the service offline
 shopt -s nullglob
-ORCA_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
+ORCA_ROLLBACK_SETS=(/opt/orcb/orca-rollback-*.ready)
 ((${#ORCA_ROLLBACK_SETS[@]} > 0))
 ORCA_ROLLBACK=${ORCA_ROLLBACK_SETS[${#ORCA_ROLLBACK_SETS[@]} - 1]}
 sudo test -f "$ORCA_ROLLBACK/orca-linux.AppImage"
@@ -726,30 +708,30 @@ restart_after_rollback_error() {
     fi
     if ((ORCA_CURRENT_BINARY_MOVED)); then
       if sudo test -f "$ORCA_CURRENT_BINARY"; then
-        if ! sudo mv -f "$ORCA_CURRENT_BINARY" /opt/orca/orca-linux.AppImage; then
+        if ! sudo mv -f "$ORCA_CURRENT_BINARY" /opt/orcb/orca-linux.AppImage; then
           recovery_ok=0
         fi
-      elif ! sudo test -f /opt/orca/orca-linux.AppImage; then
+      elif ! sudo test -f /opt/orcb/orca-linux.AppImage; then
         recovery_ok=0
       fi
     fi
     if ((ORCA_CURRENT_VERSION_MOVED)); then
       if sudo test -f "$ORCA_CURRENT_VERSION"; then
-        if ! sudo mv -f "$ORCA_CURRENT_VERSION" /opt/orca/VERSION; then
+        if ! sudo mv -f "$ORCA_CURRENT_VERSION" /opt/orcb/VERSION; then
           recovery_ok=0
         fi
-      elif ! sudo test -f /opt/orca/VERSION; then
+      elif ! sudo test -f /opt/orcb/VERSION; then
         recovery_ok=0
       fi
     elif ((ORCA_VERSION_REPLACEMENT_STARTED)); then
-      if ! sudo rm -f /opt/orca/VERSION; then
+      if ! sudo rm -f /opt/orcb/VERSION; then
         recovery_ok=0
       fi
     fi
     if ((recovery_ok)); then
       # A tripped StartLimitBurst refuses a plain start
-      sudo systemctl reset-failed orca-serve.service || true
-      sudo systemctl start orca-serve.service || true
+      sudo systemctl reset-failed orcb-serve.service || true
+      sudo systemctl start orcb-serve.service || true
     else
       echo 'Rollback recovery failed; service remains stopped' >&2
     fi
@@ -794,16 +776,16 @@ for profile_dir in "${ORCA_RESTORE_DIRS[@]}"; do
 done
 
 ORCA_ROLLBACK_STAMP=$(date +%F-%H%M%S-%N)
-ORCA_ROLLBACK_BINARY_STAGED=/opt/orca/orca-linux.AppImage.rollback-staged-$ORCA_ROLLBACK_STAMP
+ORCA_ROLLBACK_BINARY_STAGED=/opt/orcb/orca-linux.AppImage.rollback-staged-$ORCA_ROLLBACK_STAMP
 sudo cp -a "$ORCA_ROLLBACK/orca-linux.AppImage" "$ORCA_ROLLBACK_BINARY_STAGED"
 if sudo test -f "$ORCA_ROLLBACK/VERSION"; then
   ORCA_ROLLBACK_HAS_VERSION=1
-  ORCA_ROLLBACK_VERSION_STAGED=/opt/orca/VERSION.rollback-staged-$ORCA_ROLLBACK_STAMP
+  ORCA_ROLLBACK_VERSION_STAGED=/opt/orcb/VERSION.rollback-staged-$ORCA_ROLLBACK_STAMP
   sudo cp -a "$ORCA_ROLLBACK/VERSION" "$ORCA_ROLLBACK_VERSION_STAGED"
 fi
 
 ORCA_SERVICE_STOPPED=1
-sudo systemctl stop orca-serve.service
+sudo systemctl stop orcb-serve.service
 
 # Preserve and replace only Orca-owned profile directories
 ORCA_CURRENT_DIRS=()
@@ -833,25 +815,25 @@ for profile_dir in "${ORCA_RESTORE_DIRS[@]}"; do
   sudo mv "$ORCA_RESTORE/$profile_dir" /home/orca/.config/
 done
 
-ORCA_CURRENT_BINARY=/opt/orca/orca-linux.AppImage.rollback-current-$ORCA_ROLLBACK_STAMP
+ORCA_CURRENT_BINARY=/opt/orcb/orca-linux.AppImage.rollback-current-$ORCA_ROLLBACK_STAMP
 ORCA_CURRENT_BINARY_MOVED=1
-sudo mv /opt/orca/orca-linux.AppImage "$ORCA_CURRENT_BINARY"
-sudo mv -f "$ORCA_ROLLBACK_BINARY_STAGED" /opt/orca/orca-linux.AppImage
+sudo mv /opt/orcb/orca-linux.AppImage "$ORCA_CURRENT_BINARY"
+sudo mv -f "$ORCA_ROLLBACK_BINARY_STAGED" /opt/orcb/orca-linux.AppImage
 
-ORCA_CURRENT_VERSION=/opt/orca/VERSION.rollback-current-$ORCA_ROLLBACK_STAMP
-if sudo test -f /opt/orca/VERSION; then
+ORCA_CURRENT_VERSION=/opt/orcb/VERSION.rollback-current-$ORCA_ROLLBACK_STAMP
+if sudo test -f /opt/orcb/VERSION; then
   ORCA_CURRENT_VERSION_MOVED=1
-  sudo mv /opt/orca/VERSION "$ORCA_CURRENT_VERSION"
+  sudo mv /opt/orcb/VERSION "$ORCA_CURRENT_VERSION"
 fi
 ORCA_VERSION_REPLACEMENT_STARTED=1
 if ((ORCA_ROLLBACK_HAS_VERSION)); then
-  sudo mv -f "$ORCA_ROLLBACK_VERSION_STAGED" /opt/orca/VERSION
+  sudo mv -f "$ORCA_ROLLBACK_VERSION_STAGED" /opt/orcb/VERSION
 else
-  sudo rm -f /opt/orca/VERSION
+  sudo rm -f /opt/orcb/VERSION
 fi
 # The crash-looping build you are rolling back from tripped StartLimitBurst
-sudo systemctl reset-failed orca-serve.service
-sudo systemctl start orca-serve.service
+sudo systemctl reset-failed orcb-serve.service
+sudo systemctl start orcb-serve.service
 ORCA_SERVICE_STOPPED=0
 sudo rm -rf -- "$ORCA_RESTORE"
 trap - EXIT
@@ -862,7 +844,7 @@ the newer `orca-data.json` in place, where an older build can discard state it
 does not understand. Keep the pre-upgrade backup until the new version is proven
 on your host. The `orca-rollback-*` directory inside `.config` is also retained
 deliberately. The post-upgrade binary and version record are retained in
-`/opt/orca` with the same `rollback-current-<timestamp>` suffix. Inspect these
+`/opt/orcb` with the same `rollback-current-<timestamp>` suffix. Inspect these
 artifacts and remove them according to your retention policy after the rollback
 is resolved.
 
@@ -871,14 +853,14 @@ is resolved.
 Orca's agent skills (CLI usage, orchestration, computer use, etc.) are normally
 installed from Orca Settings, which pre-fills an `npx skills add ... --global`
 command in a terminal for you to run. A headless host has no Settings UI, so
-use `orca skills install` instead:
+use `orcb skills install` instead:
 
 ```bash
-orca skills install                                      # list installable skills
-orca skills install --skill orca-cli --skill orchestration # install globally (default)
-orca skills install --skill orca-cli --local              # install into the current project only
-orca skills install --all                                 # install every bundled skill
-orca skills install --all --dry-run                       # print the npx command without running it
+orcb skills install                                      # list installable skills
+orcb skills install --skill orca-cli --skill orchestration # install globally (default)
+orcb skills install --skill orca-cli --local              # install into the current project only
+orcb skills install --all                                 # install every bundled skill
+orcb skills install --all --dry-run                       # print the npx command without running it
 ```
 
 This resolves the same `npx skills add <repo> --skill <name> ...` command
@@ -900,24 +882,24 @@ CLI installs into all ~75 agents it knows and leaves a config directory for each
 Override the targets yourself, or narrow to the shared directory alone:
 
 ```bash
-orca skills install --skill orca-cli --agent claude-code,codex
-orca skills install --skill orca-cli --agent universal
+orcb skills install --skill orca-cli --agent claude-code,codex
+orcb skills install --skill orca-cli --agent universal
 ```
 
-If Orca detects no agent at all, `orca skills install` stops and asks for
+If Orca detects no agent at all, `orcb skills install` stops and asks for
 `--agent` rather than guessing.
 
-To refresh already-installed skills, `orca skills update` mirrors the same
+To refresh already-installed skills, `orcb skills update` mirrors the same
 selection flags (`--skill`, `--all`, `--local`, `--dry-run`) and resolves to
 `npx skills update <names...>` with a matching scope flag — `--global`, or
 `--project` when you pass `--local`:
 
 ```bash
-orca skills update --all                                  # update every bundled skill globally
-orca skills update --skill orca-cli --dry-run             # print the npx command without running it
+orcb skills update --all                                  # update every bundled skill globally
+orcb skills update --skill orca-cli --dry-run             # print the npx command without running it
 ```
 
-`orca skills update` only refreshes skills that are already installed — it exits
+`orcb skills update` only refreshes skills that are already installed — it exits
 0 without doing anything for a skill that is missing, so install it first. More
 generally, a 0 exit means the `skills` CLI ran without erroring, not that it
 wrote anything; read its output to confirm what changed.
@@ -925,9 +907,9 @@ wrote anything; read its output to confirm what changed.
 `--json` covers the skill listing and `--dry-run`. A real run streams the
 `skills` CLI's own non-JSON output and rejects `--json`.
 
-Both commands install onto the machine that runs them. In an Orca SSH workspace
-or the WSL bridge the `orca` shim forwards commands to the Orca host, so they
-refuse to run there and print the command to run on the machine you want.
+Both commands install onto the machine that runs them. In an ORCB SSH workspace
+or the WSL bridge, the `orcb` launcher forwards commands to the ORCB host, so
+they refuse to run there and print the command to run on the machine you want.
 
 ## Troubleshooting
 
@@ -939,16 +921,16 @@ refuse to run there and print the command to run on the machine you want.
 - GPU or DRI warnings on a VPS: keep `LIBGL_ALWAYS_SOFTWARE=1` in the service
   environment.
 - Chromium sandbox errors: confirm the service is running as the non-root
-  `orca` user and that `/opt/orca` is readable by that user, including
-  `/opt/orca/squashfs-root` if you extracted the AppImage.
+  `orca` user and that `/opt/orcb` is readable by that user, including
+  `/opt/orcb/squashfs-root` if you extracted the AppImage.
 - Clients cannot connect: make sure `--pairing-address` is an address reachable
   from the client, and make sure firewalls allow the selected `--port`.
 - Journal shows `Another Orca instance is already running for this userData
 profile` and the unit exits `3`: another process already owns the profile, so
   `RestartPreventExitStatus=3` leaves the unit `failed` on purpose. Find the
-  owner with `systemctl status orca-serve` and `pgrep -af orca`. Stop it (or
+  owner with `systemctl status orcb-serve` and `pgrep -af orcb`. Stop it (or
   keep it and leave the unit down), then run
-  `sudo systemctl reset-failed orca-serve && sudo systemctl start orca-serve` —
+  `sudo systemctl reset-failed orcb-serve && sudo systemctl start orcb-serve` —
   `reset-failed` clears the failed state and any start-limit counter. If no owner
   exists, the lock is stale (Chromium recorded a pid that
   has since been reused): remove `SingletonLock` and `SingletonSocket` from the
@@ -960,10 +942,10 @@ profile` and the unit exits `3`: another process already owns the profile, so
   the pre-upgrade `.ready` bundle. Do not rerun the upgrade first; doing so would
   make the crashing version the next rollback binary. The loop trips
   `StartLimitBurst`, so any manual `systemctl start` outside that script needs
-  `sudo systemctl reset-failed orca-serve.service` first.
+  `sudo systemctl reset-failed orcb-serve.service` first.
 - Diagnosing other missing libraries: extract the AppImage without launching it
   with `./orca-linux.AppImage --appimage-extract`, then run
-  `ldd squashfs-root/orca-ide` to list any shared libraries the host is missing.
-  The Electron binary is `orca-ide`, not `orca`; `ldd` on a path that does not
+  `ldd squashfs-root/orcb` to list any shared libraries the host is missing.
+  The Electron binary is `orcb`, not `orca`; `ldd` on a path that does not
   exist prints nothing and exits cleanly, which reads as a clean result in
   exactly the situation where you are hunting a missing library.

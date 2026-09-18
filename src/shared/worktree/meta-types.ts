@@ -90,6 +90,6 @@ export type WorktreeMeta = {
   mobileDiffReview?: MobileDiffReviewState
   /** System-owned provenance for workspaces created by automation new-per-run dispatches. */
   automationProvenance?: AutomationWorkspaceProvenance
-  /** System-owned provenance for workspaces created via `orca worktree create`. */
+  /** System-owned provenance for workspaces created via `orcb worktree create`. */
   cliProvenance?: CliWorkspaceProvenance
 }

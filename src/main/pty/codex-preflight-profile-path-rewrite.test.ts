@@ -54,10 +54,10 @@ function buildFixture(options: { aliasCodex?: boolean } = {}): Fixture {
   mkdirSync(codexDir, { recursive: true })
   mkdirSync(homePath, { recursive: true })
 
-  // The CLI Orca ships, at the absolute path Orca controls.
+  // The CLI ORCB ships, at the absolute path ORCB controls.
   writeStub(getBundledLauncherPath(process.platform, resourcesPath) as string, intendedMarker)
-  // The impostor a user's own bin directory could hold under every CLI name Orca uses.
-  for (const name of ['orca', 'orca-ide', 'orca-dev']) {
+  // The impostor a user's own bin directory could hold under every CLI name ORCB uses.
+  for (const name of ['orcb', 'orcb-dev']) {
     writeStub(join(hijackDir, name), hijackMarker)
   }
   writeStub(join(codexDir, 'codex'), codexMarker)
@@ -166,7 +166,7 @@ describe.skipIf(!bashAvailable)('Codex preflight under a profile-rewritten PATH'
   it('skips an unqualified preflight value while still launching codex', () => {
     const fixture = buildFixture()
 
-    launchCodexThroughRcfile(fixture, 'orca')
+    launchCodexThroughRcfile(fixture, 'orcb')
 
     expect(existsSync(fixture.hijackMarker)).toBe(false)
     expect(existsSync(fixture.intendedMarker)).toBe(false)

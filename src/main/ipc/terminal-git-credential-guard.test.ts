@@ -72,12 +72,12 @@ describe('applyTerminalGitCredentialPromptGuard', () => {
     }
   })
 
-  it('does not treat a generic Orca CLI command as an agent', () => {
+  it('does not treat a generic ORCB CLI command as an agent', () => {
     const env: Record<string, string> = { PATH: '/usr/bin' }
 
     expect(
       applyTerminalGitCredentialPromptGuard(env, {
-        launchCommand: 'orca status',
+        launchCommand: 'orcb status',
         platform: 'linux'
       })
     ).toBe(false)

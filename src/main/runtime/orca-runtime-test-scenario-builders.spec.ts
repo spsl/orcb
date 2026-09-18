@@ -124,7 +124,7 @@ async function publishClientHostedPage(
   return placement
 }
 
-// Why (#10333): `orca serve` publishes a ready graph under
+// Why (#10333): `orcb serve` publishes a ready graph under
 // HEADLESS_RUNTIME_WINDOW_ID with no BrowserWindow behind it, so every
 // focus-requested create used to fall through to getAuthoritativeWindow().
 const wireHeadlessServeRuntime = (): RuntimeService => {

@@ -175,7 +175,7 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
       })
       await agentHookServer.start({
         env: app.isPackaged ? 'production' : 'development',
-        // Why: hooks source this endpoint file at invocation time so old PTY env reaches the current process after restart; dev namespaces it (worktrees share `orca-dev`).
+        // Why: hooks source this endpoint file at invocation time so old PTY env reaches the current process after restart; dev namespaces it (worktrees share `orcb-dev`).
         userDataPath: app.getPath('userData'),
         endpointNamespace: state.devAgentHookEndpointNamespace
       })

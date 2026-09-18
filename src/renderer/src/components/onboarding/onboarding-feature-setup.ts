@@ -177,7 +177,7 @@ export function createOnboardingFeatureSetupDeps(
     return e2eDeps
   }
 
-  // Register `orca` on the same PATH used by the skill install (#12103).
+  // Register `orcb` on the same PATH used by the skill install (#12103).
   const wslDistroRequest =
     agentRuntime?.runtime === 'wsl' ? getWslCliDistroRequest(agentRuntime) : undefined
   const isWsl = agentRuntime?.runtime === 'wsl'

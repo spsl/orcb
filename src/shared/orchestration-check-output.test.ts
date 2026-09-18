@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { prepareOrchestrationCheckOutput } from './orchestration-check-output'
+import {
+  formatOrchestrationCheckText,
+  prepareOrchestrationCheckOutput
+} from './orchestration-check-output'
 
 describe('prepareOrchestrationCheckOutput', () => {
   it('keeps mixed read-only mail safe and current Run replies executable', () => {
@@ -31,12 +34,28 @@ describe('prepareOrchestrationCheckOutput', () => {
     )
 
     expect(prepared.formatted).toContain(
-      '[Reply: orca orchestration reply --id msg_current --body "..."]'
+      '[Reply: orcb orchestration reply --id msg_current --body "..."]'
     )
     expect(prepared.formatted).not.toContain('--from run:run_adopted')
     expect(prepared.formatted).toContain(
       '[Inspection only: reply and acknowledgment are unavailable.]'
     )
     expect(prepared.formatted).not.toContain('unsafe stale formatter output')
+  })
+})
+
+describe('formatted delivery acknowledgment', () => {
+  it('retains the delivery ID above formatted message bodies', () => {
+    expect(
+      formatOrchestrationCheckText(
+        {
+          messages: [{ id: 'msg_one', from_handle: 'worker' }],
+          count: 1,
+          deliveryId: 'delivery_one',
+          formatted: 'Message body'
+        },
+        'term_coord'
+      )
+    ).toBe('Delivery delivery_one\nMessage body')
   })
 })

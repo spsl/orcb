@@ -38,7 +38,7 @@ interface got bound. `localhost` maps to `127.0.0.1`. `0.0.0.0` / `::` are the e
 opt-ins to network reach, and the startup log says so on every launch.
 
 The bind is **pinned**, not defaulted. Two things widen the desktop's listener on their own —
-`orca serve`'s wide default, and a startup where some device has connected before — and an
+`orcb serve`'s wide default, and a startup where some device has connected before — and an
 unattended host's exposure must be exactly what the operator asked for on every launch. A
 mobile pairing offer, which normally rebinds to all interfaces, is refused while the bind is
 pinned to loopback and reports `network_exposure_failed` rather than advertising an endpoint
@@ -84,12 +84,12 @@ The built-in remote updater performs a PID-scoped stop and keeps the daemon's in
 pinned while it owns sessions. A combined-unit systemd stop or restart is different: it reaps
 the daemon and every live terminal after the graceful window.
 
-Before a cgroup-wide stop, obtain a fresh `orca-ide terminal list --json` result using the same OS
+Before a cgroup-wide stop, obtain a fresh `orcb terminal list --json` result using the same OS
 account and home as the daemon. Invoke the installer's absolute launcher path so `sudo`'s
 `secure_path` cannot hide a per-user registration (for example,
-`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`). Replace both `orca` and
+`sudo -Hu orca /home/orca/.local/bin/orcb terminal list --json`). Replace both `orca` and
 `/home/orca` with the service account and home used by the unit; an extracted deployment may use
-its absolute `resources/bin/orca-ide` launcher instead. A safe empty census is untruncated, has an explicit `hostScope`, covers every
+its absolute `resources/bin/orcb` launcher instead. A safe empty census is untruncated, has an explicit `hostScope`, covers every
 execution host affected by the stop, and lists no terminals on those hosts. Every
 `omittedHostIds` entry must be explicitly accounted for outside the target service's execution
 boundary. A separately paired runtime is outside that boundary; local execution and SSH hosts

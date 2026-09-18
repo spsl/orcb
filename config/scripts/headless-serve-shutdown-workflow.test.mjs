@@ -36,19 +36,19 @@ function readSystemdUnitBlocks(doc, unitName) {
 describe('headless serve shutdown PR gate', () => {
   it('reads only exact, closed systemd unit blocks', () => {
     expect(
-      readSystemdUnitBlocks('# /etc/systemd/system/orca-serveXservice\n```', 'orca-serve.service')
+      readSystemdUnitBlocks('# /etc/systemd/system/orcb-serveXservice\n```', 'orcb-serve.service')
     ).toEqual([])
     expect(() =>
-      readSystemdUnitBlocks('# /etc/systemd/system/orca-serve.service\n', 'orca-serve.service')
-    ).toThrow('Missing closing code fence for orca-serve.service')
+      readSystemdUnitBlocks('# /etc/systemd/system/orcb-serve.service\n', 'orcb-serve.service')
+    ).toThrow('Missing closing code fence for orcb-serve.service')
     expect(() =>
       readSystemdUnitBlocks(
-        '# /etc/systemd/system/orca-serve.service\n' +
+        '# /etc/systemd/system/orcb-serve.service\n' +
           'KillMode=mixed\n' +
           '# /etc/systemd/system/other.service\n```',
-        'orca-serve.service'
+        'orcb-serve.service'
       )
-    ).toThrow('Missing closing code fence for orca-serve.service')
+    ).toThrow('Missing closing code fence for orcb-serve.service')
   })
 
   it('packages Linux artifacts before running the Docker signal oracle', () => {
@@ -56,12 +56,6 @@ describe('headless serve shutdown PR gate', () => {
     const packageStep = steps.find((step) => step.name === 'Package unpacked app')
     const markerStep = steps.find((step) => step.name === 'Verify root-package marker payloads')
     const shutdownStep = steps.find((step) => step.name === 'Verify headless serve signal shutdown')
-    const launcherShutdownStep = steps.find(
-      (step) => step.name === 'Verify extracted launcher serve signal shutdown'
-    )
-    const appImageShutdownStep = steps.find(
-      (step) => step.name === 'Verify AppImage CLI registration and serve signal shutdown'
-    )
 
     expect(workflow.jobs.package['timeout-minutes']).toBe(90)
     expect(packageStep.run).toContain('--linux AppImage deb rpm --x64 --publish never')
@@ -69,19 +63,13 @@ describe('headless serve shutdown PR gate', () => {
     expect(markerStep.run).toContain('rpm2cpio')
     expect(steps.indexOf(markerStep)).toBeGreaterThan(steps.indexOf(packageStep))
     expect(shutdownStep.run).toBe(
-      'node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/orca-linux.AppImage'
+      'node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/orcb-linux.AppImage --all-entrypoints'
     )
-    expect(launcherShutdownStep.run).toContain(
-      'node config/scripts/run-headless-serve-shutdown-docker.mjs'
-    )
-    expect(launcherShutdownStep.run).toContain('--entrypoint launcher')
-    expect(appImageShutdownStep.run).toContain('--entrypoint appimage')
-    expect(appImageShutdownStep.run).toContain('--signal-target serving-electron')
-    expect(appImageShutdownStep.run).toContain('--int-delivery pid')
     expect(steps.indexOf(shutdownStep)).toBeGreaterThan(steps.indexOf(packageStep))
     expect(steps.indexOf(shutdownStep)).toBeGreaterThan(steps.indexOf(markerStep))
-    expect(steps.indexOf(launcherShutdownStep)).toBeGreaterThan(steps.indexOf(shutdownStep))
-    expect(steps.indexOf(appImageShutdownStep)).toBeGreaterThan(steps.indexOf(launcherShutdownStep))
+    expect(
+      steps.filter((step) => step.run?.includes('run-headless-serve-shutdown-docker.mjs'))
+    ).toHaveLength(1)
   })
 
   it('keeps readiness polling finite and leak-free', () => {
@@ -106,7 +94,7 @@ describe('headless serve shutdown PR gate', () => {
 
   it('checks that a serving-electron signal target owns the ready socket', () => {
     const ssRecord =
-      'LISTEN 0 128 127.0.0.1:41235 0.0.0.0:* users:(("orca-ide",pid=23,fd=7),("orca-ide",pid=25,fd=8))'
+      'LISTEN 0 128 127.0.0.1:41235 0.0.0.0:* users:(("orcb",pid=23,fd=7),("orcb",pid=25,fd=8))'
     expect([...ssRecord.matchAll(/pid=([0-9]+)/g)].map((match) => match[1])).toEqual(['23', '25'])
     expect(signalCase).toContain(
       'listener_before_pids=$(grep -oE \'pid=[0-9]+\' <<<"$listener_before" | cut -d= -f2 || true)'
@@ -123,7 +111,7 @@ describe('headless serve shutdown PR gate', () => {
       'runDesktopStartupOracle({ image, appImage, platform })'
     )
     const extractionCall = shutdownDockerRunner.indexOf(
-      "'timeout --kill-after=10s 120s /input/orca.AppImage --appimage-extract"
+      "'timeout --kill-after=10s 120s /input/orcb.AppImage --appimage-extract"
     )
     const signalLoop = shutdownDockerRunner.indexOf("for (const signal of ['INT', 'TERM'])")
     expect(startupCall).toBeGreaterThan(-1)
@@ -151,7 +139,7 @@ describe('headless serve shutdown PR gate', () => {
       '[[ -x "$appimage" ]] || { echo "FAIL: AppImage is not executable: $appimage" >&2; exit 1; }'
     )
     expect(shutdownDockerRunner).toContain(
-      '\'test -r /input/orca.AppImage && test -x /input/orca.AppImage || { echo "FAIL: AppImage bind must be readable and executable" >&2; exit 1; }\''
+      '\'test -r /input/orcb.AppImage && test -x /input/orcb.AppImage || { echo "FAIL: AppImage bind must be readable and executable" >&2; exit 1; }\''
     )
   })
 
@@ -160,7 +148,7 @@ describe('headless serve shutdown PR gate', () => {
   })
 
   it('keeps owned Xvfb alive during the documented systemd graceful stop', () => {
-    const serveUnits = readSystemdUnitBlocks(headlessLinuxGuide, 'orca-serve.service')
+    const serveUnits = readSystemdUnitBlocks(headlessLinuxGuide, 'orcb-serve.service')
     const ownedXvfbUnits = serveUnits.filter((unit) => !/^Environment=DISPLAY=/m.test(unit))
     const managedXvfbUnits = serveUnits.filter((unit) => /^Environment=DISPLAY=/m.test(unit))
 
@@ -182,25 +170,20 @@ describe('headless serve shutdown PR gate', () => {
       'A separately paired runtime is outside that boundary; local execution and SSH hosts reached through this runtime are not. An affected or unknown omission, missing scope, failed request or lost connection is `unverifiable`'
     )
     expect(headlessLinuxGuide).toContain(
-      'sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json'
+      'sudo -Hu orca /home/orca/.local/bin/orcb terminal list --json'
     )
-    expect(headlessLinuxGuide).not.toContain('sudo -Hu orca orca-ide terminal list --json')
+    expect(headlessLinuxGuide).not.toContain('sudo -Hu orca orcb terminal list --json')
     expect(headlessLinuxGuide).not.toContain('Two facts make this safe and predictable')
   })
 
   it('uses the registered CLI name from ordinary Linux shells', () => {
     const commandRule =
-      'The registered Linux CLI command is `orca-ide`, not `orca`, to avoid shadowing the GNOME Orca screen reader.'
-    const substitutionRule =
-      "From an ordinary shell outside that service user's managed environment, substitute `orca-ide` for `orca` in commands below."
-    const censusCommand = '`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`'
+      'The registered Linux CLI command is `orcb`. It does not claim or replace an existing `orca` executable.'
+    const censusCommand = '`sudo -Hu orca /home/orca/.local/bin/orcb terminal list --json`'
 
     expect(headlessLinuxProse).toContain(commandRule)
-    expect(headlessLinuxProse).toContain(substitutionRule)
     expect(headlessLinuxProse).toContain(censusCommand)
-    expect(headlessLinuxGuide).toContain('best-effort dispatcher at `$HOME/.local/bin/orca`')
-    expect(headlessLinuxProse.indexOf(substitutionRule)).toBeLessThan(
-      headlessLinuxProse.indexOf(censusCommand)
-    )
+    expect(headlessLinuxGuide).not.toContain('orca-ide')
+    expect(headlessLinuxGuide).not.toContain('best-effort dispatcher at `$HOME/.local/bin/orca`')
   })
 })

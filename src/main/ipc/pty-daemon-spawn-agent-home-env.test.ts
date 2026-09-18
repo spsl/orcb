@@ -391,7 +391,7 @@ describe('registerPtyHandlers', () => {
         )
         expect(spawnOptions.env.CLAUDE_CODE_CHILD_SESSION).toBe('1')
       })
-      it('prepends the bare-orca CLI shim dir to PATH for packaged Linux spawns', async () => {
+      it('prepends the ORCB CLI shim dir to PATH for packaged Linux spawns', async () => {
         const originalPlatform = process.platform
         Object.defineProperty(process, 'platform', {
           configurable: true,
@@ -403,8 +403,8 @@ describe('registerPtyHandlers', () => {
             PATH: ['/usr/local/bin', '/usr/bin'].join(delimiter)
           })
           const entries = env.PATH.split(delimiter)
-          const shimDir = join('/tmp/orca-user-data', 'linux-orca-cli-shim')
-          // Why: bare `orca` must resolve to the Orca CLI before /usr/bin/orca (the GNOME screen reader) in Orca terminals (#7904).
+          const shimDir = join('/tmp/orca-user-data', 'linux-orcb-cli-shim')
+          // Why: `orcb` must resolve to this distribution's CLI ahead of host PATH entries.
           expect(entries.indexOf(shimDir)).toBeGreaterThanOrEqual(0)
           expect(entries.indexOf(shimDir)).toBeLessThan(entries.indexOf('/usr/bin'))
           expect(env.ORCA_CLI_COMMAND).toBeUndefined()

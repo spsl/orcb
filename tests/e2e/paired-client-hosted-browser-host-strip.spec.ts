@@ -4,7 +4,7 @@
  * page, the host's rendered tab strip grows a row for it, and closing that row from the host
  * tears the page down on the client.
  *
- * Uses the headed-host topology deliberately: under `orca serve` there is no window to push to,
+ * Uses the headed-host topology deliberately: under `orcb serve` there is no window to push to,
  * so a headless host proves nothing about this feature.
  */
 import { createServer, type Server } from 'node:http'

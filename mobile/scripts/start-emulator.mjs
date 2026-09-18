@@ -119,7 +119,7 @@ function assertIosSimulatorPlatform() {
   }
 }
 
-// Execute orca CLI command
+// Execute ORCB CLI command
 async function orca(args, options = {}) {
   const { stdout, stderr } = await execFileAsync(ORCA_CLI, args, {
     cwd: options.cwd || process.cwd(),

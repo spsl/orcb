@@ -1,9 +1,6 @@
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
-
-const shim = vi.hoisted(() => ({ ensureLinuxTerminalOrcaCliShimDir: vi.fn() }))
-vi.mock('../cli/linux-terminal-orca-cli-shim', () => shim)
 
 import { structuredWorkerChildIdentityEnv } from './structured-worker-child-identity-env'
 import {
@@ -17,7 +14,6 @@ import {
 const SESSION_ID = 'f7a1c0de-1111-4222-8333-444455556666'
 const USER_DATA = '/data/orca'
 const RESOURCES = '/app/Resources'
-const SHIM_DIR = join(USER_DATA, 'linux-orca-cli-shim')
 
 const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')!
 const resourcesDescriptor = Object.getOwnPropertyDescriptor(process, 'resourcesPath')
@@ -41,8 +37,6 @@ function registerWorker(): string {
 }
 
 beforeEach(() => {
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReset()
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReturnValue(SHIM_DIR)
   Object.defineProperty(process, 'resourcesPath', { configurable: true, value: RESOURCES })
 })
 
@@ -73,19 +67,16 @@ describe('structuredWorkerChildIdentityEnv', () => {
     expect(env.ORCA_CLI_COMMAND).toBeUndefined()
     // Still no CLI reachability granted, so packaged builds keep today's exposure.
     expect(childEnv.PATH).toBe('/usr/bin')
-    expect(shim.ensureLinuxTerminalOrcaCliShimDir).not.toHaveBeenCalled()
   })
 
-  it('gives a packaged-Linux worker the bare-orca shim its ORCA_CLI_COMMAND assumes', () => {
-    // Without this the child's first `orca orchestration check` execs GNOME Orca — the CLI
-    // installs as `orca-ide` on Linux (stablyai/orca#7904) — and the dispatch hangs to timeout.
+  it('gives a packaged-Linux worker the bundled ORCB CLI path', () => {
     pinPlatform('linux')
     installFakeAppEnvironment({ isPackaged: () => true, getPath: () => USER_DATA })
     const handle = registerWorker()
     const env = structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin:/bin' })
     expect(env.ORCA_TERMINAL_HANDLE).toBe(handle)
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
-    expect(env.PATH).toBe(`${SHIM_DIR}:/usr/bin:/bin`)
+    expect(env.ORCA_CLI_COMMAND).toBe('orcb')
+    expect(env.PATH).toBe(`${join(RESOURCES, 'bin')}:/usr/bin:/bin`)
   })
 
   it('gives a packaged-macOS worker the bundled CLI dir', () => {
@@ -124,10 +115,7 @@ describe('structuredWorkerChildIdentityEnv', () => {
     expect(Object.keys(env).filter((key) => key.includes('PANE'))).toEqual([])
   })
 
-  it('never names the WSL-scoped launcher, because a structured worker cannot run in WSL', () => {
-    // `orca-ide` is the literal the PTY lane exports for WSL only. A structured session that
-    // resolves to a WSL distro is refused a host scope, so it never becomes a worker at all —
-    // which is why the bare-`orca` shim, not the literal, is the right fix on Linux.
+  it('rejects WSL-scoped structured workers', () => {
     expect(
       structuredWorkerHostScope({
         executionHostId: 'local',
@@ -141,6 +129,6 @@ describe('structuredWorkerChildIdentityEnv', () => {
     registerWorker()
     expect(
       structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin' }).ORCA_CLI_COMMAND
-    ).not.toBe('orca-ide')
+    ).toBe('orcb')
   })
 })

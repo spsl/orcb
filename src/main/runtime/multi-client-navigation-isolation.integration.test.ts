@@ -57,7 +57,7 @@ describe('paired runtime navigation isolation', () => {
     await Promise.all(servers.splice(0).map((server) => server.stop()))
   })
 
-  /** `headless: true` models `orca serve` — no renderer notifier and no attached window. */
+  /** `headless: true` models `orcb serve` — no renderer notifier and no attached window. */
   async function startHarness(options: { headless?: boolean } = {}) {
     const hostSelections = { worktreeId: HOST_WORKTREE_ID, tabId: 'host-tab' }
     const activateWorktree = vi.fn((_repoId: string, nextWorktreeId: string) => {
@@ -399,7 +399,7 @@ describe('paired runtime navigation isolation', () => {
 
   it('still reveals to every client when a paired caller asks for all-surface navigation', async () => {
     // Why: the CLI pairs as a runtime device but has no viewer of its own, so
-    // `orca worktree create --activate` against a remote runtime sends navigation 'all'.
+    // `orcb worktree create --activate` against a remote runtime sends navigation 'all'.
     const harness = await startHarness()
     await subscribeBothClientEventStreams(harness)
 
@@ -426,7 +426,7 @@ describe('paired runtime navigation isolation', () => {
     expect(harness.activateWorktree).toHaveBeenCalled()
   })
 
-  it('keeps create activation caller-scoped on a headless orca serve host', async () => {
+  it('keeps create activation caller-scoped on a headless orcb serve host', async () => {
     const harness = await startHarness({ headless: true })
     await subscribeBothClientEventStreams(harness)
 

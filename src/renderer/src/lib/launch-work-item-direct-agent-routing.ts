@@ -42,7 +42,7 @@ export function buildDirectWorkItemStartup(args: {
     nativeChatTranscriptIsLocalReadable: isNativeChatTranscriptLocalReadable(
       args.launchConnectionId
     ),
-    // Why: SSH hosts run the plain `orca` shim, so the Linux-only `orca-ide` rename is not applied.
+    // Why: remote status selects the target shell; its launcher remains `orcb`.
     isRemote: typeof args.launchConnectionId === 'string'
   })
 }

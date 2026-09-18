@@ -20,7 +20,7 @@ describe('locale-translation-policy ja relocalization', () => {
     expect(ja('a commit hook or git commit fails', 'コミットフックまたは git commit が失敗')).toBe(
       'コミットフックまたは git commit が失敗'
     )
-    expect(ja('Run orca terminal', 'orca terminal を実行')).toBe('orca terminal を実行')
+    expect(ja('Run orcb terminal', 'orcb terminal を実行')).toBe('orcb terminal を実行')
     expect(ja('Install with pnpm install', 'pnpm install でインストール')).toBe(
       'pnpm install でインストール'
     )

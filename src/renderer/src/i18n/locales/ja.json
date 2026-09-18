@@ -2218,6 +2218,10 @@
                 "7c302f8174": "無題"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "このビューにはまだ項目がありません。",
+            "7e4a2f80c6": "最近追加した項目は、表示されるまで少し時間がかかることがあります。"
           }
         },
         "GitHubMarkdownComposer": {
@@ -5230,7 +5234,7 @@
           "pairingCode": "ペアリングコード",
           "pairingCodePlaceholder": "orca://pair?code=...",
           "pairingHelpPrefix": "実行",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "orcb serve --pairing-address <host>",
           "pairingHelpSuffix": "をサーバーで実行し、出力されたペアリング URL を貼り付けます。",
           "sshImportAlreadySynced": "~/.ssh/config はすでに同期されています。",
           "sshImportSynced": "{{value0}} ホスト{{value1}} を同期しました。",
@@ -6880,7 +6884,7 @@
           "9a3758d983": "保存されたサーバーはありません。",
           "9bee6bbeeb": "サーバーの追加",
           "55fcc964cd": "をサーバーで実行し、出力されたペアリング URL を貼り付けます。",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "960e901ae4": "orcb serve --pairing-address <host>",
           "163671f7b5": "実行",
           "c3d772c514": "orca://pair?code=...",
           "9bc9b83474": "ペアリングコード",
@@ -7676,7 +7680,7 @@
           "e49688f67f": "`{{value0}}` を WSL に登録しますか?",
           "61ac55278e": "WSL から {{value0}} を削除しますか?",
           "e2b0ee267f": "古い",
-          "7aa456a460": "WSL 内の~/.local/binに「orca-ide」を登録します。",
+          "7aa456a460": "WSL 内の~/.local/binに「orcb」を登録します。",
           "0307677bb9": "WSL CLI 登録を確認しています…"
         },
         "accounts": {
@@ -8948,7 +8952,7 @@
           "search": {
             "ca6a0c2df7": "ショートカット",
             "4811a8264a": "ターミナルファースト",
-            "afda131738": "orca first",
+            "afda131738": "orcb first",
             "0ecfc47434": "競合",
             "0f8cb15582": "Agent",
             "f1adebbe8c": "シェル",
@@ -10263,7 +10267,7 @@
           "advanced": "詳細設定",
           "sshTunnel": "このローカルアドレスへの SSH トンネルを使用しています",
           "sshTunnelHelp": "この接続を使用している間はトンネルを維持してください。",
-          "headlessHelp": "ヘッドレスの orca serve を使う場合は、もう一方のコンピュータで orca serve --pairing-address <reachable-host> を実行してください。",
+          "headlessHelp": "ヘッドレスの orcb serve を使う場合は、もう一方のコンピュータで orcb serve --pairing-address <reachable-host> を実行してください。",
           "cancel": "キャンセル",
           "addWithTunnel": "トンネルを使ってホストを追加",
           "addHost": "ホストを追加",
@@ -12592,7 +12596,7 @@
             "4795ac2d4a": "尋ねてみてください:",
             "53905bd076": "開発プレビュー: スキル設定ターミナルを開きます。",
             "1da82af45b": "Orca CLI には注意が必要です",
-            "ce13a742d0": "orcaをPATHに登録しました。",
+            "ce13a742d0": "orcbをPATHに登録しました。",
             "d1a86c7eb5": "[設定] を開いて CLI セットアップを完了します。"
           },
           "CmdJPaletteFeatureTipVisual": {
@@ -12702,9 +12706,9 @@
           },
           "MobileEmulatorAgentSetupGuideSteps": {
             "9b49d892e3": "Orca CLI を有効化",
-            "3d8dc52c93": "Agent シェルでエミュレータ制御用の orca コマンドを登録します。",
+            "3d8dc52c93": "Agent シェルでエミュレータ制御用の orcb コマンドを登録します。",
             "21f5687c07": "Orca CLI スキル",
-            "64fb057667": "このワークツリーの orca エミュレータコマンドを Agent に教えます。",
+            "64fb057667": "このワークツリーの orcb エミュレータコマンドを Agent に教えます。",
             "5c59ea96ca": "モバイルエミュレータ用 Orca CLI スキルのセットアップ",
             "bff5341ac3": "モバイルエミュレータ用 Orca CLI スキルのインストール用ターミナル",
             "3d34423e88": "Orca CLI を登録しています",
@@ -14650,7 +14654,8 @@
         "chooseInAgentPicker": "Agent の選択画面で選ぶ…",
         "toggleOption": "{{value0}}を切り替える",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "現在の値が不明です — オンまたはオフを選んでください",
+        "valueIsDefault": "既定",
+        "valueNotReported": "未報告",
         "sentNotConfirmed": "Agent に送信済み — 未確認",
         "setWhenSessionStarts": "セッション開始時に設定してください。",
         "availableAfterSessionStarts": "セッション開始後に利用できます。",
@@ -14663,9 +14668,7 @@
           "high": "高",
           "xhigh": "最高",
           "max": "最大",
-          "ultra": "ウルトラ",
-          "on": "オン",
-          "off": "オフ"
+          "ultra": "ウルトラ"
         },
         "noCommandsOrSkills": "一致するコマンドやスキルがありません",
         "commands": "コマンド",

@@ -13,13 +13,14 @@ export function appendOrcaRpcOutput(output, chunk, bytes, limit = MAX_ORCA_RPC_O
 }
 
 export function resolveOrcaCliCommand({ env = process.env, platform = process.platform } = {}) {
+  void platform
   if (env.ORCA_CLI_COMMAND?.trim()) {
     return env.ORCA_CLI_COMMAND.trim()
   }
   if (env.ORCA_DEV_REPO_ROOT) {
-    return 'orca-dev'
+    return 'orcb-dev'
   }
-  return platform === 'linux' ? 'orca-ide' : 'orca'
+  return 'orcb'
 }
 
 export function resolveOrcaCliInvocation({
@@ -32,11 +33,11 @@ export function resolveOrcaCliInvocation({
   if (
     platform === 'win32' &&
     env.ORCA_DEV_REPO_ROOT &&
-    (commandName === 'orca-dev' || commandName === 'orca-dev.cmd')
+    (commandName === 'orcb-dev' || commandName === 'orcb-dev.cmd')
   ) {
     const defaultUserDataPath = path.win32.join(
       env.APPDATA ?? path.win32.join(env.USERPROFILE ?? '', 'AppData', 'Roaming'),
-      'orca-dev'
+      'orcb-dev'
     )
     return {
       command: nodeExecutable,
@@ -229,9 +230,9 @@ export function createOrcaRpc({
     const started = performance.now()
     try {
       const opened = await orcaJsonAsync(['open'], { local: true, timeoutMs: 120_000 })
-      notes.push(`orca open ms=${opened.elapsedMs.toFixed(0)}`)
+      notes.push(`orcb open ms=${opened.elapsedMs.toFixed(0)}`)
     } catch (error) {
-      notes.push(`orca open failed: ${String(error).slice(0, 200)}`)
+      notes.push(`orcb open failed: ${String(error).slice(0, 200)}`)
     }
     const storm = await runReconnectRefreshStorm(notes)
     return { wallMs: performance.now() - started, storm }

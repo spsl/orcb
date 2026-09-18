@@ -27,12 +27,12 @@ describe('computer-use skill guidance', () => {
   it('keeps web-app targeting on the computer-use surface', () => {
     const skill = readFileSync(guidePath, 'utf8')
 
-    expect(skill).toContain('Use this skill for desktop UI through `orca computer`')
+    expect(skill).toContain('Use this skill for desktop UI through `orcb computer`')
     expect(skill).toContain('external desktop browser window that needs desktop-level control')
-    expect(skill).not.toMatch(/\borca goto\b/iu)
-    expect(skill).not.toMatch(/\borca snapshot\b/iu)
-    expect(skill).not.toMatch(/\borca click\b/iu)
-    expect(skill).not.toMatch(/\borca fill\b/iu)
+    expect(skill).not.toMatch(/\borcb goto\b/iu)
+    expect(skill).not.toMatch(/\borcb snapshot\b/iu)
+    expect(skill).not.toMatch(/\borcb click\b/iu)
+    expect(skill).not.toMatch(/\borcb fill\b/iu)
   })
 
   it('warns agents to verify browser-hosted form focus before drafting text', () => {
@@ -86,12 +86,11 @@ describe('computer-use install stub', () => {
 
     expect(stub).toContain('discovery stub')
     expect(stub).toContain('ORCA skills get computer-use')
-    // The safe CLI-resolution contract must survive in the stub, never a bare `orca`.
+    // The safe CLI-resolution contract must survive in the stub.
     expect(stub).toContain('ORCA_CLI_COMMAND')
-    expect(stub).toContain('orca-dev')
-    expect(stub).toContain('orca-ide')
-    expect(stub).toContain('GNOME Orca screen reader')
-    expect(stub).not.toMatch(/^orca /mu)
+    expect(stub).toContain('orcb-dev')
+    expect(stub).toContain('Otherwise, use `orcb`.')
+    expect(stub).not.toMatch(/^orca(?:-dev|-ide)? /mu)
   })
 
   it('drops the changing command reference from the installable file', () => {

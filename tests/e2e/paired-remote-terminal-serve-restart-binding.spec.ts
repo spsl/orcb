@@ -1,6 +1,6 @@
 /**
  * A paired viewer must not erase a verified mirrored PTY binding while a
- * restarted `orca serve` process republishes the same surface as pending, and
+ * restarted `orcb serve` process republishes the same surface as pending, and
  * the surviving daemon PTY must keep appending to its durable history log.
  *
  * Run:

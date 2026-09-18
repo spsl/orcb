@@ -461,7 +461,7 @@ describe('WorktreeMetaDialog issue link row', () => {
     expect(providerChip().textContent).toContain('Linear')
   })
 
-  // A background `orca worktree set` must not move the baseline mid-edit: the
+  // A background `orcb worktree set` must not move the baseline mid-edit: the
   // field would read as dirty and a comment-only save would write the stale seed.
   it('keeps the baseline frozen when the store changes while open', async () => {
     openDialog({ worktree: { linkedLinearIssue: 'STA-335' } })

@@ -296,6 +296,6 @@ class CappedOutputCollector {
 
   toString(): string {
     const text = Buffer.concat(this.chunks).toString('utf8')
-    return this.truncated ? `${text}\n[orca ssh cli] output truncated\n` : text
+    return this.truncated ? `${text}\n[orcb ssh cli] output truncated\n` : text
   }
 }

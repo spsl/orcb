@@ -1,3 +1,5 @@
+import { installChildSessionSearchService } from '../ai-vault-search/session-search-enablement'
+import { getCanonicalUserDataPath } from '../persistence/loading-store/user-data-path'
 import { app } from 'electron'
 import { OrcaRuntimeService } from '../runtime/orca-runtime'
 import { getLocalPtyProvider, getSshPtyProvider, clearProviderPtyState } from '../ipc/pty'
@@ -64,7 +66,7 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
       )
   }
   // Why here and not in the window listener: `subscribeEnrichedStatus` also fires under headless
-  // `orca serve`, which never opens one, and the fleet path runs there too.
+  // `orcb serve`, which never opens one, and the fleet path runs there too.
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const runtime = new OrcaRuntimeService(store, stats, {
     agentSessionClaimSigner: loadAgentSessionClaimSigner(
@@ -131,6 +133,12 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     orchestrationEnvironmentTransport,
     skillTransactionRecovery: state.skillTransactionRecovery
   })
+  // Both desktop and headless serve own a host-local search service.
+  const sessionSearch = installChildSessionSearchService({
+    dataRoot: getCanonicalUserDataPath(),
+    getSettings: () => store.getSettings()
+  })
+  app.once('will-quit', () => sessionSearch?.dispose())
   state.runtime = runtime
   agentHookServer.subscribeEnrichedStatus((enriched) =>
     recordObservedAgentStatusPaneIdentity(observedPaneIdentities, enriched.paneKey, runtime)
@@ -138,7 +146,6 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
   // Why before anything can attach: a client host that reattaches to a restarted runtime is only
   // handed its pages back if the runtime found them first.
   runtime.rehydrateClientHostedBrowserPages()
-  state.publishProviderSessionChanges?.(agentHookServer.getProviderSessionIdentities())
   browserManager.setBrowserGuestStateChangedListener((worktreeId) => {
     runtime.notifyMobileSessionTabsChanged(worktreeId)
   })

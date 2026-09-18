@@ -41,15 +41,15 @@ const ORCHESTRATION_ONLY_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCo
 
 const INSTALLED_CLI_STATUS: CliInstallStatus = {
   platform: 'darwin',
-  commandName: 'orca',
-  commandPath: '/usr/local/bin/orca',
+  commandName: 'orcb',
+  commandPath: '/usr/local/bin/orcb',
   pathDirectory: '/usr/local/bin',
   pathConfigured: true,
-  launcherPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+  launcherPath: '/Applications/ORCB.app/Contents/MacOS/ORCB',
   installMethod: 'symlink',
   supported: true,
   state: 'installed',
-  currentTarget: '/Applications/Orca.app/Contents/MacOS/Orca',
+  currentTarget: '/Applications/ORCB.app/Contents/MacOS/ORCB',
   unsupportedReason: null,
   detail: null
 }
@@ -382,8 +382,8 @@ describe('onboarding feature setup runner', () => {
     const staleStatus: CliInstallStatus = {
       ...INSTALLED_CLI_STATUS,
       state: 'stale',
-      currentTarget: '/tmp/other-orca',
-      detail: '/usr/local/bin/orca points to a different launcher.'
+      currentTarget: '/tmp/other-orcb',
+      detail: '/usr/local/bin/orcb points to a different launcher.'
     }
     const showCliRegistrationPrompt = vi.fn(async () => undefined)
     const installCli = vi.fn(async () => INSTALLED_CLI_STATUS)
@@ -411,7 +411,7 @@ describe('onboarding feature setup runner', () => {
       ...INSTALLED_CLI_STATUS,
       platform: 'win32',
       pathConfigured: null,
-      detail: 'Orca could not read the Windows user PATH registry value.'
+      detail: 'ORCB could not read the Windows user PATH registry value.'
     }
     const deps = createDeps({ getCliStatus: vi.fn(async () => unknownStatus) })
 

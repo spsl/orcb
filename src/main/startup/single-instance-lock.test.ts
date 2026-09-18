@@ -79,7 +79,7 @@ describe('acquireSingleInstanceLock', () => {
 
 describe('shouldActivateDesktopForSecondInstance', () => {
   it('ignores a duplicate serve launch but still activates for a desktop launch', () => {
-    // Why: a supervisor respawning `orca serve` must not open a window on a display-less host (#11935).
+    // Why: a supervisor respawning `orcb serve` must not open a window on a display-less host (#11935).
     const serveArgv = ['/opt/orca/orca-linux.AppImage', '--serve']
     expect(shouldActivateDesktopForSecondInstance(serveArgv)).toBe(false)
     expect(shouldActivateDesktopForSecondInstance(['/Applications/Orca.app/orca'])).toBe(true)

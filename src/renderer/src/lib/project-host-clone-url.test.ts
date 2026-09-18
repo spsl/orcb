@@ -36,7 +36,7 @@ describe('getProjectHostCloneUrl', () => {
           providerIdentity: {
             provider: 'github',
             owner: 'enterprise owner',
-            repo: 'orca repo',
+            repo: 'orcb repo',
             host: 'github.acme-corp.com:8443'
           }
         })

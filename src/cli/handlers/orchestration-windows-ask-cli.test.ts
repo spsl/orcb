@@ -11,7 +11,7 @@ vi.mock('../selectors', () => ({ getTerminalHandle: vi.fn() }))
 
 import { ORCHESTRATION_HANDLERS } from './orchestration'
 
-describe('packaged Windows legacy ask protocol', () => {
+describe('packaged Windows ORCB ask protocol', () => {
   beforeEach(() => {
     callMock.mockReset()
     process.env.ORCA_WINDOWS_PACKAGED_CLI_LAUNCHER = '1'
@@ -27,7 +27,7 @@ describe('packaged Windows legacy ask protocol', () => {
     restoreEnv('ORCA_TERMINAL_HANDLE', originalTerminalHandle)
   })
 
-  it.each(['orca', 'orca-ide'] as const)(
+  it.each(['orcb'] as const)(
     'commits with the %s launcher and exits 75 before resume',
     async (command) => {
       process.env.ORCA_CLI_COMMAND = command
@@ -52,7 +52,9 @@ describe('packaged Windows legacy ask protocol', () => {
         expect.objectContaining({
           question: 'Proceed?',
           resume: undefined,
-          compatibilityWindowsCommand: command
+          compatibilityOrcbCliCommand: command,
+          compatibilityOrcbWindowsCommand: command,
+          compatibilityWindowsCommand: 'orca'
         }),
         expect.any(Object)
       )
@@ -65,7 +67,7 @@ describe('packaged Windows legacy ask protocol', () => {
   )
 
   it('resumes the committed question without another exit-75 handoff', async () => {
-    process.env.ORCA_CLI_COMMAND = 'orca'
+    process.env.ORCA_CLI_COMMAND = 'orcb'
     callMock.mockResolvedValue({
       result: {
         answer: 'yes',
@@ -83,6 +85,8 @@ describe('packaged Windows legacy ask protocol', () => {
       expect.objectContaining({
         question: undefined,
         resume: 'msg_question',
+        compatibilityOrcbCliCommand: 'orcb',
+        compatibilityOrcbWindowsCommand: 'orcb',
         compatibilityWindowsCommand: 'orca'
       }),
       expect.any(Object)

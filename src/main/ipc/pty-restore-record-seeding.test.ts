@@ -334,7 +334,7 @@ describe('registerPtyHandlers', () => {
       lastTitle: 'checkpoint-title'
     })
   })
-  // Why windowless: `orca serve`/CLI runtime creation is the topology that most
+  // Why windowless: `orcb serve`/CLI runtime creation is the topology that most
   // needs informative records — its controller.spawn path must seed them too.
   it('seeds restore records for a runtime-controller created terminal (headless reattach)', async () => {
     const worktreeId = 'repo-restore::/tmp/restore-records'

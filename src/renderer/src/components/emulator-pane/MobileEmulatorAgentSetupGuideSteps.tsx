@@ -60,7 +60,7 @@ export function MobileEmulatorAgentSetupGuideSteps({
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.3d8dc52c93',
-              'Registers the orca command for emulator control in agent shells.'
+              'Registers the orcb command for emulator control in agent shells.'
             )}
           </p>
           {setup.cliInstallStatus?.commandPath && setup.cliEnabled ? (

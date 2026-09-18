@@ -125,9 +125,9 @@ Validated so far:
   worktree, and remote plain-folder scopes, including client-mediated upload, unchanged preview,
   managed-install listing, safe removal, and remote-target Cloud authorization.
 - Real paired-runtime installation passed from an isolated Electron client to both a headed
-  desktop host and headless `orca serve` host. The host owned global and Git-worktree installs;
+  desktop host and headless `orcb serve` host. The host owned global and Git-worktree installs;
   the headed host also owned a plain-folder install. The client's home remained untouched.
-- A fresh post-resilience E2E run passed all three headed paired-runtime, headless `orca serve`,
+- A fresh post-resilience E2E run passed all three headed paired-runtime, headless `orcb serve`,
   and Docker SSH journeys. Focused failure injection also proves invalid gzip classification,
   old-version preservation after `EACCES` and `ENOSPC`, bounded recovery from a lost final install
   response, and validated structured SSH failure data without arbitrary error-data disclosure.
@@ -1100,7 +1100,7 @@ does not mean the surrounding phase is complete.
       transfer before retrying so a consumed upload is never reused.
 - [x] Run the real Electron client against a paired desktop host for global, Git-worktree, and
       plain-folder install, unchanged preview, inventory, and removal.
-- [x] Run the same contract against a paired headless `orca serve` host for global and
+- [x] Run the same contract against a paired headless `orcb serve` host for global and
       Git-worktree install, unchanged preview, inventory, and removal.
 - [x] Verify paired installation creates files only in host-owned roots and never falls back to the
       client's isolated home.
@@ -1182,8 +1182,8 @@ residual follow-up work.
 
 ### Host preparation
 
-- [x] Confirm `windows 2` is saved and reachable through `orca environment list` and
-      `orca status --environment "windows 2" --json`.
+- [x] Confirm `windows 2` is saved and reachable through `orcb environment list` and
+      `orcb status --environment "windows 2" --json`.
 - [x] Confirm the host provides both a native Git checkout and a native plain folder workspace.
 - [x] Record Windows edition/build, architecture, filesystem type, long-path policy, current user
       home, temp root, antivirus status, and developer-mode/symlink policy without collecting
@@ -1651,8 +1651,8 @@ disconnect boundaries remain separate gates below.
 - [x] Let only the local desktop Settings → Share Skills switch grant the capability. Runtime
       `settings.get` exposes a fail-closed read-only projection; `settings.update`, paired web,
       mobile, agents, and the CLI cannot enable it.
-- [x] Add `orca skills installed --json` with discovery IDs and names but no local filesystem paths.
-- [x] Add `orca skills share` with repeated explicit `--skill` selectors, a required bundle name,
+- [x] Add `orcb skills installed --json` with discovery IDs and names but no local filesystem paths.
+- [x] Add `orcb skills share` with repeated explicit `--skill` selectors, a required bundle name,
       one unlisted link for multi-skill bundles, and no `--all` or arbitrary-path input.
 - [x] Resolve exact discovery IDs before unambiguous names; fail missing, ambiguous, and duplicate
       bundle-folder names with actionable errors.

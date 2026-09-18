@@ -44,7 +44,7 @@ describe('orchestration worker-start command spec', () => {
 
   it('does not promise uniformity it cannot deliver', () => {
     // The note used to promise "the same verbs, the same handle, and the same worker-read
-    // sources". All three clauses were false for a worker with no terminal: `orca terminal` verbs
+    // sources". All three clauses were false for a worker with no terminal: `orcb terminal` verbs
     // refuse its handle and `--source terminal` has nothing to serve. A spec agents read must not
     // carry a false promise — but it also must not name the worker kind, or a coordinator starts
     // branching on something no verb it runs behaves differently for. So it states the limitation
@@ -64,7 +64,7 @@ describe('orchestration check command spec', () => {
 
     expect(checkSpec?.notes).toEqual(
       expect.arrayContaining([
-        '--types is the wake condition for --wait; a returned Delivery is always the whole FIFO batch, so it is never filtered by type. Only --peek and --all filter their rows.'
+        '--types is the wake condition for --wait; a returned Delivery is always the whole FIFO batch, so it is never filtered by type. Without --wait it has no effect on consuming checks. Only --peek and --all filter their rows.'
       ])
     )
   })

@@ -143,7 +143,7 @@ export function createPtyIpcSuiteEnvironment(): PtyIpcSuiteEnvironment {
     chmodSyncMock.mockReset()
     linuxCliShimMock.mockReset()
     linuxCliShimMock.mockImplementation((options: { userDataPath: string }) =>
-      join(options.userDataPath, 'linux-orca-cli-shim')
+      join(options.userDataPath, 'linux-orcb-cli-shim')
     )
     getPathMock.mockReset()
     loginPreflightExecFileMock.mockReset()

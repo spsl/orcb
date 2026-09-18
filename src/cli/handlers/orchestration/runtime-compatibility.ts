@@ -1,7 +1,9 @@
 import { RuntimeClientError } from '../../runtime-client'
 import {
   ORCB_CLI_COMMAND_NAME,
-  ORCB_DEV_CLI_COMMAND_NAME
+  ORCB_DEV_CLI_COMMAND_NAME,
+  isOrcbDevCliInvocation,
+  resolveOrcbCliCommandName
 } from '../../../shared/orcb-local-distribution'
 
 export function resolveCompatibilityCliCommand(): 'orca' | 'orca-ide' | 'orca-dev' {
@@ -13,11 +15,7 @@ export function resolveCompatibilityCliCommand(): 'orca' | 'orca-ide' | 'orca-de
 }
 
 export function resolveOrcbCompatibilityCliCommand(): 'orcb' | 'orcb-dev' {
-  const configured = process.env.ORCA_CLI_COMMAND
-  if (configured === ORCB_CLI_COMMAND_NAME || configured === ORCB_DEV_CLI_COMMAND_NAME) {
-    return configured
-  }
-  return isDevCliInvocation() ? ORCB_DEV_CLI_COMMAND_NAME : ORCB_CLI_COMMAND_NAME
+  return resolveOrcbCliCommandName(process.env)
 }
 
 export function resolvePackagedWindowsCompatibilityCommand(): 'orca' | 'orca-ide' | undefined {
@@ -35,7 +33,7 @@ export function resolvePackagedWindowsCompatibilityCommand(): 'orca' | 'orca-ide
   }
   throw new RuntimeClientError(
     'invalid_argument',
-    'The packaged Orca launcher did not provide a valid resume command. No question was created.'
+    'The packaged ORCB launcher did not provide a valid resume command. No question was created.'
   )
 }
 
@@ -65,8 +63,5 @@ export async function flushOrchestrationStdout(): Promise<void> {
 }
 
 export function isDevCliInvocation(): boolean {
-  return (
-    process.env.ORCA_DEV_CLI_INVOCATION === '1' ||
-    (process.env.ORCA_USER_DATA_PATH?.includes(ORCB_DEV_CLI_COMMAND_NAME) ?? false)
-  )
+  return isOrcbDevCliInvocation(process.env)
 }

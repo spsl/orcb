@@ -87,7 +87,7 @@ describe('packaged CLI assets', () => {
   })
 
   it('retries an incomplete listener-state write', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-listener-state-'))
+    const root = await mkdtemp(join(tmpdir(), 'orcb-listener-state-'))
     const statePath = join(root, 'listener-state.json')
     const expectedState = { pid: 1234, port: 5678 }
     await writeFile(statePath, '{"pid":', 'utf8')
@@ -111,7 +111,7 @@ describe('packaged CLI assets', () => {
     { state: { pid: 1234, port: '5678' }, reason: 'non-numeric port' },
     { state: { pid: 1234, port: 65_536 }, reason: 'out-of-range port' }
   ])('rejects $reason in listener state', async ({ state }) => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-listener-state-'))
+    const root = await mkdtemp(join(tmpdir(), 'orcb-listener-state-'))
     const statePath = join(root, 'listener-state.json')
     try {
       await writeFile(statePath, JSON.stringify(state), 'utf8')
@@ -127,7 +127,7 @@ describe('packaged CLI assets', () => {
     'delivers Unix termination signals to the $name executable and releases its listener',
     async (launcherFixture) => {
       for (const signal of unixTerminationSignals) {
-        const root = await mkdtemp(join(tmpdir(), 'orca-unix-cli-signal-'))
+        const root = await mkdtemp(join(tmpdir(), 'orcb-unix-cli-signal-'))
         const appDir = join(root, ...launcherFixture.appDir)
         const launcherPath = join(appDir, ...launcherFixture.launcher)
         const electronPath = join(appDir, ...launcherFixture.executable)
@@ -194,13 +194,13 @@ server.listen(0, '127.0.0.1', () => {
   itRunsUnixShell(
     'runs the Linux launcher from its packaged path and installed symlink',
     async () => {
-      const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-'))
+      const root = await mkdtemp(join(tmpdir(), 'orcb-linux-cli-'))
       try {
         const appDir = join(root, 'orcb')
         const resourcesDir = join(appDir, 'resources')
         const launcherDir = join(resourcesDir, 'bin')
         const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-        const launcherPath = join(launcherDir, 'orca-ide')
+        const launcherPath = join(launcherDir, 'orcb')
         const electronPath = join(appDir, 'orcb')
         const cliPath = join(cliDir, 'index.js')
 
@@ -227,9 +227,9 @@ printf 'arg=%s\\n' "$@"
 
         const homeDir = join(root, 'home')
         const commandDir = join(homeDir, '.local', 'bin')
-        const commandPath = join(commandDir, 'orca-ide')
+        const commandPath = join(commandDir, 'orcb')
         await mkdir(commandDir, { recursive: true })
-        await mkdir(join(homeDir, 'orca'), { recursive: true })
+        await mkdir(join(homeDir, 'orcb'), { recursive: true })
         await symlink(launcherPath, commandPath)
 
         const symlinked = await execFileAsync(commandPath, ['--help'], {
@@ -249,13 +249,13 @@ printf 'arg=%s\\n' "$@"
   // launcher, so its env sanitation and argv passthrough are the contract the
   // AppImage, deb, and extracted-tree commands all depend on.
   itRunsUnixShell('sanitizes node env and forwards argv verbatim', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-env-'))
+    const root = await mkdtemp(join(tmpdir(), 'orcb-linux-cli-env-'))
     try {
       const appDir = join(root, 'orcb')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-      const launcherPath = join(launcherDir, 'orca-ide')
+      const launcherPath = join(launcherDir, 'orcb')
       const cliPath = join(cliDir, 'index.js')
 
       await mkdir(launcherDir, { recursive: true })
@@ -307,13 +307,13 @@ node -e 'console.log(JSON.stringify({
   })
 
   itRunsUnixShell('keeps Linux serve on the CLI entrypoint in node mode', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-serve-'))
+    const root = await mkdtemp(join(tmpdir(), 'orcb-linux-cli-serve-'))
     try {
       const appDir = join(root, 'orcb')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-      const launcherPath = join(launcherDir, 'orca-ide')
+      const launcherPath = join(launcherDir, 'orcb')
       const appRunPath = join(appDir, 'AppRun')
       const electronPath = join(appDir, 'orcb')
       const cliPath = join(cliDir, 'index.js')

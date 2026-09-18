@@ -118,7 +118,7 @@ function launchAgentInNewTabInternal(
             : getLocalProjectExecutionRuntimeContext(store, worktreeId)
         )
       : CLIENT_PLATFORM)
-  // Why: SSH remotes deploy the shim as plain `orca`, so skip the Linux-only `orca-ide` rename for remote launches.
+  // Why: remote status selects the target shell; its launcher remains `orcb`.
   const isRemote = Boolean(worktreeSshConnectionId)
   const queuedShell = resolveLocalWindowsAgentStartupShell({
     platform: resolvedLaunchPlatform,

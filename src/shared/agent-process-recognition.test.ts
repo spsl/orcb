@@ -310,18 +310,18 @@ describe('agent process recognition', () => {
     })
   })
 
-  it('recognizes only the agent subcommand of the generic Orca CLI', () => {
-    expect(recognizeAgentProcessFromCommandLine('orca claude-teams')).toEqual({
+  it('recognizes only the agent subcommand of the generic ORCB CLI', () => {
+    expect(recognizeAgentProcessFromCommandLine('orcb claude-teams')).toEqual({
       agent: 'claude-agent-teams',
-      processName: 'orca'
+      processName: 'orcb'
     })
-    expect(recognizeAgentProcessFromCommandLine('orca status')).toBeNull()
-    expect(recognizeAgentProcessFromCommandLine('orca-dev terminal list')).toBeNull()
-    expect(recognizeAgentProcessFromCommandLine('node /usr/local/bin/orca claude-teams')).toEqual({
+    expect(recognizeAgentProcessFromCommandLine('orcb status')).toBeNull()
+    expect(recognizeAgentProcessFromCommandLine('orcb-dev terminal list')).toBeNull()
+    expect(recognizeAgentProcessFromCommandLine('node /usr/local/bin/orcb claude-teams')).toEqual({
       agent: 'claude-agent-teams',
-      processName: 'orca'
+      processName: 'orcb'
     })
-    expect(recognizeAgentProcessFromCommandLine('node /usr/local/bin/orca status')).toBeNull()
+    expect(recognizeAgentProcessFromCommandLine('node /usr/local/bin/orcb status')).toBeNull()
   })
 
   it('recognizes the versioned Cursor Node wrapper without accepting generic agent processes', () => {

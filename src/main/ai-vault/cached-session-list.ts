@@ -4,9 +4,10 @@ import {
   resetAiVaultScannerBackgroundForTests,
   scanAiVaultSessionsInBackground
 } from './session-scanner-background'
-import { listRunningWslHomeDirsAsync } from '../wsl'
+import { getCachedWslDistros, hasCachedWslDistros, listRunningWslHomeDirsAsync } from '../wsl'
 import { filterPathsToRunningWslDistrosAsync } from '../wsl-running-path-filter'
 import type { AiVaultListArgs, AiVaultListResult } from '../../shared/ai-vault-types'
+import type { AiVaultScanOptions } from './session-scanner-types'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { AiVaultScanCoordinator } from './ai-vault-scan-coordinator'
 import {
@@ -23,7 +24,7 @@ const AI_VAULT_CACHE_TTL_MS = 60_000
 
 // Why: codex-home + WSL home dirs must be sourced from a serve-mode-reachable
 // seam (the OrcaRuntimeService deps), NOT the window-only registerCoreHandlers
-// path — `orca serve` never runs that path, so sourcing it there would silently
+// path — `orcb serve` never runs that path, so sourcing it there would silently
 // drop managed-Codex sessions from remote/SSH results.
 export type AiVaultSessionSources = {
   getAdditionalCodexHomePaths?: () => readonly string[]
@@ -47,6 +48,28 @@ let cacheGeneration = 0
 
 export function configureAiVaultSessionSources(next: AiVaultSessionSources): void {
   sources = next
+}
+
+/**
+ * The trees a local scan enumerates, resolved fresh because a WSL distro can start
+ * or stop between scans. The search index reads the same function, so it walks
+ * exactly what the session list walks.
+ */
+export async function localAiVaultScanRoots(): Promise<
+  Required<Pick<AiVaultScanOptions, 'additionalCodexSessionsDirs' | 'wslHomeDirs'>> &
+    Pick<AiVaultScanOptions, 'executionHostId'>
+> {
+  const [additionalCodexHomes, wslHomeDirs] = await Promise.all([
+    filterPathsToRunningWslDistrosAsync(configuredAdditionalCodexHomePaths()),
+    getAiVaultWslHomeDirs()
+  ])
+  return {
+    additionalCodexSessionsDirs: additionalCodexHomes.map((homePath) => join(homePath, 'sessions')),
+    wslHomeDirs,
+    // Why: this scan is always host-local; callers addressing this host by a
+    // runtime id get the result restamped at the RPC edge, never rescanned.
+    executionHostId: LOCAL_EXECUTION_HOST_ID
+  }
 }
 
 /** The extra Codex homes session discovery scans. Anything that decides what a listed row may be
@@ -86,24 +109,12 @@ export async function listAiVaultSessions(
     force: args?.force,
     signal: options.signal,
     start: async (scanSignal) => {
-      const configuredCodexHomes = sources.getAdditionalCodexHomePaths?.() ?? []
-      const [additionalCodexHomes, wslHomeDirs] = await Promise.all([
-        filterPathsToRunningWslDistrosAsync(configuredCodexHomes),
-        getAiVaultWslHomeDirs()
-      ])
-      const additionalCodexSessionsDirs = additionalCodexHomes.map((homePath) =>
-        join(homePath, 'sessions')
-      )
       const result = await scanAiVaultSessionsInBackground(
         {
           limit: args?.limit,
           unlimited: args?.unlimited,
           scopePaths: args?.scopePaths,
-          additionalCodexSessionsDirs,
-          wslHomeDirs,
-          // Why: this scan is always host-local; callers addressing this host by a
-          // runtime id get the result restamped at the RPC edge, never rescanned.
-          executionHostId: LOCAL_EXECUTION_HOST_ID
+          ...(await localAiVaultScanRoots())
         },
         scanSignal
       )
@@ -135,6 +146,13 @@ export async function listAiVaultSessions(
 // renderer-supplied paths against the same WSL-aware Claude roots the scan uses.
 export async function getAiVaultWslHomeDirs(): Promise<string[]> {
   if (process.platform !== 'win32') {
+    return []
+  }
+  // No installed distro can be running: spares WSL-less hosts the running-distro probe.
+  // Cache read only: a rejected wsl.exe probe yields [] without caching, so it must not
+  // narrow the WSL roots delete/subagent validation trusts; and probing here would let this
+  // listing be the first to cache [] and flip a configured distro to "missing".
+  if (hasCachedWslDistros() && getCachedWslDistros()?.length === 0) {
     return []
   }
   return listRunningWslHomeDirsAsync()

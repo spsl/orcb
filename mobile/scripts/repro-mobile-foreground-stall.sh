@@ -13,7 +13,7 @@
 #     upgrade ever comes back, which is what a wedged Tailscale tunnel or a relay
 #     with nothing behind it looks like to the phone.
 #
-# Everything is driven with xcrun simctl rather than `orca emulator`, because the
+# Everything is driven with xcrun simctl rather than `orcb emulator`, because the
 # emulator CLI routes through the desktop runtime that this script freezes.
 #
 # Setup:

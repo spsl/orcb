@@ -77,14 +77,14 @@ function installRuntimeRpc(
     userDataPath: getCanonicalUserDataPath(),
     enableWebSocket: true,
     // Why: STA-2370 — the desktop app binds the WS listener to loopback until the user pairs a device;
-    // `orca serve` is an explicit remote opt-in, and E2E keeps the wide bind its harness connects over.
+    // `orcb serve` is an explicit remote opt-in, and E2E keeps the wide bind its harness connects over.
     exposeNetworkByDefault: Boolean(serveOptions) || isE2E,
     ...(isE2E ? { wsPort: e2eWsPort } : {}),
     ...(devWsPort !== undefined ? { wsPort: devWsPort } : {}),
     ...(serveOptions?.wsPort !== undefined
       ? {
           wsPort: serveOptions.wsPort,
-          // Why: only explicit `orca serve --port` overrides a stale STA-1511 fallback (issue #8535); default/dev stay fallback-first for pairing stability.
+          // Why: only explicit `orcb serve --port` overrides a stale STA-1511 fallback (issue #8535); default/dev stay fallback-first for pairing stability.
           preferPinnedWsPort: true
         }
       : {}),

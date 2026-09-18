@@ -142,7 +142,7 @@ export abstract class BrowserManagerRegistration extends BrowserManagerGuestPoli
     this.annotationViewportBridgeOpsByTabId.delete(browserTabId)
   }
 
-  // Why: headless orca serve has no <webview> window; back pages with offscreen WebContents and skip the webview-only setup.
+  // Why: headless orcb serve has no <webview> window; back pages with offscreen WebContents and skip the webview-only setup.
   registerOffscreenGuest({
     browserPageId,
     worktreeId,

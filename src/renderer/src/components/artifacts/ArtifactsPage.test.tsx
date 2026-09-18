@@ -224,7 +224,7 @@ describe('ArtifactsPage', () => {
         'Open an HTML or Markdown file and select Share as artifact, or ask your agent to share it.'
       )
     ).toBeInTheDocument()
-    expect(screen.queryByText(/orca artifacts share/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/orcb artifacts share/)).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Open Settings → Artifacts' })
     ).not.toBeInTheDocument()

@@ -9,7 +9,7 @@ Orca automations run a prompt on a schedule from the CLI, so recurring triage, r
 Start with `--disabled` while you tune the prompt and target:
 
 ```bash
-orca automations create \
+orcb automations create \
   --name "Weekday triage" \
   --trigger weekdays \
   --time 09:00 \
@@ -27,7 +27,7 @@ orca automations create \
 Use `--repo <selector>` when each run should create or select work in a repository. Use `--workspace <selector>` when the automation should run inside an existing Orca worktree instead:
 
 ```bash
-orca automations create \
+orcb automations create \
   --name "Nightly status" \
   --trigger "0 18 * * 1-5" \
   --prompt "Summarize today's changes" \
@@ -43,7 +43,7 @@ When you omit both target flags, Orca resolves the enclosing worktree from the c
 Skip scheduled work when a cheap shell probe fails (non-zero exit records a skipped run):
 
 ```bash
-orca automations create \
+orcb automations create \
   --name "PR review" \
   --trigger hourly \
   --precheck "gh pr list --json number -q .[0].number" \
@@ -59,7 +59,7 @@ orca automations create \
 When the automation should run on a specific project host setup rather than only `--repo` / `--workspace`:
 
 ```bash
-orca automations create \
+orcb automations create \
   --name "Remote triage" \
   --trigger daily \
   --time 09:00 \
@@ -82,7 +82,7 @@ When you create an automation in the desktop UI, **Create on** chooses its host 
 ## Missed-run grace
 
 ```bash
-orca automations edit <automationId> --missed-run-grace-minutes 30 --json
+orcb automations edit <automationId> --missed-run-grace-minutes 30 --json
 ```
 
 ## Reuse an existing automation session
@@ -90,7 +90,7 @@ orca automations edit <automationId> --missed-run-grace-minutes 30 --json
 For automations that target an existing worktree, add `--reuse-session` when later runs should continue in the previous live automation terminal instead of starting from a blank terminal each time:
 
 ```bash
-orca automations create \
+orcb automations create \
   --name "Inbox digest" \
   --trigger hourly \
   --prompt "Summarize unread mail" \
@@ -100,16 +100,16 @@ orca automations create \
   --disabled
 ```
 
-Use `orca automations edit <automationId> --fresh-session --json` to switch the automation back to a fresh terminal per run.
+Use `orcb automations edit <automationId> --fresh-session --json` to switch the automation back to a fresh terminal per run.
 
 ## Review and enable
 
 List and inspect automations before enabling them:
 
 ```bash
-orca automations list --json
-orca automations show <automationId> --json
-orca automations edit <automationId> --enabled --json
+orcb automations list --json
+orcb automations show <automationId> --json
+orcb automations edit <automationId> --enabled --json
 ```
 
 In the desktop automations list, use the search field to filter by **name**, **project**, or **prompt** text when you have many schedules. External automations that live on an SSH host still appear as jobs you can manage (including delete) when that host is disconnected — you do not need an active SSH session just to remove a schedule.
@@ -125,8 +125,8 @@ Use `edit` to change the name, prompt, provider, target, schedule, or enabled st
 After creating an automation, trigger it manually to check the prompt and target before waiting for the next scheduled time:
 
 ```bash
-orca automations run <automationId> --json
-orca automations runs --id <automationId> --json
+orcb automations run <automationId> --json
+orcb automations runs --id <automationId> --json
 ```
 
 If a run fails before it opens a workspace or reconnects to its target, open that run in Orca and click **Rerun** to queue a fresh manual run for the same automation.

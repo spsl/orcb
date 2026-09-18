@@ -8,7 +8,7 @@
  * (#9454). Nothing downstream can then tell "finished" from "interrupted": once
  * the pane is gone, worktree activation reads the record as unfinished work and
  * opens a fresh tab running `--resume`. Killing the PTY removes the pane but
- * never the record, so `orca terminal stop`, a crash, or a pty-exit tab close
+ * never the record, so `orcb terminal stop`, a crash, or a pty-exit tab close
  * all leave one queued respawn per finished agent.
  *
  * Run:
@@ -144,7 +144,7 @@ test('does not respawn an agent whose turn already finished', async (// oxlint-d
     // an empty one does not reactivate on relaunch at all.
     const survivingTabId = await createHostRendererTerminalTab(page, worktreeId)
 
-    // The PTY dies and its tab closes with it — `orca terminal stop`, a crash,
+    // The PTY dies and its tab closes with it — `orcb terminal stop`, a crash,
     // or the pty-exit auto close. This reason deliberately keeps the record.
     const tabId = await page.evaluate(
       (wtId) => (window.__store?.getState().tabsByWorktree[wtId] ?? [])[0]?.id ?? null,

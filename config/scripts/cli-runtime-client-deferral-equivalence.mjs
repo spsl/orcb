@@ -130,7 +130,7 @@ function run(entry, argv, env) {
   if (result.error) {
     if (result.error.code === 'ETIMEDOUT') {
       throw new Error(
-        `orca ${argv.join(' ')} did not exit within ${RUN_TIMEOUT_MS} ms — it reached a blocking command`
+        `orcb ${argv.join(' ')} did not exit within ${RUN_TIMEOUT_MS} ms — it reached a blocking command`
       )
     }
     throw result.error
@@ -257,7 +257,7 @@ function buildCases(isolatedUserData) {
 // Why: this script shells out to the REAL CLI with the developer's own HOME and
 // PATH, so an argv that reaches the wrong verb does real damage. Two classes:
 //
-//   1. FOREGROUND — `orca serve` runs Orca until Ctrl+C and `orca open` /
+//   1. FOREGROUND — `orcb serve` runs Orca until Ctrl+C and `orcb open` /
 //      `claude-teams` spawn processes that outlive the case. A blocking case
 //      does not fail the run, it stalls it, which is worse than a mismatch.
 //   2. MUTATING — writes outside ORCA_USER_DATA_PATH (`agent hooks off` parks

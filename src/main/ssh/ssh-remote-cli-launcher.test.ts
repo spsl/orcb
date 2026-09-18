@@ -8,7 +8,7 @@ import { createRemoteCliInstallPlan } from './ssh-remote-cli-launcher'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 // Why: the compile case is six process creations - powershell.exe -> csc.exe,
-// then the freshly built orca.exe -> node.exe, twice - and hosted Windows
+// then the freshly built orcb.exe -> node.exe, twice - and hosted Windows
 // runners periodically slow process creation down. Across 176 native-smoke runs
 // it spanned 1.9s-35.4s (p50 4.3s) while this file's powershell-only test held
 // its median, so the cost is the runner, not the assertions. The shared 30s
@@ -30,7 +30,7 @@ function decodePowerShellCommand(command: string): string {
   return Buffer.from(encoded, 'base64').toString('utf16le')
 }
 
-describe('SSH remote Orca CLI launcher', () => {
+describe('SSH remote ORCB CLI launcher', () => {
   function windowsInstallPlan(): ReturnType<typeof createRemoteCliInstallPlan> {
     return createRemoteCliInstallPlan({
       binDir: 'C:/Users/me user/.orca-relay/bin',
@@ -45,9 +45,9 @@ describe('SSH remote Orca CLI launcher', () => {
   it('compiles a native Windows launcher without a cmd.exe argument bridge', () => {
     const plan = windowsInstallPlan()
 
-    expect(plan.launcherPath).toBe('C:/Users/me user/.orca-relay/bin/orca.exe')
+    expect(plan.launcherPath).toBe('C:/Users/me user/.orca-relay/bin/orcb.exe')
     expect(plan.files).toHaveLength(1)
-    expect(plan.files[0]?.path).toBe('C:/Users/me user/.orca-relay/bin/orca-launcher.cs')
+    expect(plan.files[0]?.path).toBe('C:/Users/me user/.orca-relay/bin/orcb-launcher.cs')
     expect(plan.files[0]?.contents).toContain('ProcessStartInfo')
     expect(plan.files[0]?.contents).toContain('"--orca-cli"')
     expect(plan.files[0]?.contents).toContain('socketPath + ".credential"')
@@ -64,27 +64,15 @@ describe('SSH remote Orca CLI launcher', () => {
     expect(compileScript).toContain(
       "Set-Location -ErrorAction Stop -LiteralPath 'C:/Users/me user/.orca-relay/bin'"
     )
-    expect(compileScript).toContain('/out:orca.exe')
-    expect(compileScript).toContain('C:/Users/me user/.orca-relay/bin/orca-launcher.cs')
-    expect(compileScript).toContain('C:/Users/me user/.orca-relay/bin/orca.cmd')
+    expect(compileScript).toContain('/out:orcb.exe')
+    expect(compileScript).toContain('C:/Users/me user/.orca-relay/bin/orcb-launcher.cs')
+    expect(compileScript).not.toContain('C:/Users/me user/.orca-relay/bin/orca.cmd')
   })
 
-  it('removes the legacy orca.cmd only after every compile guard has passed', () => {
+  it('preserves the legacy orca.cmd while registering the ORCB launcher', () => {
     const script = decodePowerShellCommand(windowsInstallPlan().postWriteCommands[0] ?? '')
-    const legacyShimRemoval =
-      "Remove-Item -LiteralPath 'C:/Users/me user/.orca-relay/bin/orca.cmd' -Force -ErrorAction SilentlyContinue"
-    // Why: a host missing csc.exe or failing the compile must keep its existing
-    // CLI, so every fail-closed guard precedes the legacy %* shim removal.
-    const guards = [
-      "if (-not $compiler) { Write-Error 'Unable to find the .NET Framework C# compiler required for the Orca SSH CLI launcher.'; exit 1 }",
-      'if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }',
-      "if (-not (Test-Path -LiteralPath 'C:/Users/me user/.orca-relay/bin/orca.exe' -PathType Leaf))"
-    ]
-    expect(script).toContain(legacyShimRemoval)
-    for (const guard of guards) {
-      expect(script).toContain(guard)
-      expect(script.indexOf(guard)).toBeLessThan(script.indexOf(legacyShimRemoval))
-    }
+    expect(script).toContain('/out:orcb.exe')
+    expect(script).not.toContain("Remove-Item -LiteralPath 'C:/Users/me user/.orca-relay/bin/orca.cmd'")
   })
 
   itWindows('preserves a multiline argument through the compiled remote launcher', () => {
@@ -183,7 +171,7 @@ describe('SSH remote Orca CLI launcher', () => {
     }
   })
 
-  itWindows('preserves the existing orca.cmd when the compiler is missing', () => {
+  itWindows('preserves the existing upstream orca.cmd when the compiler is missing', () => {
     const root = mkdtempSync(join(tmpdir(), 'orca remote cli '))
     try {
       const binDir = join(root, 'bin').replaceAll('\\', '/')
@@ -238,10 +226,10 @@ describe('SSH remote Orca CLI launcher', () => {
       hostPlatform: getRemoteHostPlatform('linux-x64')
     })
 
-    expect(plan.launcherPath).toBe('/home/me/.orca-relay/bin/orca')
+    expect(plan.launcherPath).toBe('/home/me/.orca-relay/bin/orcb')
     expect(plan.files).toEqual([
       expect.objectContaining({
-        path: '/home/me/.orca-relay/bin/orca',
+        path: '/home/me/.orca-relay/bin/orcb',
         contents: expect.stringContaining('--orca-cli "$@"')
       })
     ])

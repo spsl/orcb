@@ -92,7 +92,7 @@ vi.mock('./runtime-client', async () => {
 import { dispatch } from './dispatch'
 import { main } from './index'
 
-describe('orca skills CLI', () => {
+describe('orcb skills CLI', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     runtimeClientConstructorMock.mockClear()
@@ -213,7 +213,7 @@ describe('orca skills CLI', () => {
     await main(['--help'], '/tmp/repo')
 
     expect(String(logSpy.mock.calls[0]?.[0])).toContain(
-      'Usage: orca skills get <topic> [--full | --reference <name>] [--json]'
+      'Usage: orcb skills get <topic> [--full | --reference <name>] [--json]'
     )
     expect(String(logSpy.mock.calls[1]?.[0])).toContain(
       'Commands:\n  installed          List installed skill selectors'
@@ -256,8 +256,8 @@ describe('orca skills CLI', () => {
         '  gamma',
         '  zeta',
         '',
-        'Usage: orca skills install --skill <name> [--skill <name> ...]',
-        '   or: orca skills install --all',
+        'Usage: orcb skills install --skill <name> [--skill <name> ...]',
+        '   or: orcb skills install --all',
         ''
       ].join('\n')
     )
@@ -321,7 +321,7 @@ describe('orca skills CLI', () => {
           error: {
             code: 'invalid_argument',
             message:
-              "orca skills install --json only supports --dry-run. Real installs stream npx's " +
+              "orcb skills install --json only supports --dry-run. Real installs stream npx's " +
               "own output, which isn't JSON."
           },
           _meta: { runtimeId: null }
@@ -573,8 +573,8 @@ describe('orca skills CLI', () => {
         '  gamma',
         '  zeta',
         '',
-        'Usage: orca skills update --skill <name> [--skill <name> ...]',
-        '   or: orca skills update --all',
+        'Usage: orcb skills update --skill <name> [--skill <name> ...]',
+        '   or: orcb skills update --all',
         ''
       ].join('\n')
     )
@@ -631,13 +631,13 @@ describe('orca skills CLI', () => {
     )
   })
 
-  it('refuses a real run when the shell forwards orca to the Orca host', async () => {
+  it('refuses a real run when the shell forwards orcb to the ORCB host', async () => {
     vi.stubEnv('ORCA_CLI_CWD', '/home/alice/wt')
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     await main(['skills', 'install', '--skill', 'alpha'], '/tmp/repo')
 
-    // Why: the SSH relay and WSL bridge run argv on the Orca host, so a real
+    // Why: the SSH relay and WSL bridge run argv on the ORCB host, so a real
     // install there would silently skip the machine the user is sitting on.
     expect(spawnMock).not.toHaveBeenCalled()
     expect(process.exitCode).toBe(1)
@@ -976,7 +976,7 @@ describe('orca skills CLI', () => {
           error: {
             code: 'invalid_argument',
             message:
-              "orca skills update --json only supports --dry-run. Real updates stream npx's " +
+              "orcb skills update --json only supports --dry-run. Real updates stream npx's " +
               "own output, which isn't JSON."
           },
           _meta: { runtimeId: null }

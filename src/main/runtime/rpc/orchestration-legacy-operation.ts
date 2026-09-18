@@ -4,6 +4,7 @@ import type { MessageType } from '../orchestration/db'
 import { MESSAGE_TYPES } from '../orchestration/types'
 import type { LegacyCompatibilityPrincipalRow, MessageRow } from '../orchestration/types'
 import { OrchestrationError } from '../orchestration/orchestration-error'
+import { ORCB_CLI_COMMAND_NAME } from '../../../shared/orcb-local-distribution'
 
 const MESSAGE_TYPE_SET = new Set<string>(MESSAGE_TYPES)
 
@@ -173,7 +174,7 @@ export function resolveLegacyCompatibilityCliCommand(params: {
     params.compatibilityOrcbWindowsCommand ??
     params.compatibilityCliCommand ??
     params.compatibilityWindowsCommand ??
-    'orca'
+    ORCB_CLI_COMMAND_NAME
   )
 }
 

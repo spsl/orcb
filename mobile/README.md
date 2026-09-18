@@ -82,10 +82,10 @@ If the phone has a stale host entry, remove it from the app and pair again.
 The phone can be inspected through the connected device tooling:
 
 ```bash
-orca snapshot --json
-orca click --element @e3 --json
-orca fill --element @e1 --value "ls" --json
-orca screenshot --json
+orcb snapshot --json
+orcb click --element @e3 --json
+orcb fill --element @e1 --value "ls" --json
+orcb screenshot --json
 ```
 
 Use `snapshot` first to find the current element refs, then click/fill those refs. After mobile file edits, Metro usually hot reloads automatically, but navigating out of and back into the session screen can be useful because it re-runs `terminal.subscribe`.

@@ -91,7 +91,7 @@ function fakes() {
     getNestedWorkerMaxDepth: () => 3,
     getRuntimeId: () => 'epoch-1',
     ensureStructuredAgentSessionHost: async () => {},
-    getTerminalOrchestrationCliCommand: () => 'orca',
+    getTerminalOrchestrationCliCommand: () => 'orcb',
     getStructuredAgentSessionCreateSupport: async () => ({ supported: true }),
     getOrchestrationDispatchAuthority: () => ({
       paneKey: 'pane',

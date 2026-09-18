@@ -2221,6 +2221,10 @@
                 "7c302f8174": "无标题"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "此视图暂无任何项目。",
+            "7e4a2f80c6": "最近添加的项目可能需要一段时间才会显示。"
           }
         },
         "GitHubMarkdownComposer": {
@@ -5278,7 +5282,7 @@
           "pairingCode": "配对码",
           "pairingCodePlaceholder": "orca://pair?code=...",
           "pairingHelpPrefix": "在服务器上运行",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "orcb serve --pairing-address <host>",
           "pairingHelpSuffix": "，然后粘贴打印出的配对 URL。",
           "sshImportAlreadySynced": "~/.ssh/config 已同步。",
           "sshImportSynced": "已同步 {{value0}} 个主机{{value1}}。",
@@ -6909,7 +6913,7 @@
           "9a3758d983": "没有保存的服务器。",
           "9bee6bbeeb": "添加服务器",
           "55fcc964cd": "在服务器上运行，并粘贴输出的配对 URL。",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "960e901ae4": "orcb serve --pairing-address <host>",
           "163671f7b5": "运行",
           "c3d772c514": "orca://pair?code=...",
           "9bc9b83474": "配对码",
@@ -7705,7 +7709,7 @@
           "e49688f67f": "在 WSL 中注册 `{{value0}}`？",
           "61ac55278e": "从 WSL 中删除“{{value0}}”？",
           "e2b0ee267f": "陈旧",
-          "7aa456a460": "在 WSL 内的 ~/.local/bin 中注册 `orca-ide`。",
+          "7aa456a460": "在 WSL 内的 ~/.local/bin 中注册 `orcb`。",
           "0307677bb9": "正在检查 WSL CLI 注册..."
         },
         "accounts": {
@@ -10333,7 +10337,7 @@
           "advanced": "高级",
           "sshTunnel": "我正在使用 SSH 隧道连接到此本地地址",
           "sshTunnelHelp": "使用此连接时保持隧道活跃。",
-          "headlessHelp": "正在使用无头 orca serve？在另一台计算机上运行 orca serve --pairing-address <可达主机>。",
+          "headlessHelp": "正在使用无头 orcb serve？在另一台计算机上运行 orcb serve --pairing-address <可达主机>。",
           "cancel": "取消",
           "addWithTunnel": "使用隧道添加主机",
           "addHost": "添加主机",
@@ -12670,7 +12674,7 @@
             "4795ac2d4a": "尝试询问：",
             "53905bd076": "开发预览：打开技能设置终端。",
             "1da82af45b": "Orca CLI 需要注意",
-            "ce13a742d0": "在 PATH 中注册了 `orca`。",
+            "ce13a742d0": "在 PATH 中注册了 `orcb`。",
             "d1a86c7eb5": "打开“设置”以完成 CLI 设置。"
           },
           "CmdJPaletteFeatureTipVisual": {
@@ -12780,9 +12784,9 @@
           },
           "MobileEmulatorAgentSetupGuideSteps": {
             "9b49d892e3": "启用 Orca CLI",
-            "3d8dc52c93": "在智能体 shell 中注册用于模拟器控制的 orca 命令。",
+            "3d8dc52c93": "在智能体 shell 中注册用于模拟器控制的 orcb 命令。",
             "21f5687c07": "Orca CLI 技能",
-            "64fb057667": "教授智能体此工作区的 orca 模拟器命令。",
+            "64fb057667": "教授智能体此工作区的 orcb 模拟器命令。",
             "5c59ea96ca": "移动端模拟器 Orca CLI 技能设置",
             "bff5341ac3": "移动端模拟器 Orca CLI 技能安装终端",
             "3d34423e88": "正在注册 Orca CLI",
@@ -14693,7 +14697,8 @@
         "chooseInAgentPicker": "在智能体选择器中选择…",
         "toggleOption": "切换{{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "当前值未知 — 请选择开或关",
+        "valueIsDefault": "默认",
+        "valueNotReported": "未报告",
         "sentNotConfirmed": "已发送给智能体 — 尚未确认",
         "setWhenSessionStarts": "请在会话开始时设置。",
         "availableAfterSessionStarts": "会话开始后可用。",
@@ -14706,9 +14711,7 @@
           "high": "高",
           "xhigh": "极高",
           "max": "最大",
-          "ultra": "极致",
-          "on": "开",
-          "off": "关"
+          "ultra": "极致"
         },
         "noCommandsOrSkills": "没有匹配的命令或技能",
         "commands": "命令",

@@ -355,7 +355,7 @@ describe('owned orchestration references', () => {
     )
     expect(reference).toContain('`live`, `unverifiable`, or `exited`')
     expect(squash(reference)).toContain('unknown stream opcodes can be silently dropped')
-    expect(reference).toContain('printed `orca-ide`')
+    expect(reference).toContain('printed `orcb`')
     expect(squash(reference)).toContain(
       'ORCA project setup-existing-folder --project <project_id> --host <host_id> --path <abs_path> --kind folder --json'
     )
@@ -488,10 +488,9 @@ describe('orchestration install stub', () => {
     expect(stub).toContain('discovery stub')
     expect(stub).toContain('ORCA skills get orchestration')
     expect(stub).toContain('ORCA_CLI_COMMAND')
-    expect(stub).toContain('orca-dev')
-    expect(stub).toContain('orca-ide')
-    expect(stub).toContain('GNOME Orca screen reader')
-    expect(stub).not.toMatch(/^orca /mu)
+    expect(stub).toContain('orcb-dev')
+    expect(stub).toContain('Otherwise, use `orcb`.')
+    expect(stub).not.toMatch(/^orca(?:-dev|-ide)? /mu)
   })
 
   it('performs no orchestration mutation before loading the guide', () => {

@@ -15,7 +15,6 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const legacyReadlinkRace = vi.hoisted(() => ({ commandPath: '', replacementTarget: '' }))
 const reusedIdentity = vi.hoisted(() => ({
   path: '',
   dev: null as bigint | null,
@@ -39,18 +38,6 @@ vi.mock('node:fs/promises', async (importOriginal) => {
         dev: { value: reusedIdentity.dev },
         ino: { value: reusedIdentity.ino }
       }) as typeof stats
-    },
-    readlink: async (...args: Parameters<typeof actual.readlink>) => {
-      const [path] = args
-      if (path === legacyReadlinkRace.commandPath && legacyReadlinkRace.replacementTarget) {
-        const replacementTarget = legacyReadlinkRace.replacementTarget
-        legacyReadlinkRace.commandPath = ''
-        legacyReadlinkRace.replacementTarget = ''
-        await actual.unlink(path)
-        await actual.symlink(replacementTarget, path)
-        throw Object.assign(new Error('link vanished during inspection'), { code: 'ENOENT' })
-      }
-      return actual.readlink(...args)
     }
   }
 })
@@ -69,8 +56,6 @@ import type { CommandQuarantine } from './cli-command-filesystem-transaction'
 const createdRoots: string[] = []
 
 afterEach(async () => {
-  legacyReadlinkRace.commandPath = ''
-  legacyReadlinkRace.replacementTarget = ''
   reusedIdentity.path = ''
   reusedIdentity.dev = null
   reusedIdentity.ino = null
@@ -83,10 +68,10 @@ async function createMacCommandFixture() {
   const root = await mkdtemp(join(tmpdir(), 'orca-cli-command-race-'))
   createdRoots.push(root)
   const commandDirectory = join(root, 'bin')
-  const commandPath = join(commandDirectory, 'orca')
+  const commandPath = join(commandDirectory, 'orcb')
   const resourcesPath = join(root, 'Current.app', 'Contents', 'Resources')
-  const launcherPath = join(resourcesPath, 'bin', 'orca')
-  const staleLauncherPath = join(root, 'Old.app', 'Contents', 'Resources', 'bin', 'orca')
+  const launcherPath = join(resourcesPath, 'bin', 'orcb')
+  const staleLauncherPath = join(root, 'Old.app', 'Contents', 'Resources', 'bin', 'orcb')
   await mkdir(commandDirectory, { recursive: true })
   await mkdir(dirname(launcherPath), { recursive: true })
   await writeFile(launcherPath, '#!/usr/bin/env bash\n', { mode: 0o755 })
@@ -123,7 +108,7 @@ function createMacInstaller(
     isPackaged: true,
     userDataPath: join(fixture.root, 'user-data'),
     resourcesPath: fixture.resourcesPath,
-    execPath: join(fixture.root, 'Current.app', 'Contents', 'MacOS', 'Orca'),
+    execPath: join(fixture.root, 'Current.app', 'Contents', 'MacOS', 'orcb'),
     appPath: join(fixture.root, 'Current.app', 'Contents', 'Resources', 'app.asar'),
     homePath: join(fixture.root, 'home'),
     commandPathOverride: fixture.commandPath,
@@ -133,12 +118,12 @@ function createMacInstaller(
 
 async function recoveryPath(commandDirectory: string): Promise<string> {
   const transactionName = (await readdir(commandDirectory)).find((name) =>
-    name.startsWith('.orca-cli-')
+    name.startsWith('.orcb-cli-')
   )
   if (!transactionName) {
     throw new Error('Expected a preserved CLI command transaction.')
   }
-  return join(commandDirectory, transactionName, 'orca')
+  return join(commandDirectory, transactionName, 'orcb')
 }
 
 async function rejectionFrom(operation: Promise<unknown>): Promise<Error> {
@@ -194,10 +179,10 @@ describe.skipIf(process.platform === 'win32')('CLI command filesystem races', ()
       }
     })
 
-    await expect(installer.install()).rejects.toThrow('Refusing to replace non-Orca command')
+    await expect(installer.install()).rejects.toThrow('Refusing to replace non-ORCB command')
     await expect(readlink(fixture.commandPath)).resolves.toBe(foreignTarget)
     expect(
-      (await readdir(fixture.commandDirectory)).some((name) => name.startsWith('.orca-cli-'))
+      (await readdir(fixture.commandDirectory)).some((name) => name.startsWith('.orcb-cli-'))
     ).toBe(false)
   })
 
@@ -225,7 +210,7 @@ describe.skipIf(process.platform === 'win32')('CLI command filesystem races', ()
       }
     })
 
-    await expect(installer.install()).rejects.toThrow('Refusing to replace non-Orca command')
+    await expect(installer.install()).rejects.toThrow('Refusing to replace non-ORCB command')
     await expect(readFile(fixture.commandPath, 'utf8')).resolves.toBe(
       'foreign command written into the inspected inode'
     )
@@ -247,7 +232,7 @@ describe.skipIf(process.platform === 'win32')('CLI command filesystem races', ()
       }
     })
 
-    await expect(installer.remove()).rejects.toThrow('Refusing to remove non-Orca command')
+    await expect(installer.remove()).rejects.toThrow('Refusing to remove non-ORCB command')
     await expect(readlink(fixture.commandPath)).resolves.toBe(foreignTarget)
   })
 
@@ -300,87 +285,62 @@ describe.skipIf(process.platform === 'win32')('CLI command filesystem races', ()
     await expect(readlink(fixture.commandPath)).resolves.toBe(contenderTarget)
   })
 
-  it('keeps a foreign legacy Linux command when readlink loses the inspection race', async () => {
+  it('does not inspect or replace an official Orca command during Linux installation', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-cli-legacy-race-'))
     createdRoots.push(root)
     const homePath = join(root, 'home')
     const commandDirectory = join(homePath, '.local', 'bin')
     const resourcesPath = join(root, 'resources')
-    const launcherPath = join(resourcesPath, 'bin', 'orca-ide')
+    const launcherPath = join(resourcesPath, 'bin', 'orcb')
     const legacyPath = join(commandDirectory, 'orca')
     const managedLegacyTarget = join(resourcesPath, 'bin', 'orca')
-    const foreignTarget = join(root, 'foreign-orca')
     await mkdir(commandDirectory, { recursive: true })
     await mkdir(dirname(launcherPath), { recursive: true })
     await writeFile(launcherPath, '#!/usr/bin/env bash\n', { mode: 0o755 })
     await symlink(managedLegacyTarget, legacyPath)
 
-    legacyReadlinkRace.commandPath = legacyPath
-    legacyReadlinkRace.replacementTarget = foreignTarget
     const installer = new CliInstaller({
       platform: 'linux',
       isPackaged: true,
       userDataPath: join(root, 'user-data'),
       resourcesPath,
-      execPath: join(root, 'orca-ide'),
+      execPath: join(root, 'orcb'),
       appPath: join(root, 'resources', 'app.asar'),
       homePath,
       processPathEnv: commandDirectory
     })
 
     await expect(installer.install()).resolves.toMatchObject({ state: 'installed' })
-    await expect(readlink(legacyPath)).resolves.toBe(foreignTarget)
+    await expect(readlink(legacyPath)).resolves.toBe(managedLegacyTarget)
+    await expect(readlink(join(commandDirectory, 'orcb'))).resolves.toBe(launcherPath)
   })
 
-  it('keeps a foreign legacy Linux command whose quarantined inode is reused', async () => {
+  it('keeps a foreign legacy Linux command when removing ORCB registration', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-cli-legacy-identity-race-'))
     createdRoots.push(root)
     const homePath = join(root, 'home')
     const commandDirectory = join(homePath, '.local', 'bin')
     const resourcesPath = join(root, 'resources')
-    const launcherPath = join(resourcesPath, 'bin', 'orca-ide')
+    const launcherPath = join(resourcesPath, 'bin', 'orcb')
     const legacyPath = join(commandDirectory, 'orca')
-    const managedTarget = join(resourcesPath, 'bin', 'orca')
     const foreignTarget = join(root, 'foreign-orca')
     await mkdir(commandDirectory, { recursive: true })
     await mkdir(dirname(launcherPath), { recursive: true })
     await writeFile(launcherPath, '#!/usr/bin/env bash\n', { mode: 0o755 })
-    await symlink(managedTarget, legacyPath)
-    const original = await lstat(legacyPath, { bigint: true })
-
-    class LegacyRaceInstaller extends CliInstaller {
-      protected override async quarantineCommandPath(commandPath: string) {
-        if (commandPath === legacyPath) {
-          await unlink(commandPath)
-          await symlink(foreignTarget, commandPath)
-        }
-        const quarantine = await super.quarantineCommandPath(commandPath)
-        if (commandPath === legacyPath && quarantine.snapshot) {
-          reusedIdentity.path = quarantine.heldPath
-          reusedIdentity.dev = original.dev
-          reusedIdentity.ino = original.ino
-          quarantine.snapshot.identity = {
-            ...quarantine.snapshot.identity,
-            dev: original.dev,
-            ino: original.ino
-          }
-        }
-        return quarantine
-      }
-    }
-
-    const installer = new LegacyRaceInstaller({
+    await symlink(foreignTarget, legacyPath)
+    const installer = new CliInstaller({
       platform: 'linux',
       isPackaged: true,
       userDataPath: join(root, 'user-data'),
       resourcesPath,
-      execPath: join(root, 'orca-ide'),
+      execPath: join(root, 'orcb'),
       appPath: join(root, 'resources', 'app.asar'),
       homePath,
       processPathEnv: commandDirectory
     })
 
     await expect(installer.install()).resolves.toMatchObject({ state: 'installed' })
+    await expect(installer.remove()).resolves.toMatchObject({ state: 'not_installed' })
     await expect(readlink(legacyPath)).resolves.toBe(foreignTarget)
   })
 })

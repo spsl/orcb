@@ -102,7 +102,7 @@ describe('Windows CLI launcher', () => {
     const appRoot = mkdtempSync(join(tmpdir(), 'orca cli launcher '))
     try {
       const resourcesPath = join(appRoot, 'resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca.exe')
+      const launcherPath = join(resourcesPath, 'bin', 'orcb.exe')
       const cliPath = join(resourcesPath, 'app.asar.unpacked', 'out', 'cli', 'index.js')
       mkdirSync(join(resourcesPath, 'bin'), { recursive: true })
       mkdirSync(dirname(cliPath), { recursive: true })
@@ -161,7 +161,7 @@ describe('Windows CLI launcher', () => {
     const appRoot = mkdtempSync(join(tmpdir(), 'orca duplicate path launcher '))
     try {
       const resourcesPath = join(appRoot, 'resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca.exe')
+      const launcherPath = join(resourcesPath, 'bin', 'orcb.exe')
       const cliPath = join(resourcesPath, 'app.asar.unpacked', 'out', 'cli', 'index.js')
       const outputPath = join(appRoot, 'child-result.json')
       const harnessSourcePath = join(

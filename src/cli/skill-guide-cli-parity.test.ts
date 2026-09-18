@@ -6,7 +6,7 @@ import { specPaths } from './command-spec'
 import { COMMAND_SPECS } from './specs'
 
 // Why: a guide is the version-matched surface for the binary that shipped it, so a command
-// path or flag it names must exist in COMMAND_SPECS. `orca emulator camera --webcam` was
+// path or flag it names must exist in COMMAND_SPECS. `orcb emulator camera --webcam` was
 // documented for months without ever existing (#16904 review C1).
 
 // Why __dirname: it works under both Vitest and the CommonJS tsc emit that build:cli type-checks

@@ -1423,7 +1423,7 @@
           "55fcc964cd": "on the server and paste the printed pairing URL.",
           "7b5986c8df": "Saved {{value0}}. Use Active Server to switch when ready.",
           "8cf8790697": "Saved servers route this browser through a paired Orca runtime.",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "960e901ae4": "orcb serve --pairing-address <host>",
           "9bc9b83474": "Pairing code",
           "9f7665a01b": "Removing the active server first switches Orca back to Local desktop. Existing host sessions are left alone.",
           "b2fda48c39": "Removing the active server disconnects this browser from that host. Existing host sessions are left alone.",
@@ -1802,7 +1802,7 @@
       "sidebar": {
         "AddRemoteHostDialog": {
           "pairingCode": "Pairing code",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "orcb serve --pairing-address <host>",
           "pairingHelpPrefix": "Run",
           "pairingHelpSuffix": "on the server and paste the printed pairing URL.",
           "serverName": "Server name",
@@ -2610,6 +2610,9 @@
   },
   "components": {
     "native-chat": {
+      "approval": {
+        "cancel": "Cancel"
+      },
       "composer": {
         "effort": "Effort"
       },

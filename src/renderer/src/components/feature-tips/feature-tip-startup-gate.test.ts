@@ -26,13 +26,13 @@ function makeSettings(voiceEnabled = false): Pick<GlobalSettings, 'voice'> {
 function makeCliStatus(overrides: Partial<CliInstallStatus> = {}): CliInstallStatus {
   return {
     platform: 'darwin',
-    commandName: 'orca',
+    commandName: 'orcb',
     supported: true,
     state: 'installed',
-    commandPath: '/usr/local/bin/orca',
+    commandPath: '/usr/local/bin/orcb',
     pathDirectory: '/usr/local/bin',
     pathConfigured: true,
-    launcherPath: '/Applications/Orca.app/Contents/MacOS/orca',
+    launcherPath: '/Applications/ORCB.app/Contents/MacOS/orcb',
     installMethod: 'symlink',
     currentTarget: null,
     unsupportedReason: null,

@@ -108,7 +108,7 @@ export async function initializeMainProcessPlugins(runtime: OrcaRuntimeService):
         )
     }
   })
-  // Why: headless `orca serve` clients reach plugins through the runtime RPC
+  // Why: headless `orcb serve` clients reach plugins through the runtime RPC
   // methods, which resolve the service via this module-level setter. Consent
   // over RPC uses the same hash-keyed write path as the desktop dialog.
   setPluginServiceForRpc(state.pluginService, {

@@ -167,16 +167,16 @@ describe('preflight', () => {
     await expect(detectInstalledAgents()).resolves.toEqual(['claude', 'cursor'])
   })
 
-  it('does not report Claude Agent Teams when only the Orca shim is present', async () => {
+  it('does not report Claude Agent Teams when only the ORCB shim is present', async () => {
     execFileAsyncMock.mockImplementation(async (command, args) => {
       if (command !== 'which') {
         throw new Error(`unexpected command ${String(command)}`)
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'orcb') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/Applications/Orca.app/Contents/MacOS/orca\n',
+          stdout: '/Applications/ORCB.app/Contents/MacOS/orcb\n',
           stderr: '',
           timedOut: false
         }
@@ -187,7 +187,7 @@ describe('preflight', () => {
     await expect(detectInstalledAgents()).resolves.toEqual([])
   })
 
-  it('reports Claude Agent Teams when both Orca and Claude are present', async () => {
+  it('reports Claude Agent Teams when both ORCB and Claude are present', async () => {
     execFileAsyncMock.mockImplementation(async (command, args) => {
       if (command !== 'which') {
         throw new Error(`unexpected command ${String(command)}`)
@@ -201,11 +201,11 @@ describe('preflight', () => {
           timedOut: false
         }
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'orcb') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/Applications/Orca.app/Contents/MacOS/orca\n',
+          stdout: '/Applications/orcb.app/Contents/MacOS/orcb\n',
           stderr: '',
           timedOut: false
         }
@@ -234,11 +234,11 @@ describe('preflight', () => {
           timedOut: false
         }
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'orcb') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/mock/windows/programs/orca.cmd\n',
+          stdout: '/mock/windows/programs/orcb.cmd\n',
           stderr: '',
           timedOut: false
         }
@@ -423,6 +423,8 @@ describe('preflight', () => {
       value: 'win32'
     })
     runWslProcessMock.mockImplementation(async ({ script }: { script: string }) => {
+      expect(script).not.toContain("'orcb'")
+      expect(script).not.toContain("'orcb-dev'")
       expect(script).not.toContain("'orca'")
       expect(script).not.toContain("'orca-dev'")
       expect(script).not.toContain("'orca-ide'")

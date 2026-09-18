@@ -81,7 +81,7 @@ describe('OrcaRuntimeRpcServer WebSocket bind host (STA-2370)', () => {
     }
   })
 
-  it('binds all interfaces at startup when exposeNetworkByDefault is set (orca serve)', async () => {
+  it('binds all interfaces at startup when exposeNetworkByDefault is set (orcb serve)', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))
     const server = new OrcaRuntimeRpcServer({
       runtime: new OrcaRuntimeService(),

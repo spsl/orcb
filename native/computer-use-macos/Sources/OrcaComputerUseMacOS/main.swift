@@ -606,7 +606,7 @@ final class Provider {
             // should open macOS privacy prompts/settings; runtime calls stay quiet.
             throw ProviderError.coded(
                 "permission_denied",
-                "Accessibility permission is required for Orca Computer Use. Run `orca computer permissions` or open Settings > Computer Use, grant Accessibility to Orca Computer Use, then retry."
+                "Accessibility permission is required for Orca Computer Use. Run `orcb computer permissions` or open Settings > Computer Use, grant Accessibility to Orca Computer Use, then retry."
             )
         }
         let appElement = AXUIElementCreateApplication(app.pid)

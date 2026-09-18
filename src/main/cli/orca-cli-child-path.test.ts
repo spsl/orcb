@@ -1,24 +1,13 @@
 import { join } from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-const shim = vi.hoisted(() => ({ ensureLinuxTerminalOrcaCliShimDir: vi.fn() }))
-vi.mock('./linux-terminal-orca-cli-shim', () => shim)
+import { describe, expect, it } from 'vitest'
 
 import { prependOrcaCliDirToChildPath } from './orca-cli-child-path'
 
 const USER_DATA = '/data/orca'
 const RESOURCES = '/app/Resources'
-const SHIM_DIR = join(USER_DATA, 'linux-orca-cli-shim')
-
-beforeEach(() => {
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReset()
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReturnValue(SHIM_DIR)
-})
 
 describe('prependOrcaCliDirToChildPath', () => {
-  it('leads packaged Linux PATH with the bare-orca shim dir', () => {
-    // Why this matters at all: the Linux CLI installs as `orca-ide` so it never claims GNOME
-    // Orca's /usr/bin/orca screen reader, so bare `orca` only works through this shim.
+  it('leads packaged Linux PATH with the bundled ORCB CLI dir', () => {
     const env: Record<string, string> = { PATH: '/usr/local/bin:/usr/bin' }
     prependOrcaCliDirToChildPath(env, {
       isPackaged: true,
@@ -26,28 +15,27 @@ describe('prependOrcaCliDirToChildPath', () => {
       resourcesPath: RESOURCES,
       platform: 'linux'
     })
-    expect(env.PATH).toBe(`${SHIM_DIR}:/usr/local/bin:/usr/bin`)
-    expect(shim.ensureLinuxTerminalOrcaCliShimDir).toHaveBeenCalledWith({
-      userDataPath: USER_DATA
-    })
+    expect(env.PATH).toBe(`${join(RESOURCES, 'bin')}:/usr/local/bin:/usr/bin`)
   })
 
-  it('promotes an already-present shim dir instead of duplicating it', () => {
-    const env: Record<string, string> = { PATH: `/usr/bin:${SHIM_DIR}::/bin` }
+  it('promotes an already-present bundled CLI dir instead of duplicating it', () => {
+    const bundledCliDir = join(RESOURCES, 'bin')
+    const env: Record<string, string> = { PATH: `/usr/bin:${bundledCliDir}::/bin` }
     prependOrcaCliDirToChildPath(env, {
       isPackaged: true,
       userDataPath: USER_DATA,
+      resourcesPath: RESOURCES,
       platform: 'linux'
     })
-    expect(env.PATH).toBe(`${SHIM_DIR}:/usr/bin:/bin`)
+    expect(env.PATH).toBe(`${bundledCliDir}:/usr/bin:/bin`)
   })
 
-  it('leaves packaged Linux PATH untouched when no shim could be written', () => {
-    shim.ensureLinuxTerminalOrcaCliShimDir.mockReturnValue(null)
+  it('leaves packaged Linux PATH untouched with no resources root', () => {
     const env: Record<string, string> = { PATH: '/usr/bin' }
     prependOrcaCliDirToChildPath(env, {
       isPackaged: true,
       userDataPath: USER_DATA,
+      resourcesPath: null,
       platform: 'linux'
     })
     expect(env.PATH).toBe('/usr/bin')
@@ -62,7 +50,6 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform: 'darwin'
     })
     expect(env.PATH).toBe(`${join(RESOURCES, 'bin')}:/usr/bin`)
-    expect(shim.ensureLinuxTerminalOrcaCliShimDir).not.toHaveBeenCalled()
   })
 
   it('leads packaged Windows PATH with the bundled CLI dir under the env block spelling', () => {
@@ -101,7 +88,6 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform
     })
     expect(env.PATH).toBe(`${join(USER_DATA, 'cli', 'bin')}${pathDelimiter}/usr/bin`)
-    expect(shim.ensureLinuxTerminalOrcaCliShimDir).not.toHaveBeenCalled()
   })
 
   it('writes no trailing delimiter when nothing was inherited', () => {

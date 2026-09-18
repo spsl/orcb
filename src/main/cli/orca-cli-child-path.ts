@@ -42,9 +42,11 @@ export function prependOrcaCliDirToChildPath(
   } else if (opts.resourcesPath && ['darwin', 'linux', 'win32'].includes(platform)) {
     // Why: global CLI registration is optional, but agents in ORCB-managed PTYs must always reach this app's bundled CLI.
     const bundledCliBin = join(opts.resourcesPath, 'bin')
-    const inheritedPath = readInheritedPath(env, platform)
-    env[resolvePathEnvKey(env, platform)] = inheritedPath
-      ? `${bundledCliBin}${pathDelimiter}${inheritedPath}`
-      : bundledCliBin
+    const inheritedEntries = readInheritedPath(env, platform)
+      .split(pathDelimiter)
+      .filter((entry) => entry.length > 0 && entry !== bundledCliBin)
+    env[resolvePathEnvKey(env, platform)] = [bundledCliBin, ...inheritedEntries].join(
+      pathDelimiter
+    )
   }
 }

@@ -81,7 +81,7 @@ export function formatOrchestrationCheckText(
     : ''
   const deliveryNotice = formatCurrentDeliveryNotice(prepared.legacyCompatibility?.currentDelivery)
   if (prepared.formatted) {
-    return `${legacyHeader}${prepared.formatted}${deliveryNotice}`
+    return `${legacyHeader}${prepared.deliveryId ? `Delivery ${prepared.deliveryId}\n` : ''}${prepared.formatted}${deliveryNotice}`
   }
   if (prepared.count === 0) {
     if (prepared.timedOut) {
@@ -178,7 +178,7 @@ function formatLegacyAwareCheckMessages(
           replyTarget.startsWith('run:') || replyTarget.startsWith('dispatch:')
             ? ''
             : ` --from ${replyTarget}`
-        lines.push(`[Reply: orca orchestration reply --id ${message.id}${replyFrom} --body "..."]`)
+        lines.push(`[Reply: orcb orchestration reply --id ${message.id}${replyFrom} --body "..."]`)
       }
       return lines.join('\n')
     })

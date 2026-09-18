@@ -92,6 +92,8 @@ describe('orchestration timeout flag validation', () => {
       all: undefined,
       types: undefined,
       format: undefined,
+      inject: undefined,
+      compatibilityOrcbCliCommand: 'orcb',
       compatibilityCliCommand: expect.stringMatching(/^orca(?:-ide)?$/),
       run: undefined,
       ack: undefined,
@@ -283,6 +285,8 @@ describe('orchestration timeout flag validation', () => {
         options: undefined,
         timeoutMs: 123,
         from: 'term_worker',
+        compatibilityOrcbCliCommand: 'orcb',
+        compatibilityOrcbWindowsCommand: undefined,
         compatibilityCliCommand: expect.stringMatching(/^orca(?:-ide)?$/),
         compatibilityWindowsCommand: undefined
       },

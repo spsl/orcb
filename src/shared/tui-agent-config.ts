@@ -1,5 +1,4 @@
 import type { TuiAgent } from './tui-agent'
-import { getOrcaCliCommandNameForPlatform } from './orca-cli-command-name'
 import { ORCB_CLI_COMMAND_NAME, ORCB_DEV_CLI_COMMAND_NAME } from './orcb-local-distribution'
 
 export type AgentPromptInjectionMode =
@@ -27,7 +26,7 @@ export type TuiAgentConfig = {
   /** Detection runtimes where this launch mode is not available as a detected agent. */
   detectUnsupportedRuntimes?: readonly TuiAgentDetectionRuntime[]
   launchCmd: string
-  /** Platform-specific launch command when the public binary name differs. */
+  /** Platform-specific launch command when a provider needs a distinct invocation. */
   launchCmdByPlatform?: Partial<Record<NodeJS.Platform, string>>
   expectedProcess: string
   promptInjectionMode: AgentPromptInjectionMode
@@ -80,13 +79,9 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     detectCmdAliases: [ORCB_DEV_CLI_COMMAND_NAME],
     // Why: require Claude too so fresh installs (Orca shim always present) don't report Agent Teams without an agent CLI.
     detectRequiredCommands: ['claude'],
-    // Why: Windows/WSL use Claude's in-process Agent Teams fallback, not this Orca native-pane/tmux-shim wrapper.
+    // Why: Windows/WSL use Claude's in-process Agent Teams fallback, not this ORCB native-pane/tmux-shim wrapper.
     detectUnsupportedRuntimes: ['win32', 'wsl'],
-    launchCmd: `${ORCB_CLI_COMMAND_NAME} claude-teams`,
-    launchCmdByPlatform: {
-      linux: `${getOrcaCliCommandNameForPlatform('linux')} claude-teams`,
-      win32: `${getOrcaCliCommandNameForPlatform('win32')} claude-teams`
-    },
+    launchCmd: 'orcb claude-teams',
     expectedProcess: 'claude',
     promptInjectionMode: 'stdin-after-start'
   },
@@ -312,9 +307,6 @@ export function getTuiAgentLaunchCommand(
   platform: NodeJS.Platform,
   opts?: { isRemote?: boolean }
 ): string {
-  // Why: local-only orca-ide rename (avoids GNOME Orca clash) must not leak to Linux remotes, whose relay shim is always `orca`.
-  if (opts?.isRemote && platform === 'linux') {
-    return config.launchCmd
-  }
+  void opts
   return config.launchCmdByPlatform?.[platform] ?? config.launchCmd
 }

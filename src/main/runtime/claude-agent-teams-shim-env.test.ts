@@ -31,7 +31,7 @@ describe('claude agent teams shim env', () => {
   it('builds native shim env only for direct Claude commands', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-agent-teams-cli-'))
     roots.push(root)
-    const cliName = process.platform === 'win32' ? 'orca-dev.cmd' : 'orca-dev'
+    const cliName = process.platform === 'win32' ? 'orcb-dev.cmd' : 'orcb-dev'
     const cliPath = join(root, cliName)
     await writeFile(cliPath, '#!/usr/bin/env sh\n', 'utf8')
     if (process.platform !== 'win32') {
@@ -82,7 +82,7 @@ describe('claude agent teams shim env', () => {
   it('resolves the dev CLI wrapper for the tmux callback binary', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-agent-teams-cli-'))
     roots.push(root)
-    const cliName = process.platform === 'win32' ? 'orca-dev.cmd' : 'orca-dev'
+    const cliName = process.platform === 'win32' ? 'orcb-dev.cmd' : 'orcb-dev'
     const cliPath = join(root, cliName)
     await writeFile(cliPath, '#!/usr/bin/env sh\n', 'utf8')
     if (process.platform !== 'win32') {
@@ -95,7 +95,7 @@ describe('claude agent teams shim env', () => {
   it('refuses to resolve a CLI through relative PATH entries or a bare override', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-agent-teams-cli-'))
     roots.push(root)
-    for (const name of ['orca', 'orca-ide', 'orca.cmd']) {
+    for (const name of ['orcb', 'orcb-dev', 'orcb.cmd']) {
       const path = join(root, name)
       await writeFile(path, '#!/usr/bin/env sh\n', 'utf8')
       if (process.platform !== 'win32') {
@@ -106,11 +106,11 @@ describe('claude agent teams shim env', () => {
     expect(resolveClaudeAgentTeamsShimBin({ PATH: '.' })).toBeNull()
     expect(resolveClaudeAgentTeamsShimBin({ PATH: '' })).toBeNull()
     expect(
-      resolveClaudeAgentTeamsShimBin({ PATH: '.', ORCA_AGENT_TEAMS_SHIM_BIN: 'orca' })
+      resolveClaudeAgentTeamsShimBin({ PATH: '.', ORCA_AGENT_TEAMS_SHIM_BIN: 'orcb' })
     ).toBeNull()
     // Why: a bare override is still honored when it maps to a real absolute PATH entry.
-    expect(resolveClaudeAgentTeamsShimBin({ PATH: root, ORCA_AGENT_TEAMS_SHIM_BIN: 'orca' })).toBe(
-      join(root, 'orca')
+    expect(resolveClaudeAgentTeamsShimBin({ PATH: root, ORCA_AGENT_TEAMS_SHIM_BIN: 'orcb' })).toBe(
+      join(root, 'orcb')
     )
   })
 
@@ -119,7 +119,7 @@ describe('claude agent teams shim env', () => {
     async () => {
       const root = await mkdtemp(join(tmpdir(), 'orca-agent-teams-cli-'))
       roots.push(root)
-      const cliPath = join(root, 'orca.cmd')
+      const cliPath = join(root, 'orcb.cmd')
       await writeFile(cliPath, '@echo off\r\n', 'utf8')
 
       expect(resolveClaudeAgentTeamsShimBin({ Path: root })).toBe(cliPath)
@@ -145,7 +145,7 @@ describe('claude agent teams shim env', () => {
   })
 
   it.skipIf(process.platform === 'win32')(
-    'never runs a cwd-resolved orca when the shim bin is unqualified',
+    'never runs a cwd-resolved orcb when the shim bin is unqualified',
     async () => {
       const root = await mkdtemp(join(tmpdir(), 'orca-agent-teams-shim-'))
       roots.push(root)
@@ -153,7 +153,7 @@ describe('claude agent teams shim env', () => {
       const cwd = await mkdtemp(join(tmpdir(), 'orca-agent-teams-cwd-'))
       roots.push(cwd)
       const marker = join(cwd, 'hijacked')
-      for (const name of ['orca', 'orca-ide']) {
+      for (const name of ['orcb', 'orcb-dev']) {
         const decoy = join(cwd, name)
         await writeFile(decoy, `#!/usr/bin/env sh\ntouch ${JSON.stringify(marker)}\n`, 'utf8')
         await chmod(decoy, 0o755)
@@ -186,7 +186,7 @@ describe('claude agent teams shim env', () => {
   it('writes a Windows shim that rejects an unqualified shim bin', () => {
     const script = windowsClaudeAgentTeamsShimScript()
 
-    expect(script).not.toMatch(/^set "ORCA_AGENT_TEAMS_SHIM_BIN=orca/m)
+    expect(script).not.toMatch(/^set "ORCA_AGENT_TEAMS_SHIM_BIN=orcb/m)
     expect(script).toContain('if "%ORCA_SHIM_BIN:~1,1%"==":" goto :run')
     // Why: `call` would re-expand `%2`-style tmux pane args as batch parameters.
     expect(script).toContain('\r\n"%ORCA_SHIM_BIN%" agent-teams-tmux %*\r\n')

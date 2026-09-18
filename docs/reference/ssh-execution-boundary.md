@@ -27,7 +27,7 @@ Rule 1 is stated at `src/main/source-control/repo-default-branch.ts:76-78`, `src
 | repo setup hooks (`--setup`)                                   | **remote**         | identical policy to local                                            |
 | commit-message / PR-field AI generation                        | **remote**         | uses the remote agent CLI and its auth                               |
 | `gh` / GitHub API, `glab` / GitLab                             | **client**         | inconsistent with the rule; PRs carry the client's identity          |
-| the `orca` CLI inside a remote terminal                        | **client runtime** | control plane only — your files and processes stay remote; see below |
+| the `orcb` CLI inside a remote terminal                        | **client runtime** | control plane only — your files and processes stay remote; see below |
 
 ## Survival: what a disconnect does _not_ do
 
@@ -50,11 +50,11 @@ The peer model does not have this failure, and that is the concrete reason behin
 
 ## Control plane
 
-On an SSH host, `orca` is a shim (`~/.orca-relay/bin/orca`) that proxies **back to the client's runtime** over the relay socket. Your repository, processes, and files remain remote — only the control plane is on the client. This is correct for an SSH target, but it has a consequence worth stating plainly:
+On an SSH host, `orcb` is a shim (`~/.orca-relay/bin/orcb`) that proxies **back to the client's runtime** over the relay socket. Your repository, processes, and files remain remote — only the control plane is on the client. This is correct for an SSH target, but it has a consequence worth stating plainly:
 
-> When the client disconnects, every `orca …` command run on the SSH host fails with `No owning Orca client is connected to the relay`. The PTY stays `live`; its control plane does not.
+> When the client disconnects, every `orcb …` command run on the SSH host fails with `No owning Orca client is connected to the relay`. The PTY stays `live`; its control plane does not.
 
-Orchestration state (Runs, Tasks, Dispatches, mailboxes) is client-resident for the same reason. An agent on an SSH host should not depend on `orca` for anything it must finish while you are away. **Commit and push early** — unpushed work on a remote box is unavailable to the client until it reconnects.
+Orchestration state (Runs, Tasks, Dispatches, mailboxes) is client-resident for the same reason. An agent on an SSH host should not depend on `orcb` for anything it must finish while you are away. **Commit and push early** — unpushed work on a remote box is unavailable to the client until it reconnects.
 
 ## Distinguishing `unverifiable` from `exited`
 
@@ -97,6 +97,6 @@ A listing is only evidence about the hosts it actually covered. When a result do
 
 ## One host, one model
 
-An SSH host and a paired runtime (`orca environment`) imply opposite boundaries: the first is a dumb execution host driven by your client, the second is a peer that owns its own control plane. Registering the same machine both ways splits its worktrees across two identities, makes `terminal list` return different sets depending on `--environment`, and reliably confuses both humans and agents. Pick one per machine.
+An SSH host and a paired runtime (`orcb environment`) imply opposite boundaries: the first is a dumb execution host driven by your client, the second is a peer that owns its own control plane. Registering the same machine both ways splits its worktrees across two identities, makes `terminal list` return different sets depending on `--environment`, and reliably confuses both humans and agents. Pick one per machine.
 
 For work that must continue while you are offline, use the peer/headless-runtime model on the remote host instead of the direct-SSH model. Its control plane is host-local, and its daemon-backed PTYs can stay `live` across a PID-scoped runtime restart so the runtime can reattach. A service manager that reaps the runtime's cgroup, or an explicit daemon shutdown, makes them `exited`; see [Running orcad](./orcad-operations.md#process-scoped-and-cgroup-wide-stops). Do not register the same machine through both models. A detached agent process outside Orca can also survive a control-plane outage, but it has no stdin, so its instructions cannot be amended mid-run.

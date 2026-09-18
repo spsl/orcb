@@ -19,7 +19,7 @@ import { OrchestrationError } from '../orchestration/orchestration-error'
 class LineageError extends Error {
   code = 'LINEAGE_PARENT_NOT_FOUND'
   data = {
-    nextSteps: ['Run `orca worktree list`.', 'Retry with --no-parent.']
+    nextSteps: ['Run `orcb worktree list`.', 'Retry with --no-parent.']
   }
 }
 
@@ -216,7 +216,7 @@ describe('mapRuntimeError', () => {
         code: 'LINEAGE_PARENT_NOT_FOUND',
         message: 'Parent selector was not found.',
         data: {
-          nextSteps: ['Run `orca worktree list`.', 'Retry with --no-parent.']
+          nextSteps: ['Run `orcb worktree list`.', 'Retry with --no-parent.']
         }
       },
       _meta: { runtimeId: 'runtime-1' }
@@ -273,6 +273,27 @@ describe('nested worker depth cap', () => {
     expect(failure.error.data).toMatchObject({
       effectsApplied: false,
       nextSteps: [...NESTED_WORKER_DEPTH_EXCEEDED_NEXT_STEPS]
+    })
+  })
+})
+
+describe('structured worker dispatch preamble errors', () => {
+  it('preserves the undelivered verdict across runtime RPC', () => {
+    const failure = mapRuntimeError(
+      'rpc_dispatch_preamble',
+      { runtimeId: 'runtime-1' },
+      new OrchestrationError(
+        'dispatch_preamble_undelivered',
+        'The dispatch preamble was not delivered: provider_write_failed: broken pipe.'
+      )
+    )
+
+    expect(failure).toMatchObject({
+      ok: false,
+      error: {
+        code: 'dispatch_preamble_undelivered',
+        message: 'The dispatch preamble was not delivered: provider_write_failed: broken pipe.'
+      }
     })
   })
 })

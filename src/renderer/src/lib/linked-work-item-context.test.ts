@@ -28,7 +28,7 @@ const LINEAR_ITEM = {
   }
 }
 const PRODUCT_WORKFLOW_PHRASES = [
-  'orca linear',
+  'orcb linear',
   'meta.partial',
   'install',
   'enable it from Orca Settings',

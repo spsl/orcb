@@ -86,7 +86,7 @@ describe('buildDispatchPreamble', () => {
     const result = buildDispatchPreamble(baseParams({ dispatchCapability: 'dcap_secret' }))
     const commandLines = result
       .split('\n')
-      .filter((line) => line.trimStart().startsWith('orca orchestration'))
+      .filter((line) => line.trimStart().startsWith('orcb orchestration'))
 
     expect(commandLines).toHaveLength(5)
     expect(result).not.toContain('\\\n')
@@ -244,37 +244,37 @@ describe('buildDispatchPreamble', () => {
     expect(result).toContain('refactor the auth module')
   })
 
-  it('uses orca CLI by default when devMode is not set', () => {
+  it('uses orcb CLI by default when devMode is not set', () => {
     const result = buildDispatchPreamble(baseParams())
-    expect(result).toContain('orca orchestration send')
-    expect(result).toContain('orca orchestration check')
-    expect(result).toContain('orca orchestration ask')
+    expect(result).toContain('orcb orchestration send')
+    expect(result).toContain('orcb orchestration check')
+    expect(result).toContain('orcb orchestration ask')
   })
 
-  it('uses orca-dev CLI when devMode is true', () => {
-    const result = buildDispatchPreamble(baseParams({ devMode: true, cliCommand: 'orca-ide' }))
-    expect(result).toContain('orca-dev orchestration send')
-    expect(result).toContain('orca-dev orchestration check')
-    expect(result).toContain('orca-dev orchestration ask')
-    const fragments = result.split('orca-dev')
+  it('uses orcb-dev CLI when devMode is true', () => {
+    const result = buildDispatchPreamble(baseParams({ devMode: true, cliCommand: 'orcb' }))
+    expect(result).toContain('orcb-dev orchestration send')
+    expect(result).toContain('orcb-dev orchestration check')
+    expect(result).toContain('orcb-dev orchestration ask')
+    const fragments = result.split('orcb-dev')
     for (const fragment of fragments) {
-      expect(fragment).not.toMatch(/orca orchestration/)
+      expect(fragment).not.toMatch(/orcb orchestration/)
     }
   })
 
-  it('uses orca CLI when devMode is false', () => {
+  it('uses orcb CLI when devMode is false', () => {
     const result = buildDispatchPreamble(baseParams({ devMode: false }))
-    expect(result).toContain('orca orchestration send')
-    expect(result).toContain('orca orchestration check')
+    expect(result).toContain('orcb orchestration send')
+    expect(result).toContain('orcb orchestration check')
   })
 
-  it('uses the exact orca-ide command for packaged WSL workers', () => {
-    const result = buildDispatchPreamble(baseParams({ cliCommand: 'orca-ide' }))
+  it('uses the exact orcb command for packaged WSL workers', () => {
+    const result = buildDispatchPreamble(baseParams({ cliCommand: 'orcb' }))
 
-    expect(result).toContain('orca-ide orchestration send')
-    expect(result).toContain('orca-ide orchestration check')
-    expect(result).toContain('orca-ide orchestration ask')
-    expect(result).not.toMatch(/(^|\s)orca orchestration/m)
+    expect(result).toContain('orcb orchestration send')
+    expect(result).toContain('orcb orchestration check')
+    expect(result).toContain('orcb orchestration ask')
+    expect(result).not.toMatch(/(^|\s)orcb orchestration/m)
   })
 
   it('appends a BASE DRIFT section when baseDrift.behind > 0', () => {

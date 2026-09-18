@@ -45,12 +45,12 @@ internal static class OrcaRemoteCliLauncher
 
             if (!File.Exists(nodePath))
             {
-                Console.Error.WriteLine("Orca SSH CLI bridge cannot find Node.js at \"{0}\"", nodePath);
+                Console.Error.WriteLine("ORCB SSH CLI bridge cannot find Node.js at \"{0}\"", nodePath);
                 return 1;
             }
             if (!File.Exists(relayPath))
             {
-                Console.Error.WriteLine("Orca SSH CLI bridge cannot find the relay at \"{0}\"", relayPath);
+                Console.Error.WriteLine("ORCB SSH CLI bridge cannot find the relay at \"{0}\"", relayPath);
                 return 1;
             }
 
@@ -69,7 +69,7 @@ internal static class OrcaRemoteCliLauncher
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine("Unable to start the Orca SSH CLI bridge: {0}", error.Message);
+            Console.Error.WriteLine("Unable to start the ORCB SSH CLI bridge: {0}", error.Message);
             return 1;
         }
     }

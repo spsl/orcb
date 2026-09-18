@@ -256,14 +256,13 @@ describe('bundled skill guide generator', () => {
     }
   })
 
-  it('keeps CLI guide examples safe across shells and Linux command names', async () => {
+  it('keeps CLI guide examples safe across shells and ORCB command names', async () => {
     for (const name of ['orca-cli', 'computer-use', 'orca-emulator', 'orca-emulator-android']) {
       const source = await readFile(path.join(projectDir, 'skill-guides', `${name}.md`), 'utf8')
 
       expect(source).toMatch(/^ORCA .+--json$/mu)
-      // Why: bare command lines can launch GNOME Orca, while shell variables make
-      // the same guide unusable from PowerShell and cmd.exe.
-      expect(source).not.toMatch(/^orca /mu)
+      // Why: the resolved-executable placeholder works in POSIX shells, PowerShell, and cmd.exe.
+      expect(source).not.toMatch(/^orca(?:-dev|-ide)? /mu)
       expect(source).not.toMatch(/\$ORCA(?:_|\b)/u)
     }
   })
@@ -378,16 +377,14 @@ describe('bundled skill guide generator', () => {
     ).toThrow('collides with canonical name')
   })
 
-  // G2: the resolver ladder is single-authored. Without this, a stub can re-inline it and
-  // drift again exactly as the guide copies already did (#7904 lost `/usr/bin/orca`).
+  // G2: the resolver ladder is single-authored. Without this, a stub can re-inline it and drift.
   it('projects one shared resolver fragment byte-for-byte into every stub', async () => {
     const blocks = await readSharedStubBlocks(projectDir)
 
     expect([...blocks.keys()]).toEqual(['resolver', 'no-guessing'])
-    // Why: the guide copies of this warning had each dropped one half. #7904 is the incident
-    // where bare `orca` started the screen reader talking on a user's Ubuntu box.
-    expect(blocks.get('resolver').text).toContain('(`/usr/bin/orca`)')
-    expect(blocks.get('resolver').text).toContain("starts speech on the user's machine")
+    expect(blocks.get('resolver').text).toContain('use `orcb-dev`')
+    expect(blocks.get('resolver').text).toContain('use `orcb`')
+    expect(blocks.get('resolver').text).not.toContain('orca-ide')
     for (const name of STUB_TOPICS) {
       const projection = await readFile(path.join(projectDir, 'skills', name, 'SKILL.md'), 'utf8')
       for (const [id, block] of blocks) {
@@ -401,8 +398,8 @@ describe('bundled skill guide generator', () => {
   // G2, second half: the ladder is pre-resolution guidance and belongs only to the stub —
   // every path that delivers a guide body has already resolved an executable. Guides keep
   // the `ORCA` placeholder rule. Red until the guide bodies drop their ladders; retiring
-  // those also retires the ORCA_CLI_COMMAND/orca-dev/orca-ide assertions in
-  // 'keeps CLI guide examples safe across shells and Linux command names' above, which
+  // those also retires the ORCA_CLI_COMMAND/orcb-dev/orcb assertions in
+  // 'keeps CLI guide examples safe across shells and ORCB command names' above, which
   // pin the opposite contract.
   it('keeps the CLI resolver ladder out of every guide body', async () => {
     for (const name of CANONICAL_GUIDE_NAMES) {

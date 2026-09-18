@@ -325,7 +325,7 @@ describe('configureDevUserDataPath', () => {
     const { app } = await import('electron')
     const { configureDevUserDataPath } = await import('./configure-process')
     const originalOverride = process.env.ORCA_DEV_USER_DATA_PATH
-    process.env.ORCA_DEV_USER_DATA_PATH = '/tmp/orca-dev-repro'
+    process.env.ORCA_DEV_USER_DATA_PATH = '/tmp/orcb-dev-repro'
 
     try {
       configureDevUserDataPath(true)
@@ -337,19 +337,19 @@ describe('configureDevUserDataPath', () => {
       }
     }
 
-    expect(app.setPath).toHaveBeenCalledWith('userData', '/tmp/orca-dev-repro')
+    expect(app.setPath).toHaveBeenCalledWith('userData', '/tmp/orcb-dev-repro')
   })
 
-  it('moves dev runs onto an orca-dev userData path', async () => {
+  it('moves dev runs onto an orcb-dev userData path', async () => {
     const { app } = await import('electron')
     const { configureDevUserDataPath } = await import('./configure-process')
 
     delete process.env.ORCA_DEV_USER_DATA_PATH
     configureDevUserDataPath(true)
 
-    // Why: production code uses path.join(app.getPath('appData'), 'orca-dev')
+    // Why: production code uses path.join(app.getPath('appData'), 'orcb-dev')
     // which produces platform-specific separators.
-    expect(app.setPath).toHaveBeenCalledWith('userData', join('/tmp/app-data', 'orca-dev'))
+    expect(app.setPath).toHaveBeenCalledWith('userData', join('/tmp/app-data', 'orcb-dev'))
   })
 
   it('leaves packaged runs on the default userData path', async () => {

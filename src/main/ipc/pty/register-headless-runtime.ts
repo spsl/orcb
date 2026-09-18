@@ -23,7 +23,7 @@ export function registerHeadlessPtyRuntime(
     onPtyExit?: (id: string, exitSequence: number) => void
   }
 ): Promise<void> {
-  // Why: headless `orca serve` has no renderer window but still needs the same PTY handlers so remote clients can drive terminals.
+  // Why: headless `orcb serve` has no renderer window but still needs the same PTY handlers so remote clients can drive terminals.
   // Why a fake rather than null: `registerPtyHandlers` takes a non-null BrowserWindow. `isDestroyed: () => true`
   // is what makes that safe — every renderer-liveness guard reads it and skips, so no send is ever attempted.
   // Keep `webContents.isDestroyed` in step with it: guards check both, and a missing method reads as "alive".

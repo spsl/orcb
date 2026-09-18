@@ -45,7 +45,7 @@ export class EmulatorBridge {
   }
 
   // Aggregated device list across host-supported backends (iOS simulators +
-  // Android devices/AVDs), for the unified `orca emulator list`.
+  // Android devices/AVDs), for the unified `orcb emulator list`.
   async listAllDevices(): Promise<EmulatorDevice[]> {
     return listAvailableEmulatorDevices(this.backends)
   }

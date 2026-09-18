@@ -14,7 +14,7 @@ import {
  *
  * The sibling serve-update-handoff.test.ts mocks `./persistence`, so under it
  * getCanonicalUserDataPath() can never throw — which is exactly why a module-scope call to
- * installServeSupervisorDisconnectQuit() shipped and killed every `orca serve` process on
+ * installServeSupervisorDisconnectQuit() shipped and killed every `orcb serve` process on
  * macOS. This file keeps the real path resolver so that dependency stays visible.
  */
 vi.mock('electron', () => ({ app: { getVersion: () => '1.0.51', quit: vi.fn() } }))

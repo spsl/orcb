@@ -30,13 +30,13 @@ describe('CliInstaller', () => {
     vi.restoreAllMocks()
   })
 
-  // Why: this test creates a Unix symlink to /tmp/not-orca, which only applies on macOS/Linux.
+  // Why: this test creates a Unix symlink to /tmp/not-orcb, which only applies on macOS/Linux.
   it.skipIf(process.platform === 'win32')(
     'refuses to replace an unknown symlink at the command path',
     async () => {
       const fixture = await makeFixture()
-      const installPath = join(fixture.root, 'bin', 'orca')
-      const existingTarget = '/tmp/not-orca'
+      const installPath = join(fixture.root, 'bin', 'orcb')
+      const existingTarget = '/tmp/not-orcb'
       await mkdir(join(fixture.root, 'bin'), { recursive: true })
       await symlink(existingTarget, installPath)
 
@@ -44,7 +44,7 @@ describe('CliInstaller', () => {
         platform: 'darwin',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/ORCB.app/Contents/MacOS/ORCB',
         appPath: fixture.appPath,
         commandPathOverride: installPath
       })
@@ -53,22 +53,22 @@ describe('CliInstaller', () => {
         state: 'conflict',
         supported: true
       })
-      await expect(installer.install()).rejects.toThrow('Refusing to replace non-Orca command')
+      await expect(installer.install()).rejects.toThrow('Refusing to replace non-ORCB command')
       await expect(readlink(installPath)).resolves.toBe(existingTarget)
     }
   )
 
-  // Why: packaged app moves can leave a symlink to an older Orca-owned launcher;
+  // Why: packaged app moves can leave a symlink to an older ORCB-owned launcher;
   // those are safe to refresh, unlike arbitrary user symlinks.
   it.skipIf(process.platform === 'win32')(
-    'replaces stale packaged Orca launcher symlinks',
+    'replaces stale packaged ORCB launcher symlinks',
     async () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, 'bin')
-      const installPath = join(commandDir, 'orca')
+      const installPath = join(commandDir, 'orcb')
       const resourcesPath = join(fixture.root, 'Current.app', 'Contents', 'Resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca')
-      const oldLauncherPath = join(fixture.root, 'Old.app', 'Contents', 'Resources', 'bin', 'orca')
+      const launcherPath = join(resourcesPath, 'bin', 'orcb')
+      const oldLauncherPath = join(fixture.root, 'Old.app', 'Contents', 'Resources', 'bin', 'orcb')
       await mkdir(commandDir, { recursive: true })
       await mkdir(join(resourcesPath, 'bin'), { recursive: true })
       await writeFile(launcherPath, '#!/usr/bin/env bash\n', 'utf8')
@@ -91,17 +91,17 @@ describe('CliInstaller', () => {
     }
   )
 
-  // Why: old dev/package experiments wrote a generated Orca launcher file
-  // directly into /usr/local/bin/orca. That broke profiling because Settings
+  // Why: old dev/package experiments wrote a generated ORCB launcher file
+  // directly into /usr/local/bin/orcb. That broke profiling because Settings
   // treated the regular file as a hard conflict and would not self-heal it.
   it.skipIf(process.platform === 'win32')(
     'replaces stale generated Unix launcher files',
     async () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, 'bin')
-      const installPath = join(commandDir, 'orca')
+      const installPath = join(commandDir, 'orcb')
       const resourcesPath = join(fixture.root, 'Current.app', 'Contents', 'Resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca')
+      const launcherPath = join(resourcesPath, 'bin', 'orcb')
       const oldCliPath = join(fixture.root, 'OldWorktree', 'out', 'cli', 'index.js')
       await mkdir(commandDir, { recursive: true })
       await mkdir(join(resourcesPath, 'bin'), { recursive: true })
@@ -145,12 +145,12 @@ describe('CliInstaller', () => {
     async () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, 'bin')
-      const installPath = join(commandDir, 'orca')
+      const installPath = join(commandDir, 'orcb')
       const resourcesPath = await createPackagedMacLauncher(fixture.root)
       await mkdir(commandDir, { recursive: true })
       await writeFile(
         installPath,
-        '#!/usr/bin/env bash\nELECTRON_RUN_AS_NODE=1 /tmp/not-orca "$@"\n',
+        '#!/usr/bin/env bash\nELECTRON_RUN_AS_NODE=1 /tmp/not-orcb "$@"\n',
         'utf8'
       )
 
@@ -166,24 +166,24 @@ describe('CliInstaller', () => {
         state: 'conflict',
         currentTarget: null
       })
-      await expect(installer.install()).rejects.toThrow('Refusing to replace non-Orca command')
-      await expect(readFile(installPath, 'utf8')).resolves.toContain('/tmp/not-orca')
+      await expect(installer.install()).rejects.toThrow('Refusing to replace non-ORCB command')
+      await expect(readFile(installPath, 'utf8')).resolves.toContain('/tmp/not-orcb')
     }
   )
 
   // Why: a dev build can temporarily own the public command on developer
-  // machines; packaged Orca should treat that as stale, not a hard conflict.
+  // machines; packaged ORCB should treat that as stale, not a hard conflict.
   it.skipIf(process.platform === 'win32')(
     'replaces stale sibling dev launcher symlinks from packaged installs',
     async () => {
       const fixture = await makeFixture()
-      for (const devLauncherName of ['orca', 'orca-dev']) {
+      for (const devLauncherName of ['orcb', 'orcb-dev']) {
         const caseRoot = join(fixture.root, devLauncherName)
         const commandDir = join(caseRoot, 'bin')
-        const installPath = join(commandDir, 'orca')
-        const userDataPath = join(caseRoot, 'orca')
+        const installPath = join(commandDir, 'orcb')
+        const userDataPath = join(caseRoot, 'orcb')
         const resourcesPath = join(caseRoot, 'Current.app', 'Contents', 'Resources')
-        const launcherPath = join(resourcesPath, 'bin', 'orca')
+        const launcherPath = join(resourcesPath, 'bin', 'orcb')
         const devLauncherPath = join(`${userDataPath}-dev`, 'cli', 'bin', devLauncherName)
         await mkdir(commandDir, { recursive: true })
         await mkdir(join(resourcesPath, 'bin'), { recursive: true })

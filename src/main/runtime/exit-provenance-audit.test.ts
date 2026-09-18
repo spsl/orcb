@@ -244,7 +244,7 @@ describe('STA-4603/STA-4536 exit provenance', () => {
     const db = createDb()
     const runtime = new OrcaRuntimeService(null)
     runtime.setOrchestrationDb(db)
-    // Model the shipping controller: `orca terminal close` reaches stopAndWait,
+    // Model the shipping controller: `orcb terminal close` reaches stopAndWait,
     // which verifies the stop and then reports it with a synthetic code 0 --
     // a number indistinguishable from a clean agent finish.
     runtime.setPtyController({

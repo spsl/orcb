@@ -130,7 +130,7 @@ describe('ArtifactsSettingsPane', () => {
     await user.click(toggle)
     expect(updateSettings).toHaveBeenCalledWith({ showArtifactsButton: true })
 
-    expect(screen.queryByText(/orca artifacts share/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/orcb artifacts share/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy command' })).not.toBeInTheDocument()
 
     const openButton = screen.getByRole('button', { name: /Open Artifacts/ })

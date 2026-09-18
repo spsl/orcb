@@ -109,7 +109,7 @@ describe('orchestration mutation recovery', () => {
         orchestrationRequestId: 'request_3',
         dispatchId: 'dispatch_3',
         originalCommand: [
-          'orca-dev',
+          'orcb-dev',
           'orchestration',
           'worker-start',
           '--task',
@@ -121,8 +121,8 @@ describe('orchestration mutation recovery', () => {
     ) as RuntimeClientError
 
     expect((result.data as { nextSteps?: string[] }).nextSteps).toEqual([
-      'Run orca-dev orchestration worker-show --dispatch dispatch_3 --json before retrying.',
-      "After inspecting the Dispatch, if keyed recovery is still needed, run orca-dev orchestration worker-start --task 'task 3' --comment 'literal $(do-not-run)' --retry-request request_3. --retry-request reuses the same operation identity so Orca can replay, join, or safely recover it without starting a separate duplicate."
+      'Run orcb-dev orchestration worker-show --dispatch dispatch_3 --json before retrying.',
+      "After inspecting the Dispatch, if keyed recovery is still needed, run orcb-dev orchestration worker-start --task 'task 3' --comment 'literal $(do-not-run)' --retry-request request_3. --retry-request reuses the same operation identity so Orca can replay, join, or safely recover it without starting a separate duplicate."
     ])
     expect(result.message).toContain("'literal $(do-not-run)'")
   })
@@ -216,7 +216,7 @@ describe('orchestration mutation recovery', () => {
   it('shell-quotes a configured Windows executable when resolving portable recovery commands', () => {
     expect(
       renderResolvedOrchestrationCommand(
-        'orca orchestration worker-show --dispatch ctx_1 --json',
+        'orcb orchestration worker-show --dispatch ctx_1 --json',
         'C:\\Program Files\\Orca\\orca-ide.cmd',
         'win32',
         { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }

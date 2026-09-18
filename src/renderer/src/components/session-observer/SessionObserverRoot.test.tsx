@@ -9,12 +9,13 @@ import type {
 } from '../../../../shared/session-observer'
 
 const mocks = vi.hoisted(() => {
-  const appState = { repos: [] as { id: string; displayName: string; path: string }[] }
+  const appState: { repos: { id: string; displayName: string; path: string }[] } = { repos: [] }
+  const noSnapshotListener = (): ((snapshot: SessionObserverSnapshot) => void) | null => null
   return {
     requestSnapshot: vi.fn<() => Promise<void>>(),
     close: vi.fn<(args: unknown) => Promise<boolean>>(),
     onSnapshot: vi.fn(),
-    snapshotListener: null as ((snapshot: SessionObserverSnapshot) => void) | null,
+    snapshotListener: noSnapshotListener(),
     appState,
     useAppStore: (selector: (state: typeof appState) => unknown) => selector(appState)
   }

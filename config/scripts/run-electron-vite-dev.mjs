@@ -279,7 +279,7 @@ function prepareMacDevElectronApp() {
     existsSync(chromiumResourcePath)
   ) {
     console.warn(
-      `[orca-dev] Another dev instance is running from this bundle; reusing it instead of rebuilding. Quit the other instance (or delete ${distDir}) to force a rebuild.`
+      `[orcb-dev] Another dev instance is running from this bundle; reusing it instead of rebuilding. Quit the other instance (or delete ${distDir}) to force a rebuild.`
     )
     process.env.ELECTRON_EXEC_PATH = executablePath
     return
@@ -334,7 +334,7 @@ function prepareMacDevElectronApp() {
     )
   } catch (error) {
     console.warn(
-      `[orca-dev] notification-status helper build failed (permission card falls back to probes): ${error?.message ?? error}`
+      `[orcb-dev] notification-status helper build failed (permission card falls back to probes): ${error?.message ?? error}`
     )
   }
 
@@ -351,7 +351,7 @@ function prepareMacDevElectronApp() {
     )
   } catch (error) {
     console.warn(
-      `[orca-dev] keyboard-layout helper build failed (shifted Option composition stays conservative): ${error?.message ?? error}`
+      `[orcb-dev] keyboard-layout helper build failed (shifted Option composition stays conservative): ${error?.message ?? error}`
     )
   }
 
@@ -368,7 +368,7 @@ function prepareMacDevElectronApp() {
   } catch (error) {
     signed = false
     console.warn(
-      `[orca-dev] ad-hoc codesign failed (dev notifications will not deliver): ${error?.message ?? error}`
+      `[orcb-dev] ad-hoc codesign failed (dev notifications will not deliver): ${error?.message ?? error}`
     )
   }
   // Why only when signed: the marker is what marks this bundle reusable. Writing it after a failed
@@ -539,14 +539,14 @@ function prepareDevWebClient() {
   // falls back to non-browser URLs when the optional web bundle is unavailable.
   if (!existsSync(getDevWebClientIndexPath()) && process.env.ORCA_DEV_WEB_PREPARE !== '1') {
     console.error(
-      '[orca-dev] Web client bundle missing; skipping pairing web build. Run `pnpm run build:web` or set ORCA_DEV_WEB_PREPARE=1 when you need browser pairing.'
+      '[orcb-dev] Web client bundle missing; skipping pairing web build. Run `pnpm run build:web` or set ORCA_DEV_WEB_PREPARE=1 when you need browser pairing.'
     )
     return
   }
   if (isDevWebClientFresh()) {
     return
   }
-  console.error('[orca-dev] Building web client for pairing...')
+  console.error('[orcb-dev] Building web client for pairing...')
   execFileSync(
     process.execPath,
     [viteCli, 'build', '--config', path.join(repoRoot, 'vite.web.config.ts')],
@@ -611,12 +611,12 @@ const userPassedPort = forwardedRaw.some(
 // a debug-port line would be noise.
 const isHelpOrVersion = forwardedRaw.some((a) => a === '--help' || a === '-h' || a === '--version')
 if (!isHelpOrVersion && process.env.ORCA_DEV_INSTANCE_LABEL) {
-  console.error(`[orca-dev] Instance: ${process.env.ORCA_DEV_INSTANCE_LABEL}`)
+  console.error(`[orcb-dev] Instance: ${process.env.ORCA_DEV_INSTANCE_LABEL}`)
 }
 // Why: automation launches this app while someone is working; announce that the
 // window will come up without taking the foreground so the mode is visible in logs.
 if (!isHelpOrVersion && process.env.ORCA_BACKGROUND_LAUNCH === '1') {
-  console.error('[orca-dev] Background launch: window stays off screen; automate through CDP')
+  console.error('[orcb-dev] Background launch: window stays off screen; automate through CDP')
 }
 let forwardedExtras = []
 if (!userPassedPort && !isHelpOrVersion) {
@@ -626,7 +626,7 @@ if (!userPassedPort && !isHelpOrVersion) {
     port = parseDebugPortEnv(envPortRaw)
     if (port === null) {
       console.error(
-        `[orca-dev] Ignoring invalid REMOTE_DEBUGGING_PORT=${JSON.stringify(envPortRaw)}; falling back to probe.`
+        `[orcb-dev] Ignoring invalid REMOTE_DEBUGGING_PORT=${JSON.stringify(envPortRaw)}; falling back to probe.`
       )
     }
   }
@@ -638,10 +638,10 @@ if (!userPassedPort && !isHelpOrVersion) {
     // Why: stderr keeps stdout clean for downstream parsing; log uses
     // 127.0.0.1 to match the interface we actually probed (localhost may
     // resolve to ::1 on IPv6-first hosts).
-    console.error(`[orca-dev] Remote debugging on http://127.0.0.1:${port}`)
+    console.error(`[orcb-dev] Remote debugging on http://127.0.0.1:${port}`)
   } else {
     console.error(
-      '[orca-dev] No free debug port found in sweep; starting without --remote-debugging-port.'
+      '[orcb-dev] No free debug port found in sweep; starting without --remote-debugging-port.'
     )
   }
 }

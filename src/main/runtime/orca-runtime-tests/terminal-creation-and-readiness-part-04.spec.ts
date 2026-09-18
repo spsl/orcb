@@ -323,7 +323,7 @@ describe('OrcaRuntimeService', () => {
       getForegroundProcess: async () => null
     })
 
-    // `orca terminal create --worktree <wt> --command "echo test" --focus`
+    // `orcb terminal create --worktree <wt> --command "echo test" --focus`
     await expect(
       runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, {
         command: 'echo test',

@@ -45,7 +45,7 @@ export class OrcaRuntimeWithActivateManagedWorktree extends OrcaRuntimeWithListM
     worktreeId: string
     activated: boolean
     /** Mobile-scoped slept-agent wake outcome. `unsupported-headless` means no
-     *  renderer holds the sleeping records (headless `orca serve`), so nothing
+     *  renderer holds the sleeping records (headless `orcb serve`), so nothing
      *  woke — clients must not present the worktree's agents as resumed. */
     sleepingAgentWake: 'requested' | 'unsupported-headless' | 'not-applicable'
   }> {

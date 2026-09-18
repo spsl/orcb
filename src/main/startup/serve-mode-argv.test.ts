@@ -139,7 +139,7 @@ describe('serve-mode-argv', () => {
   })
 
   it('leaves already-normalized argv unchanged', () => {
-    // Why every value flag: the CLI's own `orca serve` spawns the app with exactly this shape
+    // Why every value flag: the CLI's own `orcb serve` spawns the app with exactly this shape
     // (serveOrcaApp), and the rewrite now runs over it too — a bad mapping would drop the port here.
     const argv = [
       'orca',

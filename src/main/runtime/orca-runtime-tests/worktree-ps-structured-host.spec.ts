@@ -12,7 +12,7 @@ vi.mock('../../telemetry/cohort-classifier', () => ({
  * The production read, not the projection. The structured-row suites feed
  * `attachRuntimeWorktreeAgentRows` a snapshot they built themselves; this executes `getWorktreePs`
  * in `orca-runtime-get-worktree-ps.ts`, which is `@ts-nocheck`, so a renamed dependency there stays
- * green in typecheck while `orca worktree ps` and mobile's poll would list nothing.
+ * green in typecheck while `orcb worktree ps` and mobile's poll would list nothing.
  */
 const SESSION = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
 

@@ -60,7 +60,7 @@ const REMOTE_ROW = {
   executionHostId: 'ssh:box-1'
 }
 
-describe('orca terminal list host scope', () => {
+describe('orcb terminal list host scope', () => {
   useWorktreeAwarenessEnvironment({
     callMock,
     serveOrcaAppMock,

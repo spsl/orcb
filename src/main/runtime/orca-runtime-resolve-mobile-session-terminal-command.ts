@@ -52,7 +52,7 @@ export class OrcaRuntimeWithResolveMobileSessionTerminalCommand extends OrcaRunt
     }
     // Why: mobile may be iOS while the shell host is Windows/macOS/Linux or SSH Linux; quote for the host shell.
     const platform = this.getAgentLaunchPlatformForWorkspace(workspace)
-    // Why: SSH runs the CLI through the relay shim (plain `orca`), so the Linux-only `orca-ide` rename must not apply.
+    // Why: mobile may target a remote shell, whose quoting and availability differ from the device.
     const isRemote = Boolean(workspace.connectionId)
     const queuedShell = resolveLocalWindowsAgentStartupShell({
       platform,

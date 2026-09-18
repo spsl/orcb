@@ -55,11 +55,11 @@ let container: HTMLDivElement | null = null
 function cliStatus(): CliInstallStatus {
   return {
     platform: 'darwin',
-    commandName: 'orca',
+    commandName: 'orcb',
     commandPath: null,
     pathDirectory: null,
     pathConfigured: false,
-    launcherPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+    launcherPath: '/Applications/ORCB.app/Contents/MacOS/Orca',
     installMethod: null,
     supported: true,
     state: 'not_installed',

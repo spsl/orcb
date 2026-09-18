@@ -172,7 +172,7 @@ describe('registerWorktreeHandlers', () => {
     await expect(
       handlers['hooks:writeIssueCommand'](null, {
         repoId: 'repo-ssh',
-        content: 'orca issue command'
+        content: 'orcb issue command'
       })
     ).rejects.toThrow('ssh read failed')
 
@@ -240,14 +240,14 @@ describe('registerWorktreeHandlers', () => {
 
     await handlers['hooks:writeIssueCommand'](null, {
       repoId: 'repo-ssh',
-      content: 'orca issue command'
+      content: 'orcb issue command'
     })
 
     expect(fsProvider.writeFile).toHaveBeenNthCalledWith(1, '/remote/repo/.gitignore', '.orca\n')
     expect(fsProvider.writeFile).toHaveBeenNthCalledWith(
       2,
       '/remote/repo/.orca/issue-command',
-      'orca issue command\n'
+      'orcb issue command\n'
     )
   })
 
@@ -267,7 +267,7 @@ describe('registerWorktreeHandlers', () => {
     await expect(
       handlers['hooks:writeIssueCommand'](null, {
         repoId: 'repo-ssh',
-        content: 'orca issue command'
+        content: 'orcb issue command'
       })
     ).rejects.toThrow('Remote filesystem unavailable')
   })

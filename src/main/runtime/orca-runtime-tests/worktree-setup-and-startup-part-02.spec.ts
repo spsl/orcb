@@ -380,7 +380,7 @@ describe('OrcaRuntimeService', () => {
       startup: { command: 'claude' }
     })
 
-    // `orca worktree create --agent claude` without --activate: the agent tab is
+    // `orcb worktree create --agent claude` without --activate: the agent tab is
     // adopted, but the sidebar must stay on whatever the user was reading.
     expect(activateWorktree).not.toHaveBeenCalled()
     expect(revealTerminalSession).toHaveBeenCalledWith(

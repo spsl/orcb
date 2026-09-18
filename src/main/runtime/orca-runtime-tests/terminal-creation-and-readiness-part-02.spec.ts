@@ -456,13 +456,12 @@ describe('OrcaRuntimeService', () => {
     expect(spawnCall?.command).toBe('cursor-agent "--force"')
   })
 
-  // Why: claude-agent-teams is the only agent whose launcher name varies by
-  // platform (launchCmdByPlatform), so it is what proves resolution is
-  // platform-aware rather than a fixed string.
+  // Why: claude-agent-teams exercises the ORCB-provided launch mode across
+  // every platform.
   it.each([
-    { platform: 'win32' as const, expected: 'orca.cmd claude-teams' },
-    { platform: 'linux' as const, expected: 'orca-ide claude-teams' },
-    { platform: 'darwin' as const, expected: 'orca claude-teams' }
+    { platform: 'win32' as const, expected: 'orcb claude-teams' },
+    { platform: 'linux' as const, expected: 'orcb claude-teams' },
+    { platform: 'darwin' as const, expected: 'orcb claude-teams' }
   ])(
     'resolves a startupAgent through the $platform launcher name',
     async ({ platform, expected }) => {

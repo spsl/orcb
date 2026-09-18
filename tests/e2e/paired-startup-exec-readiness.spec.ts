@@ -119,7 +119,7 @@ test('recovers startup exec through a headed paired desktop owner @headful', asy
   }
 })
 
-test('recovers the same startup exec through an isolated headless orca serve', async ({
+test('recovers the same startup exec through an isolated headless orcb serve', async ({
   testRepoPath
 }) => {
   test.setTimeout(120_000)

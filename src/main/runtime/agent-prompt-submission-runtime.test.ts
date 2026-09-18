@@ -469,7 +469,7 @@ describe('agent prompt submission runtime', () => {
   })
 
   // Why: hook rows reach the runtime through this provider, which has no window and no OSC title —
-  // the same path a headless `orca serve` host and a minimized desktop window take.
+  // the same path a headless `orcb serve` host and a minimized desktop window take.
   async function createHookOnlyPromptRuntime(
     hook: {
       state: 'done' | 'working'

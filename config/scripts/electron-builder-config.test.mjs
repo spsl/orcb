@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
@@ -140,8 +141,8 @@ describe('electron-builder config', () => {
           to: 'computer-use-windows/runtime.ps1'
         }),
         expect.objectContaining({
-          from: 'native/windows-cli-launcher/.build/orca.exe',
-          to: 'bin/orca.exe'
+          from: 'native/windows-cli-launcher/.build/orcb.exe',
+          to: 'bin/orcb.exe'
         })
       ])
     )
@@ -158,10 +159,10 @@ describe('electron-builder config', () => {
   })
 
   // Why: the Windows CLI shim is delivered only via extraResources to
-  // resources/bin/orca.cmd (beside the native resources/bin/orca.exe). If the
+  // resources/bin/orcb.cmd (beside the native resources/bin/orcb.exe). If the
   // source tree is also packed into app.asar it gets extracted by
-  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/orca.cmd,
-  // a duplicate with no adjacent orca.exe that fails to launch (#7351).
+  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/orcb.cmd,
+  // a duplicate with no adjacent orcb.exe that fails to launch (#7351).
   it('keeps the Windows CLI shim source tree out of app.asar', () => {
     expect(electronBuilderConfig.files).toEqual(
       expect.arrayContaining(['!resources/win32{,/**/*}'])
@@ -170,8 +171,8 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.win.extraResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'resources/win32/bin/orca.cmd',
-          to: 'bin/orca.cmd'
+          from: 'resources/win32/bin/orcb.cmd',
+          to: 'bin/orcb.cmd'
         })
       ])
     )
@@ -303,7 +304,7 @@ describe('electron-builder config', () => {
   it('validates each AppImage before electron-builder publishes it', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-electron-builder-appimage-'))
     try {
-      const appImage = join(root, 'orca-linux.AppImage')
+      const appImage = join(root, 'orcb-linux.AppImage')
       await writeFile(appImage, 'not an ELF')
       await chmod(appImage, 0o755)
 
@@ -311,7 +312,7 @@ describe('electron-builder config', () => {
         electronBuilderConfig.artifactBuildCompleted({ file: appImage, arch: 1 })
       ).toThrow(/ELF header is outside/)
       expect(() =>
-        electronBuilderConfig.artifactBuildCompleted({ file: join(root, 'orca-ide.deb') })
+        electronBuilderConfig.artifactBuildCompleted({ file: join(root, 'orcb.deb') })
       ).not.toThrow()
     } finally {
       await rm(root, { recursive: true, force: true })
@@ -439,5 +440,51 @@ describe('electron-builder config', () => {
         expect(electronBuilderConfig[target]).toBeDefined()
       }
     })
+  })
+})
+
+describe('arch-aware packaging guard', () => {
+  // electron-builder Arch enum: ia32=0, x64=1, armv7l=2, arm64=3.
+  const HOST_ARCH = process.arch === 'arm64' ? 3 : 1
+  const OTHER_ARCH = process.arch === 'arm64' ? 1 : 3
+  const OTHER_ARCH_NAME = process.arch === 'arm64' ? 'x64' : 'arm64'
+  const SHERPA_PLATFORM = process.platform === 'win32' ? 'win' : process.platform
+  const otherSherpa = `sherpa-onnx-${SHERPA_PLATFORM}-${OTHER_ARCH_NAME}`
+  const packHost = (arch) =>
+    electronBuilderConfig.beforePack({ electronPlatformName: process.platform, arch })
+
+  it('allows packaging the host platform and architecture', () => {
+    expect(() => packHost(HOST_ARCH)).not.toThrow()
+  })
+
+  it('requires the other architecture natives to be installed', () => {
+    const otherSherpaInstalled = existsSync(
+      join(REPO_ROOT, 'node_modules', otherSherpa, 'package.json')
+    )
+    const otherSherpaExpected = Object.hasOwn(
+      require('../../package.json').optionalDependencies,
+      otherSherpa
+    )
+    if (otherSherpaExpected && !otherSherpaInstalled) {
+      expect(() => packHost(OTHER_ARCH)).toThrow(otherSherpa)
+      expect(() => packHost(OTHER_ARCH)).toThrow('pnpm install:release')
+      expect(() => packHost(HOST_ARCH)).not.toThrow()
+    } else {
+      expect(() => packHost(OTHER_ARCH)).not.toThrow()
+    }
+  })
+
+  it('requires installed Windows addons for Windows packaging', () => {
+    const windowsAddon = electronBuilderConfig.win.extraResources.some(
+      (resource) => resource.to === join('node_modules', '@vscode', 'windows-process-tree')
+    )
+    const packWindows = () =>
+      electronBuilderConfig.beforePack({ electronPlatformName: 'win32', arch: 1 })
+    if (process.platform === 'win32' || windowsAddon) {
+      expect(packWindows).not.toThrow()
+    } else {
+      expect(packWindows).toThrow('@vscode/windows-process-tree')
+      expect(packWindows).toThrow('Windows packaging requires a Windows host')
+    }
   })
 })

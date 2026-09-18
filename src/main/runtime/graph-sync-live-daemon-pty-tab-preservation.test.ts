@@ -168,7 +168,7 @@ function createHarness() {
     }
   })
 
-  /** An `orca terminal create` on this host, through the real create path. */
+  /** An `orcb terminal create` on this host, through the real create path. */
   const createCliTerminal = async (worktreeId: string): Promise<string> => {
     await runtime.createTerminal(`id:${worktreeId}`, { focus: false })
     const tabId = spawnedTabIdByWorktree.get(worktreeId)

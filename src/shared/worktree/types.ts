@@ -143,7 +143,7 @@ export type Worktree = {
   cliProvenance?: CliWorkspaceProvenance
 } & GitWorktreeInfo
 
-/** Provenance for workspaces created through `orca worktree create`. Absent on
+/** Provenance for workspaces created through `orcb worktree create`. Absent on
  *  workspaces created before this field existed and on every non-CLI create, so
  *  consumers must read "missing" as "not CLI-created". */
 export type CliWorkspaceProvenance = {

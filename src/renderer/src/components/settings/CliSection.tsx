@@ -3,6 +3,7 @@ import { FolderOpen, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { ORCB_CLI_COMMAND_NAME } from '../../../../shared/orcb-local-distribution'
 import {
   ORCA_CLI_SKILL_INSTALL_COMMAND,
   ORCA_CLI_SKILL_NAME,
@@ -57,19 +58,20 @@ function getRevealLabel(platform: string): string {
 
 function getInstallDescription(platform: string): string {
   if (platform === 'darwin') {
-    return 'Register `orca` in /usr/local/bin.'
+    return 'Register `orcb` in /usr/local/bin.'
   }
   if (platform === 'linux') {
-    return 'Register `orca-ide` in ~/.local/bin.'
+    return 'Register `orcb` in ~/.local/bin.'
   }
   if (platform === 'win32') {
-    return 'Register `orca` in your user PATH.'
+    return 'Register `orcb` in your user PATH.'
   }
   return 'CLI registration is not yet available on this platform.'
 }
 
 function getFallbackCommandName(platform: string): string {
-  return platform === 'linux' ? 'orca-ide' : 'orca'
+  void platform
+  return ORCB_CLI_COMMAND_NAME
 }
 
 export function CliSection({

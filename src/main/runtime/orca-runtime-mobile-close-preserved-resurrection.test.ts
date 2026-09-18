@@ -438,7 +438,7 @@ describe('a committed paired close stays closed while its PTY lingers', () => {
   it('red: a host-side close (no paired close RPC) must not be resurrected by the preserved-merge', async () => {
     const harness = createHarness()
 
-    // The host closes the tab itself — host user gesture or `orca terminal`
+    // The host closes the tab itself — host user gesture or `orcb terminal`
     // lifecycle driven by an agent on the host. No closeMobileSessionTab runs,
     // so no post-relay cleanup exists. The renderer durably retires the tab and
     // publishes the pruned graph; the PTY it killed has not exited yet (or the

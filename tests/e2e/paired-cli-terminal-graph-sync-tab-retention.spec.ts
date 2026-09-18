@@ -2,7 +2,7 @@
  * TOPOLOGY (a): real Orca DESKTOP app as the remote server, isolated profile,
  * window ATTACHED, paired to a separate real desktop client.
  *
- * A terminal created by `orca terminal create` (RPC `terminal.create` ->
+ * A terminal created by `orcb terminal create` (RPC `terminal.create` ->
  * OrcaRuntimeService.createTerminal) must survive the renderer graph syncs that
  * every later CLI dispatch drives. The renderer never owns that pane, so it is
  * absent from every renderer publication; the daemon ptyId form
@@ -178,7 +178,7 @@ async function prepareRetentionFixture(
 }
 
 /**
- * One `orca terminal create` in the measured workspace, one renderer graph sync,
+ * One `orcb terminal create` in the measured workspace, one renderer graph sync,
  * both signals plus the negative-safety checks.
  *
  * `precedingHostTerminal` is the ONLY difference between the two tests: the
@@ -301,7 +301,7 @@ test('keeps a host-created CLI terminal when an earlier host-created terminal ex
   await runCliTerminalRetentionJourney(orcaPage, testInfo, 'cli-terminal-graph-sync', true)
 })
 
-// The reported incident, and the shape the real CLI takes: `orca terminal
+// The reported incident, and the shape the real CLI takes: `orcb terminal
 // create` sends no clientMutationId, so this is a user's FIRST host-created
 // terminal in the repo — the one case that raised no topology fence and whose
 // tab the renderer's pre-create tab list therefore replayed out of persistence.

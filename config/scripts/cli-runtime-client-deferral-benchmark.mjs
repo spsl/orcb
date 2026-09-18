@@ -198,14 +198,14 @@ try {
   const isolated = { ORCA_USER_DATA_PATH: userDataPath }
   /** @type {Array<[string, string[], Record<string, string>]>} */
   const cases = [
-    ['orca --help', ['--help'], {}],
-    ['orca help worktree', ['help', 'worktree'], {}],
-    ['orca (no args)', [], {}],
+    ['orcb --help', ['--help'], {}],
+    ['orcb help worktree', ['help', 'worktree'], {}],
+    ['orcb (no args)', [], {}],
     ['unknown command', ['no-such-command'], {}],
     ['unknown flag', ['worktree', 'list', '--nope'], {}],
-    ['orca agent-context --json', ['agent-context', '--json'], {}],
-    ['orca status --json', ['status', '--json'], isolated],
-    ['orca worktree list --json', ['worktree', 'list', '--json'], isolated]
+    ['orcb agent-context --json', ['agent-context', '--json'], {}],
+    ['orcb status --json', ['status', '--json'], isolated],
+    ['orcb worktree list --json', ['worktree', 'list', '--json'], isolated]
   ]
 
   // Why: a semantically broken arm that prints nothing would look fastest.

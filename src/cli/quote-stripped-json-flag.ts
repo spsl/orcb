@@ -10,6 +10,8 @@
  * shape (see `task-deps-flag.ts`).
  */
 
+import { ORCB_CLI_COMMAND_NAME } from '../shared/orcb-local-distribution'
+
 const BARE_TOKEN = /^[A-Za-z0-9_.:+-]+$/
 const BARE_OBJECT_ENTRY = /^([A-Za-z0-9_.+-]+):([A-Za-z0-9_.+-]+)$/
 
@@ -60,7 +62,7 @@ export function describeQuoteStrippedJsonFlag(flagName: string, raw: string): st
     `--${flagName} is not valid JSON: its quotes are missing.\n` +
     'If you ran this from Windows PowerShell 5.1, it strips inner quotes when building a native ' +
     'command line, so a correct value can still arrive damaged.\n' +
-    `Pass it through a variable instead: $v = '<json>'; orca ... --${flagName} $v — or run the ` +
+    `Pass it through a variable instead: $v = '<json>'; ${ORCB_CLI_COMMAND_NAME} ... --${flagName} $v — or run the ` +
     'command from cmd.exe, Git Bash, or PowerShell 7+.'
   )
 }

@@ -37,7 +37,7 @@ const GUIDE_ALIASES = {
 }
 
 // Why: a stubbed topic ships a hybrid discovery stub as its installable projection while
-// `orca skills get <topic>` still serves the full version-matched guide from the binary.
+// `orcb skills get <topic>` still serves the full version-matched guide from the binary.
 // Migrating a topic here is effectively one-way — earlier fat installs rely on the stub
 // landing to converge — so entries are added as skills convert, never removed. The stub
 // body lives in skill-stubs/<topic>.md; the projection reuses the guide's own frontmatter.

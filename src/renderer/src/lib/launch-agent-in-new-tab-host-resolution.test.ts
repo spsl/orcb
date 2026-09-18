@@ -128,10 +128,10 @@ describe('launchAgentInNewTab execution host resolution', () => {
 
     await launchOnLinux()
 
-    expect(queuedCommand()).toBe("orca-ide claude-teams '--dangerously-skip-permissions'")
+    expect(queuedCommand()).toBe("orcb claude-teams '--dangerously-skip-permissions'")
   })
 
-  it('keeps a worktree on one SSH host remote while a rival row names another', async () => {
+  it('uses ORCB for a worktree on one SSH host while a rival row names another', async () => {
     store.repos = [
       { id: 'repo-1', connectionId: 'openclaw', path: '/srv/openclaw' },
       { id: 'repo-1', connectionId: null, executionHostId: 'ssh:m4air', path: '/srv/m4air' }
@@ -140,10 +140,10 @@ describe('launchAgentInNewTab execution host resolution', () => {
 
     await launchOnLinux()
 
-    expect(queuedCommand()).toBe("orca claude-teams '--dangerously-skip-permissions'")
+    expect(queuedCommand()).toBe("orcb claude-teams '--dangerously-skip-permissions'")
   })
 
-  it('keeps a runtime host reaching a nested SSH target on the relay shim name', async () => {
+  it('uses ORCB for a runtime host reaching a nested SSH target', async () => {
     store.repos = [
       { id: 'repo-1', connectionId: 'nested', executionHostId: 'runtime:vm-1', path: '/srv/vm' }
     ]
@@ -151,10 +151,10 @@ describe('launchAgentInNewTab execution host resolution', () => {
 
     await launchOnLinux()
 
-    expect(queuedCommand()).toBe("orca claude-teams '--dangerously-skip-permissions'")
+    expect(queuedCommand()).toBe("orcb claude-teams '--dangerously-skip-permissions'")
   })
 
-  it('keeps a runtime host with no nested SSH target on the local CLI name', async () => {
+  it('uses ORCB for a runtime host with no nested SSH target', async () => {
     store.repos = [
       { id: 'repo-1', connectionId: null, executionHostId: 'runtime:vm-1', path: '/srv/vm' }
     ]
@@ -162,6 +162,6 @@ describe('launchAgentInNewTab execution host resolution', () => {
 
     await launchOnLinux()
 
-    expect(queuedCommand()).toBe("orca-ide claude-teams '--dangerously-skip-permissions'")
+    expect(queuedCommand()).toBe("orcb claude-teams '--dangerously-skip-permissions'")
   })
 })

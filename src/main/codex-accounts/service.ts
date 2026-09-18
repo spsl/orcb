@@ -166,7 +166,7 @@ export class CodexAccountService {
 
   /**
    * Registers a managed Codex account from an already-authenticated `CODEX_HOME`
-   * instead of driving `codex login` here. Lets the `orca account add --agent codex`
+   * instead of driving `codex login` here. Lets the `orcb account add --agent codex`
    * CLI run the login in the user's own terminal on a headless host and then import
    * the captured `auth.json` into managed storage.
    */

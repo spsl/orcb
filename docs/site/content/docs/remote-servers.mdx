@@ -7,7 +7,7 @@ import { Callout, ImagePlaceholder } from '@/components/docs/prose'
 
 A Remote Orca Server lets one computer do the work while another computer provides the UI. The server keeps the projects, worktrees, terminals, tabs, provider accounts, and agent sessions. Your laptop connects to that running Orca instance.
 
-The easiest setup is the Orca desktop app on both computers, connected through [Tailscale](https://tailscale.com/). You do not need to run `orca serve` for this path.
+The easiest setup is the Orca desktop app on both computers, connected through [Tailscale](https://tailscale.com/). You do not need to run `orcb serve` for this path.
 
 <Callout title="Beta">
   Remote Orca Servers are beta. Keep the server and client on a private network path you control,
@@ -29,19 +29,19 @@ Server computer · Orca server
 
 Install and authenticate Codex, Claude Code, OpenCode, `git`, and any provider CLIs on the **server computer**. A login on your laptop does not automatically carry over to the server.
 
-On a headless `orca serve` host, register managed Claude/Codex accounts from the server shell (the remote client disables **Add account**):
+On a headless `orcb serve` host, register managed Claude/Codex accounts from the server shell (the remote client disables **Add account**):
 
 ```bash
-orca account add --agent claude
-orca account add --agent codex
-orca account list
+orcb account add --agent claude
+orcb account add --agent codex
+orcb account list
 ```
 
 Install or refresh agent skills without a Settings UI:
 
 ```bash
-orca skills install --skill orca-cli --skill orchestration
-orca skills update --all
+orcb skills install --skill orca-cli --skill orchestration
+orcb skills update --all
 ```
 
 ## Recommended: desktop app + Tailscale
@@ -120,32 +120,20 @@ Orca creates a separate, revocable token for each paired client. The server list
 - Do not forward the Orca port directly to the public internet. Prefer Tailscale, WireGuard, a trusted LAN, SSH forwarding, or an authenticated tunnel.
 - Do not select `127.0.0.1` for another computer. That address only works on the server itself.
 
-## Alternative: `orca serve`
+## Alternative: `orcb serve`
 
-Use `orca serve` when the host should run without the desktop window—for example, a headless Linux server or a service-managed VM. For a MacBook or desktop you can leave signed in, the in-app setup above is simpler.
+Use `orcb serve` when the host should run without the desktop window—for example, a headless Linux server or a service-managed VM. For a MacBook or desktop you can leave signed in, the in-app setup above is simpler.
 
-Install Orca and its bundled CLI on the server, then run:
-
-<Callout title="On Linux, start it with orca-ide serve">
-  The Linux CLI is named `orca-ide`, because GNOME Orca's screen reader already owns
-  `/usr/bin/orca`. A packaged `orca serve` does write a bare `orca` into `~/.local/bin`, but only
-  while it is starting, so that shim can never be the command that starts the server. Read `orca
-  serve` as `orca-ide serve` throughout this page when the host is Linux. See [Install →
-  Linux](/docs/install#linux).
-</Callout>
+Install ORCB and its bundled CLI on the server, then run:
 
 ```bash
-orca serve --pairing-address <server-tailscale-ip-or-hostname>
-# Linux
-orca-ide serve --pairing-address <server-tailscale-ip-or-hostname>
+orcb serve --pairing-address <server-tailscale-ip-or-hostname>
 ```
 
 For example:
 
 ```bash
-orca serve --pairing-address 100.64.1.20
-# Linux
-orca-ide serve --pairing-address 100.64.1.20
+orcb serve --pairing-address 100.64.1.20
 ```
 
 The command:
@@ -160,28 +148,24 @@ Paste the printed pairing URL into **Settings → Remote Orca Servers → Add Se
 Add `--port 6768` when a firewall, tunnel, or service definition requires a fixed port:
 
 ```bash
-orca serve --port 6768 --pairing-address 100.64.1.20
-# Linux
-orca-ide serve --port 6768 --pairing-address 100.64.1.20
+orcb serve --port 6768 --pairing-address 100.64.1.20
 ```
 
-Use only one host mode at a time. If the Orca desktop app is already sharing that computer, do not start a second `orca serve` process for the same setup.
+Use only one host mode at a time. If the Orca desktop app is already sharing that computer, do not start a second `orcb serve` process for the same setup.
 
 ### Mobile from a headless server
 
 For the Orca mobile app, request a mobile-scoped QR code and link:
 
 ```bash
-orca serve --pairing-address 100.64.1.20 --mobile-pairing
-# Linux
-orca-ide serve --pairing-address 100.64.1.20 --mobile-pairing
+orcb serve --pairing-address 100.64.1.20 --mobile-pairing
 ```
 
 Keep the phone on the same tailnet, open Orca Mobile, choose **Pair**, and scan the terminal QR code or paste the printed link.
 
-## Desktop app or `orca serve`?
+## Desktop app or `orcb serve`?
 
-|               | Desktop app on the server           | `orca serve`                                       |
+|               | Desktop app on the server           | `orcb serve`                                       |
 | ------------- | ----------------------------------- | -------------------------------------------------- |
 | Best for      | An old laptop, Mac mini, or desktop | A headless Linux box, VM, or managed service       |
 | Setup         | Settings and buttons                | Terminal command and service configuration         |
@@ -217,12 +201,12 @@ On the server, open **Settings → Remote Orca Servers → Shared Server Access*
 
 Install and authenticate that CLI on the server computer. Remote sessions use the server's `PATH`, home directory, and credentials—not the client's.
 
-### `orca serve` advertises the wrong address
+### `orcb serve` advertises the wrong address
 
 Stop the command and restart it with an address the client can reach:
 
 ```bash
-orca serve --pairing-address <reachable-tailscale-ip-or-hostname>
+orcb serve --pairing-address <reachable-tailscale-ip-or-hostname>
 ```
 
 Do not use a wildcard address or `127.0.0.1` for a remote client.
@@ -231,4 +215,4 @@ Do not use a wildcard address or `127.0.0.1` for a remote client.
 
 - Compare every run mode in [Ways to run Orca](/docs/ways-to-run).
 - Use [SSH worktrees](/docs/ssh) when the laptop should own the Orca runtime.
-- See the [Orca CLI reference](/docs/cli/reference) for `orca serve` flags and automation commands.
+- See the [Orca CLI reference](/docs/cli/reference) for `orcb serve` flags and automation commands.

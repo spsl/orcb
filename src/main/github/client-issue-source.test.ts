@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as GithubApiRepositoryModule from './github-api-repository'
 import type * as GhUtils from './gh-utils'
 
+// Keep legacy REST request/failure coverage; API-boundary suites exercise the GraphQL path.
+vi.mock('./client/list/work-item-search-page', () => ({ usesGraphqlWorkItemSearch: () => false }))
+
 const {
   execFileAsyncMock,
   ghExecFileAsyncMock,
@@ -273,7 +276,7 @@ describe('GitHub issue source split', () => {
 
     await listWorkItems('/repo-root', 10, 'is:issue')
 
-    expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orca is:issue')
+    expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orcb is:issue')
 
     ghExecFileAsyncMock.mockClear()
     getIssueOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'orca' })
@@ -372,7 +375,7 @@ describe('GitHub issue source split', () => {
         'api',
         '--cache',
         '120s',
-        `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:pull-request is:open')}&per_page=1`,
+        `search/issues?q=${encodeURIComponent('repo:stablyai/orcb is:pull-request is:open')}&per_page=1`,
         '--jq',
         '.total_count'
       ],
@@ -421,7 +424,7 @@ describe('GitHub issue source split', () => {
         'api',
         '--cache',
         '120s',
-        `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:issue is:open')}&per_page=1`,
+        `search/issues?q=${encodeURIComponent('repo:stablyai/orcb is:issue is:open')}&per_page=1`,
         '--jq',
         '.total_count'
       ],
@@ -433,7 +436,7 @@ describe('GitHub issue source split', () => {
         'api',
         '--cache',
         '120s',
-        `search/issues?q=${encodeURIComponent('repo:fork/orca is:pull-request is:open')}&per_page=1`,
+        `search/issues?q=${encodeURIComponent('repo:fork/orcb is:pull-request is:open')}&per_page=1`,
         '--jq',
         '.total_count'
       ],
@@ -788,7 +791,7 @@ describe('GitHub issue source split', () => {
           'api',
           '--cache',
           '120s',
-          `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:open')}&per_page=1`,
+          `search/issues?q=${encodeURIComponent('repo:stablyai/orcb is:open')}&per_page=1`,
           '--jq',
           '.total_count'
         ],
@@ -808,7 +811,7 @@ describe('GitHub issue source split', () => {
 
       const result = await listWorkItems('/repo-root', 10, undefined, undefined, 'upstream')
 
-      expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orca is:issue is:open')
+      expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orcb is:issue is:open')
       expect(result.issueSourceFellBack).toBeUndefined()
     })
 
@@ -824,7 +827,7 @@ describe('GitHub issue source split', () => {
 
       const result = await listWorkItems('/repo-root', 10, undefined, undefined, 'upstream')
 
-      expect(decodedIssueSearchPath(0)).toContain('q=repo:solo/orca is:issue is:open')
+      expect(decodedIssueSearchPath(0)).toContain('q=repo:solo/orcb is:issue is:open')
       expect(result.issueSourceFellBack).toBe(true)
     })
 
@@ -840,7 +843,7 @@ describe('GitHub issue source split', () => {
 
       await listWorkItems('/repo-root', 10, undefined, undefined, 'origin')
 
-      expect(decodedIssueSearchPath(0)).toContain('q=repo:fork/orca is:issue is:open')
+      expect(decodedIssueSearchPath(0)).toContain('q=repo:fork/orcb is:issue is:open')
     })
 
     it("preference='origin' + no upstream → queries origin", async () => {
@@ -855,7 +858,7 @@ describe('GitHub issue source split', () => {
 
       await listWorkItems('/repo-root', 10, undefined, undefined, 'origin')
 
-      expect(decodedIssueSearchPath(0)).toContain('q=repo:solo/orca is:issue is:open')
+      expect(decodedIssueSearchPath(0)).toContain('q=repo:solo/orcb is:issue is:open')
     })
 
     it('surfaces upstreamCandidate in sources regardless of effective preference', async () => {

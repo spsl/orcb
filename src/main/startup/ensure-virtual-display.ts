@@ -3,7 +3,7 @@ import { readFileSync, rmSync, statSync } from 'node:fs'
 import { isAbsolute, join } from 'node:path'
 import { app } from 'electron'
 
-// Why: headless `orca serve` backs browser panes with offscreen BrowserWindows.
+// Why: headless `orcb serve` backs browser panes with offscreen BrowserWindows.
 // On Linux, Electron has no display platform without an X server and segfaults
 // when such a window loads a page (verified: --headless/--ozone-platform=headless
 // also crash; only a virtual display works). So before app.whenReady, ensure a
@@ -142,9 +142,9 @@ export function hasUsableLinuxDisplay(env: NodeJS.ProcessEnv = process.env): boo
 }
 
 export const MISSING_LINUX_DISPLAY_MESSAGE = [
-  'Orca needs a usable display server, but the selected X11 or Wayland endpoint is unavailable.',
+  'ORCB needs a usable display server, but the selected X11 or Wayland endpoint is unavailable.',
   'Check DISPLAY, WAYLAND_DISPLAY, XDG_RUNTIME_DIR, and any --ozone-platform override.',
-  `Use \`orca-ide serve\` to run headless. On a bare server, ${XVFB_INSTALL_GUIDANCE}`
+  `Use \`orcb serve\` to run headless. On a bare server, ${XVFB_INSTALL_GUIDANCE}`
 ].join('\n')
 
 // Why: an X server may bind only the abstract namespace (`@/tmp/.X11-unix/X0`), which leaves no

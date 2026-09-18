@@ -35,7 +35,7 @@ const ORCAD_ENTRY = join(projectDir, 'out', 'orcad', 'orcad.js')
 const READY_TIMEOUT_MS = 120_000
 const OUTPUT_TIMEOUT_MS = 30_000
 const SHUTDOWN_TIMEOUT_MS = 15_000
-// Why a random high port: a fixed one collides with a developer's own `orca serve`.
+// Why a random high port: a fixed one collides with a developer's own `orcb serve`.
 const PORT = 6800 + Math.floor(Number(process.env.ORCA_SMOKE_PORT_OFFSET ?? '0'))
 
 function log(message) {
@@ -48,18 +48,18 @@ function fail(message) {
 }
 
 /**
- * Prefer the CLI built from this checkout over whatever `orca` is on PATH: it is the
+ * Prefer the CLI built from this checkout over whatever `orcb` is on PATH: it is the
  * version under test, and a CI runner has no installed Orca app to fall back on.
  */
 function resolveCli() {
   const built = join(projectDir, 'out', 'cli', 'index.js')
   return existsSync(built)
     ? { command: process.execPath, prefix: [built] }
-    : { command: 'orca', prefix: [] }
+    : { command: 'orcb', prefix: [] }
 }
 
-/** The `orca` CLI, driven with an explicit pairing code so it targets this server only. */
-function orca(pairingCode, args) {
+/** The `orcb` CLI, driven with an explicit pairing code so it targets this server only. */
+function orcb(pairingCode, args) {
   const cli = resolveCli()
   const result = spawnSync(
     cli.command,
@@ -72,16 +72,16 @@ function orca(pairingCode, args) {
     }
   )
   if (result.error) {
-    throw new Error(`orca ${args[0]} failed to spawn: ${result.error.message}`)
+    throw new Error(`orcb ${args[0]} failed to spawn: ${result.error.message}`)
   }
   const line = (result.stdout ?? '').trim()
   if (!line.startsWith('{')) {
-    throw new Error(`orca ${args.join(' ')} produced no JSON:\n${result.stdout}\n${result.stderr}`)
+    throw new Error(`orcb ${args.join(' ')} produced no JSON:\n${result.stdout}\n${result.stderr}`)
   }
   const parsed = JSON.parse(line)
   if (parsed.ok === false) {
     throw new Error(
-      `orca ${args.join(' ')} returned ${parsed.error?.code}: ${parsed.error?.message}`
+      `orcb ${args.join(' ')} returned ${parsed.error?.code}: ${parsed.error?.message}`
     )
   }
   return parsed.result
@@ -148,7 +148,7 @@ function pairingCodeFrom(payload) {
 async function waitForNonce(pairingCode, terminalHandle, nonce) {
   const deadline = Date.now() + OUTPUT_TIMEOUT_MS
   while (Date.now() < deadline) {
-    const read = orca(pairingCode, ['terminal', 'read', '--terminal', terminalHandle])
+    const read = orcb(pairingCode, ['terminal', 'read', '--terminal', terminalHandle])
     const tail = (read?.terminal?.tail ?? []).map((entry) => String(entry)).join('\n')
     if (tail.includes(nonce)) {
       return true
@@ -247,13 +247,13 @@ async function main() {
     const repoPath = seedGitRepo()
     seeded = { repoPath }
     log(`seeded repo at ${repoPath}`)
-    const repo = orca(pairingCode, ['repo', 'add', '--path', repoPath])?.repo
+    const repo = orcb(pairingCode, ['repo', 'add', '--path', repoPath])?.repo
     if (!repo?.id) {
       throw new Error('repo.add returned no repo id')
     }
 
     const worktreeName = `smoke-${randomBytes(4).toString('hex')}`
-    const created = orca(pairingCode, [
+    const created = orcb(pairingCode, [
       'worktree',
       'create',
       '--repo',
@@ -272,13 +272,13 @@ async function main() {
     // Why `show` and not membership in `list`: list is capped, and the Electron target
     // reads a shared dev profile that can already hold more worktrees than the cap. The
     // point is that the server persisted and can resolve THIS worktree.
-    const shown = orca(pairingCode, ['worktree', 'show', '--worktree', created.id])?.worktree
+    const shown = orcb(pairingCode, ['worktree', 'show', '--worktree', created.id])?.worktree
     if (shown?.id !== created.id) {
       throw new Error('worktree.create succeeded but worktree.show cannot resolve it')
     }
     log(`server resolves ${shown.id}`)
     if (process.argv.includes('--browser')) {
-      const status = orca(pairingCode, ['status'])
+      const status = orcb(pairingCode, ['status'])
       if (!status?.runtime?.capabilities?.includes('browser.headless.v1')) {
         throw new Error(
           `status omitted browser.headless.v1: ${JSON.stringify(status?.runtime?.capabilities)}`
@@ -289,7 +289,7 @@ async function main() {
         fixturePath,
         '<!doctype html><title>Orcad Browser Smoke</title><main>browser-ready</main>'
       )
-      const browserPageId = orca(pairingCode, [
+      const browserPageId = orcb(pairingCode, [
         'tab',
         'create',
         '--worktree',
@@ -302,11 +302,11 @@ async function main() {
       }
       const targetFlags = ['--worktree', created.id, '--page', browserPageId]
       const targetUrl = pathToFileURL(fixturePath).href
-      const navigation = orca(pairingCode, ['goto', ...targetFlags, '--url', targetUrl])
+      const navigation = orcb(pairingCode, ['goto', ...targetFlags, '--url', targetUrl])
       if (navigation?.url !== targetUrl || navigation?.title !== 'Orcad Browser Smoke') {
         throw new Error(`browser.goto returned the wrong page: ${JSON.stringify(navigation)}`)
       }
-      const evaluated = orca(pairingCode, [
+      const evaluated = orcb(pairingCode, [
         'eval',
         ...targetFlags,
         '--expression',
@@ -315,14 +315,14 @@ async function main() {
       if (evaluated?.result !== 'browser-ready') {
         throw new Error(`browser.eval returned ${JSON.stringify(evaluated)}`)
       }
-      const screenshot = orca(pairingCode, ['screenshot', ...targetFlags])
+      const screenshot = orcb(pairingCode, ['screenshot', ...targetFlags])
       if (screenshot?.format !== 'png' || typeof screenshot.data !== 'string' || !screenshot.data) {
         throw new Error('browser.screenshot returned no PNG data')
       }
       log('browser navigate/evaluate/screenshot round trip OK')
     }
 
-    const terminal = orca(pairingCode, ['terminal', 'create', '--worktree', created.id])?.terminal
+    const terminal = orcb(pairingCode, ['terminal', 'create', '--worktree', created.id])?.terminal
     if (!terminal?.handle) {
       throw new Error('terminal.create returned no handle')
     }
@@ -330,7 +330,7 @@ async function main() {
 
     // Why invoke node rather than `echo`: the shell differs per platform, node does not.
     const nonce = `ORCA_SMOKE_${randomBytes(8).toString('hex')}`
-    orca(pairingCode, [
+    orcb(pairingCode, [
       'terminal',
       'send',
       '--terminal',

@@ -28,7 +28,7 @@ vi.mock('../runtime-client', async () => {
 import { main } from '../index'
 import { okFixture, queueFixtures } from '../test-fixtures'
 
-describe('orca emulator CLI handlers', () => {
+describe('orcb emulator CLI handlers', () => {
   const originalWorkspaceId = process.env.ORCA_WORKSPACE_ID
   const originalWorktreeId = process.env.ORCA_WORKTREE_ID
 

@@ -485,7 +485,7 @@ describe('startup ordering', () => {
 
   it('installs the serve supervisor disconnect quit after the app environment and data path', () => {
     // Why (#16761): the call resolves the handoff path through getCanonicalUserDataPath(). At module
-    // scope that accessor throws by design, so every `orca serve` process on macOS died at startup
+    // scope that accessor throws by design, so every `orcb serve` process on macOS died at startup
     // before it could listen. serve-update-handoff.test.ts mocks the resolver, so only ordering
     // catches this; serve-update-handoff.app-environment.test.ts pins the throw it depends on.
     const source = readFileSync(

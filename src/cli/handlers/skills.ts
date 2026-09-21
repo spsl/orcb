@@ -17,7 +17,7 @@ import {
   UnsafeWindowsBatchArgumentsError,
   WINDOWS_BATCH_UNSAFE_CHARACTERS_LABEL
 } from '../../shared/windows-batch-spawn'
-import { isSkillsCliAgentKeyShaped, toSkillsCliAgentKeys } from '../../shared/skills-cli-agent-keys'
+import { isUsableSkillsCliAgentKey, toSkillsCliAgentKeys } from '../../shared/skills-cli-agent-keys'
 import { ORCB_CLI_COMMAND_NAME } from '../../shared/orcb-local-distribution'
 import {
   buildAgentFeatureSkillInstallArgs,
@@ -151,7 +151,7 @@ function resolveInstallAgentKeys(flags: Map<string, string | boolean>): string[]
     if (keys.length === 0) {
       throw new RuntimeClientError('invalid_argument', 'Missing required --agent')
     }
-    const unusable = keys.find((key) => !isSkillsCliAgentKeyShaped(key))
+    const unusable = keys.find((key) => !isUsableSkillsCliAgentKey(key))
     if (unusable !== undefined) {
       // Why: the skills CLI drops a value starting with `-`, which leaves it with
       // no target and installs into every agent it knows.

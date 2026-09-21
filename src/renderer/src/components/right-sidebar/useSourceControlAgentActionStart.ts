@@ -18,6 +18,8 @@ type UseSourceControlAgentActionStartArgs = {
   commandInput: string
   trimmedCommandInput: string
   agentArgs: string
+  /** False when the launch would be structured native chat, which reads no CLI arguments. */
+  agentArgsApply: boolean
   commandTemplate: string
   saveLaunchRecipe: boolean
   saveTargetValue: string
@@ -37,7 +39,8 @@ type UseSourceControlAgentActionStartArgs = {
   onStart?: (args: {
     agent: TuiAgent
     commandInput: string
-    agentArgs: string
+    /** Omitted when CLI arguments do not apply, so the launch resolves the global setting. */
+    agentArgs?: string
   }) => boolean | Promise<boolean>
   onSaveAgentDefault?: (
     target: SourceControlAiWriteTarget,
@@ -70,6 +73,7 @@ export function useSourceControlAgentActionStart({
   commandInput,
   trimmedCommandInput,
   agentArgs,
+  agentArgsApply,
   commandTemplate,
   saveLaunchRecipe,
   saveTargetValue,
@@ -105,7 +109,8 @@ export function useSourceControlAgentActionStart({
       return buildSourceControlAgentDeliveryPlan({
         selectedAgent,
         commandInput,
-        agentArgs,
+        // Why: the previewed command must show what the launch will really apply.
+        agentArgs: agentArgsApply ? agentArgs : undefined,
         promptDelivery,
         detectedAgents: currentDetectedAgents,
         connectionUnavailable,
@@ -115,6 +120,7 @@ export function useSourceControlAgentActionStart({
     },
     [
       agentArgs,
+      agentArgsApply,
       commandInput,
       connectionUnavailable,
       promptDelivery,
@@ -150,6 +156,7 @@ export function useSourceControlAgentActionStart({
           selectedAgent,
           trimmedCommandInput,
           agentArgs,
+          agentArgsApply,
           commandTemplate,
           saveTargetValue: saveLaunchRecipe ? (saveTargetValueOverride ?? saveTargetValue) : 'none',
           actionId,
@@ -179,6 +186,7 @@ export function useSourceControlAgentActionStart({
     [
       actionId,
       agentArgs,
+      agentArgsApply,
       buildPlan,
       commandTemplate,
       connectionUnavailable,

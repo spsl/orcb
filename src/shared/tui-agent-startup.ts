@@ -1,3 +1,5 @@
+import { withFreshOmpLaunch, isFreshOmpLaunchCommand } from './omp-fresh-launch'
+import { withOmpDraftCleanup } from './omp-draft-launch'
 import { isShellProcess } from './agent-detection'
 import type { SleepingAgentLaunchConfig } from './agent-session-resume'
 import {
@@ -69,6 +71,8 @@ export function buildAgentStartupPlan(args: {
   if (!baseCommand.ok) {
     return null
   }
+  const launchCommand =
+    agent === 'omp' ? withFreshOmpLaunch(baseCommand.command, shell) : baseCommand.command
   const launchConfig = buildSleepingAgentLaunchConfig({
     ...args,
     // Why: picker flags are a one-time launch choice; a resumed provider
@@ -82,7 +86,7 @@ export function buildAgentStartupPlan(args: {
     }
     return {
       agent,
-      launchCommand: baseCommand.command,
+      launchCommand,
       expectedProcess: config.expectedProcess,
       followupPrompt: null,
       launchConfig,
@@ -97,7 +101,10 @@ export function buildAgentStartupPlan(args: {
     const promptSeparator = config.argvPromptSeparator ? ` ${config.argvPromptSeparator}` : ''
     return {
       agent,
-      launchCommand: `${baseCommand.command}${promptSeparator} ${quotedPrompt}`,
+      launchCommand:
+        agent === 'omp'
+          ? withFreshOmpLaunch(baseCommand.command, shell, `${promptSeparator} ${quotedPrompt}`)
+          : `${launchCommand}${promptSeparator} ${quotedPrompt}`,
       expectedProcess: config.expectedProcess,
       followupPrompt: null,
       launchConfig,
@@ -110,7 +117,7 @@ export function buildAgentStartupPlan(args: {
   if (config.promptInjectionMode === 'flag-prompt') {
     return {
       agent,
-      launchCommand: `${baseCommand.command} --prompt ${quotedPrompt}`,
+      launchCommand: `${launchCommand} --prompt ${quotedPrompt}`,
       expectedProcess: config.expectedProcess,
       followupPrompt: null,
       launchConfig,
@@ -148,7 +155,7 @@ export function buildAgentStartupPlan(args: {
   if (config.promptInjectionMode === 'flag-prompt-interactive') {
     return {
       agent,
-      launchCommand: `${baseCommand.command} --prompt-interactive ${quotedPrompt}`,
+      launchCommand: `${launchCommand} --prompt-interactive ${quotedPrompt}`,
       expectedProcess: config.expectedProcess,
       followupPrompt: null,
       launchConfig,
@@ -160,7 +167,7 @@ export function buildAgentStartupPlan(args: {
   if (config.promptInjectionMode === 'flag-interactive') {
     return {
       agent,
-      launchCommand: `${baseCommand.command} -i ${quotedPrompt}`,
+      launchCommand: `${launchCommand} -i ${quotedPrompt}`,
       expectedProcess: config.expectedProcess,
       followupPrompt: null,
       launchConfig,
@@ -171,7 +178,7 @@ export function buildAgentStartupPlan(args: {
 
   return {
     agent,
-    launchCommand: baseCommand.command,
+    launchCommand,
     expectedProcess: config.expectedProcess,
     followupPrompt: trimmedPrompt,
     launchConfig,
@@ -221,6 +228,8 @@ export function buildAgentDraftLaunchPlan(args: {
   if (!baseCommand.ok) {
     return null
   }
+  const launchCommand =
+    agent === 'omp' ? withFreshOmpLaunch(baseCommand.command, shell) : baseCommand.command
   const launchConfig = buildSleepingAgentLaunchConfig({
     ...args,
     // Why: see the new-session path above — resume must not replay picker flags.
@@ -231,7 +240,7 @@ export function buildAgentDraftLaunchPlan(args: {
     const quoted = quoteStartupArg(trimmed, shell)
     plan = {
       agent,
-      launchCommand: `${baseCommand.command} ${config.draftPromptFlag} ${quoted}`,
+      launchCommand: `${launchCommand} ${config.draftPromptFlag} ${quoted}`,
       expectedProcess: config.expectedProcess,
       launchConfig,
       ...appliedSessionOptionProps(baseCommand.appliedSessionOptions),
@@ -243,7 +252,10 @@ export function buildAgentDraftLaunchPlan(args: {
     const clearVar = clearEnvCommand(config.draftPromptEnvVar, shell)
     plan = {
       agent,
-      launchCommand: `${baseCommand.command}${commandSeparator(shell)}${clearVar}`,
+      launchCommand:
+        agent === 'omp' && isFreshOmpLaunchCommand(launchCommand)
+          ? withOmpDraftCleanup(launchCommand, shell)
+          : `${launchCommand}${commandSeparator(shell)}${clearVar}`,
       expectedProcess: config.expectedProcess,
       launchConfig,
       ...appliedSessionOptionProps(baseCommand.appliedSessionOptions),

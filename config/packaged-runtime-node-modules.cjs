@@ -610,6 +610,7 @@ module.exports = {
   createPackagedRuntimeNodeModuleResources,
   findAsarEntry,
   isPackagedExternalSpecifier,
+  normalizeNodePtyWindowsArch,
   packageNameFromSpecifier,
   prunePackagedNodePty,
   prunePackagedParcelWatcher,

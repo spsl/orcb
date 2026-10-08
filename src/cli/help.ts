@@ -5,13 +5,10 @@ import { formatCommandScopedFlagHelp } from './command-scoped-flag-help'
 import { FLAG_HELP_TEXT } from './flag-help-text'
 import { ROOT_HELP_TEXT_PRIMARY } from './root-help-text-primary'
 import { ROOT_HELP_TEXT_SECONDARY } from './root-help-text-secondary'
-import {
-  ORCB_CLI_COMMAND_NAME,
-  resolveOrcbCliCommandName
-} from '../shared/orcb-local-distribution'
+import { resolveOrcbCliCommandName } from '../shared/orcb-local-distribution'
 
 const ROOT_HELP_TEXT = [ROOT_HELP_TEXT_PRIMARY, ROOT_HELP_TEXT_SECONDARY].join('\n')
-const ORCB_COMMAND_REFERENCE = /\borcb\b(?!-)/g
+const ORCB_COMMAND_REFERENCE = /(?<![\w/.:\\-])(?:orca|orcb)(?![\w/.:\\-])/g
 
 export function printHelp(specs: CommandSpec[], commandPath: string[] = []): void {
   const exactSpec = findCommandSpec(specs, commandPath)
@@ -106,9 +103,7 @@ function formatCliCommandReferences(
   text: string,
   commandName = resolveOrcbCliCommandName(process.env)
 ): string {
-  return commandName === ORCB_CLI_COMMAND_NAME
-    ? text
-    : text.replace(ORCB_COMMAND_REFERENCE, commandName)
+  return text.replace(ORCB_COMMAND_REFERENCE, commandName)
 }
 
 function formatCommandFlagHelp(flag: string, commandPath: string[]): string {
@@ -210,7 +205,10 @@ function formatCommandFlagHelp(flag: string, commandPath: string[]): string {
   // Why: the shared --agent help describes launching a TUI agent in a terminal,
   // which is the wrong meaning here — this selects the account provider.
   if (command === 'account add' && flag === 'agent') {
-    return '--agent <id>           Account provider: claude or codex (default claude)'
+    return '--agent <id>           Account provider: claude, codex, opencode, or devin (default claude)'
+  }
+  if (command.startsWith('account ') && flag === 'agent') {
+    return '--agent <id>           Account provider: opencode or devin'
   }
   if (flag === 'key' && command === 'computer hotkey') {
     return '--key <key-combo>      Modifier chord with one key, e.g. CmdOrCtrl+A'

@@ -6,8 +6,10 @@
   "trailingComma": "none",
   "ignorePatterns": [
     "cloud/**",
+    "resources/licenses/**",
     ".github/actions/cloud-sql-rollout-lease/**",
     ".anti-slop-plugin/**",
-    "src/main/agent-hooks/wsl-hook-relay-manager.ts"
+    "src/main/agent-hooks/wsl-hook-relay-manager.ts",
+    "src/main/runtime/__fixtures__/*.timing.json"
   ]
 }

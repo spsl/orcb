@@ -64,7 +64,11 @@ export function prepareComputerCliJsonResult<TResult>(
       screenshotStatus?: unknown
     }
   }
-  if (!record.result || !('screenshotStatus' in record.result)) {
+  if (
+    !record.result ||
+    typeof record.result !== 'object' ||
+    !('screenshotStatus' in record.result)
+  ) {
     return response
   }
   const screenshot = record.result?.screenshot
@@ -221,13 +225,8 @@ function formatComputerFollowUpCommand(
   result: ComputerActionResult,
   target: ComputerActionFollowUpTarget
 ): string {
-  const args = [
-    ORCB_CLI_COMMAND_NAME,
-    'computer',
-    'get-app-state',
-    '--app',
-    quoteCliCommandArgument(result.snapshot.app.bundleId ?? result.snapshot.app.name)
-  ]
+  const args = [ORCB_CLI_COMMAND_NAME, 'computer', 'get-app-state', '--app']
+  args.push(quoteCliCommandArgument(result.snapshot.app.bundleId ?? result.snapshot.app.name))
   if (target.session) {
     args.push('--session', quoteCliCommandArgument(target.session))
   } else if (target.worktree) {

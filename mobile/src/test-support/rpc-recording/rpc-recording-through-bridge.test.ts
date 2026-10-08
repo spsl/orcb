@@ -18,6 +18,7 @@ import {
   type BridgedParityEvidence
 } from '../bridged-parity/divergence-classes'
 import { C5_PAGE_CLOSURE } from '../bridged-parity/c5-page-closure'
+import { C6_BROWSER_CLOSURE_FAMILIES } from '../bridged-parity/c6-browser-closure-families'
 import { C2_PAGE_CLOSURE } from '../bridged-parity/c2-page-closure'
 import { C1_PAGE_CLOSURE } from '../bridged-parity/c1-page-closure'
 import { C3_PAGE_CLOSURE } from '../bridged-parity/c3-page-closure'
@@ -53,9 +54,8 @@ import { vitestRecordingScheduler } from './vitest-recording-scheduler'
  *
  * The claim it is built to certify is the one C1 needs before a screen moves to the web: a screen
  * driven through `BridgeRpcClient` observes what it observes on the native client, down to the
- * byte. Headers are excluded because they are provenance of the committed recording, not of this
- * run. This suite writes nothing, and it is not in `RECORDING_DRIVERS`, so `recorderSha256` does
- * not pin it — a suite that cannot put an observation in a recorded file is not provenance for one.
+ * byte. This suite writes nothing, and it is not in `RECORDING_DRIVERS`: a suite that cannot put
+ * an observation in a recorded file does not record one.
  *
  * It runs by default, in `pnpm test` and so in CI, and `RPC_FOUNDATION_BRIDGE=0` is what skips it
  * for a local run that does not want the three minutes. Vitest gives the file a worker of its own
@@ -73,12 +73,12 @@ import { vitestRecordingScheduler } from './vitest-recording-scheduler'
  * `BRIDGED_PARITY_MEMBERS` pins which goldens are in it — a count alone cannot see one golden
  * leaving a class as another arrives.
  *
- * 396 of the 787 replay byte for byte. The other 391 fall in five classes, 341 / 3 / 6 / 33 / 8,
+ * 401 of the 793 replay byte for byte. The other 392 fall in five classes, 342 / 3 / 6 / 33 / 8,
  * and none of them is a reason to re-record anything. `c1-page-closure.ts` then pins, golden by
- * golden, the 103 recorded at a call site the C1 page owns, because a count over 787 cannot tell a
+ * golden, the 103 recorded at a call site the C1 page owns, because a count over 793 cannot tell a
  * domain's regression from another domain's improvement.
  *
- * 1. **result-absent-settlement, 341** and **2. result-absent-observation, 3.**
+ * 1. **result-absent-settlement, 342** and **2. result-absent-observation, 3.**
  *    `{ ok: true }` with no `result` key is refused by the page's reader and by `isRpcResponse`
  *    alike, so this one is not a bridge defect: the recorder injects that partition at the scripted
  *    sender port, below the frame validation both sides do, which is what the README means by not
@@ -267,7 +267,7 @@ async function verdict(
   const expected = readGolden(directory, id)
   const fields = run.recording === null ? [] : divergingFields(expected.recording, run.recording)
   if (run.recording !== null && fields.length === 0) {
-    // Not redundant with the field walk: this one also pins the encoding and the header.
+    // Not redundant with the field walk: this one also pins the encoding.
     compareGolden(expected, { ...expected, recording: run.recording })
     identical += 1
     record('identical')
@@ -398,6 +398,23 @@ describe.skipIf(process.env[BRIDGED_PARITY_FLAG] === BRIDGED_PARITY_OFF)(
       expect({ closure: pageClosureDrift(C2_PAGE_CLOSURE, observed) }).toEqual({ closure: [] })
       expect(pageClosureRunTotals(C2_PAGE_CLOSURE, observed)).toEqual(
         pageClosureTotals(C2_PAGE_CLOSURE)
+      )
+    })
+
+    /**
+     * The browser pane's half, checked the same way and for the same reason the composed tables are.
+     *
+     * A half rather than a page closure because C6 registers no route — C7 composes this beside
+     * C1's — but a table nothing reads is not a pin, so the run is held to it here from the series
+     * that derived it rather than from the one that will inherit it.
+     */
+    it('gives every golden the C6 browser closure records the verdict it is pinned to', () => {
+      process.stdout.write(readPageClosure('C6', C6_BROWSER_CLOSURE_FAMILIES, observed))
+      expect({ closure: pageClosureDrift(C6_BROWSER_CLOSURE_FAMILIES, observed) }).toEqual({
+        closure: []
+      })
+      expect(pageClosureRunTotals(C6_BROWSER_CLOSURE_FAMILIES, observed)).toEqual(
+        pageClosureTotals(C6_BROWSER_CLOSURE_FAMILIES)
       )
     })
 

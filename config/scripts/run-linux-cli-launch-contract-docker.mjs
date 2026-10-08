@@ -13,8 +13,7 @@ const dockerPlatformArgs = platform ? ['--platform', platform] : []
 const suffix = `${process.pid}-${Date.now()}`
 const artifactVolume = `orcb-cli-contract-artifact-${suffix}`
 const tagArchitecture = platform?.split('/')[1] ?? process.arch
-const tag = `orcb-cli-launch-contract:ubuntu-24.04-${tagArchitecture}-${suffix}`
-const base = 'ubuntu@sha256:4fbb8e6a8395de5a7550b33509421a2bafbc0aab6c06ba2cef9ebffbc7092d90'
+const tag = `orca-cli-launch-contract:ubuntu-24.04-${tagArchitecture}-${suffix}`
 const containers = new Set()
 let artifactVolumeCreated = false
 const CASE_TIMEOUT_MS = 90_000
@@ -176,8 +175,9 @@ function buildImage() {
   const buildArgs = [
     'build',
     ...dockerPlatformArgs,
-    '--build-arg',
-    `BASE_IMAGE=${base}`,
+    ...(process.env.ORCA_CLI_FIXTURE_CACHE_IMAGE
+      ? ['--cache-from', process.env.ORCA_CLI_FIXTURE_CACHE_IMAGE]
+      : []),
     '-f',
     'config/docker/cli-launch-contract/Dockerfile',
     '-t',

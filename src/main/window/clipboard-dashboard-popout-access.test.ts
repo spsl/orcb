@@ -7,7 +7,8 @@ const {
   clipboardReadImage,
   clipboardWriteImage,
   clipboardWriteBuffer,
-  isDashboardPopoutRenderer
+  isDashboardPopoutRenderer,
+  isSessionObserverRenderer
 } = vi.hoisted(() => ({
   handlers: new Map<string, (...args: unknown[]) => unknown>(),
   clipboardReadText: vi.fn(() => 'terminal clipboard text'),
@@ -15,7 +16,8 @@ const {
   clipboardReadImage: vi.fn(),
   clipboardWriteImage: vi.fn(),
   clipboardWriteBuffer: vi.fn(),
-  isDashboardPopoutRenderer: vi.fn(() => true)
+  isDashboardPopoutRenderer: vi.fn(() => true),
+  isSessionObserverRenderer: vi.fn(() => false)
 }))
 
 vi.mock('electron', () => ({
@@ -37,7 +39,7 @@ vi.mock('electron', () => ({
 }))
 
 vi.mock('./dashboard-popout-window', () => ({ isDashboardPopoutRenderer }))
-vi.mock('./session-observer-window', () => ({ isSessionObserverRenderer: () => false }))
+vi.mock('./session-observer-window', () => ({ isSessionObserverRenderer }))
 vi.mock('./clipboard-remote-file-copy', () => ({
   cleanupExpiredRemoteClipboardFiles: vi.fn(async () => undefined),
   scheduleLegacyRemoteClipboardFileCleanup: vi.fn(),
@@ -58,11 +60,13 @@ const popoutEvent = {
   }
 }
 
-describe('dashboard popout clipboard access', () => {
+describe.each(['dashboard popout', 'session observer'])('%s clipboard access', (renderer) => {
   beforeEach(() => {
     handlers.clear()
     vi.clearAllMocks()
-    isDashboardPopoutRenderer.mockReturnValue(true)
+    isDashboardPopoutRenderer.mockReturnValue(renderer === 'dashboard popout')
+    isSessionObserverRenderer.mockReturnValue(renderer === 'session observer')
+    clipboardWriteText.mockReset()
     clipboardReadText.mockReturnValue('terminal clipboard text')
     setTrustedClipboardRendererWebContentsId(17)
     registerClipboardHandlers({} as never)
@@ -107,6 +111,12 @@ describe('dashboard popout clipboard access', () => {
     await expect(handlers.get('clipboard:saveImageAsTempFile')?.(popoutEvent)).rejects.toThrow(
       'Unauthorized clipboard IPC sender'
     )
+    expect(() => handlers.get('clipboard:readFilePaths')?.(popoutEvent)).toThrow(
+      'Unauthorized clipboard IPC sender'
+    )
+    expect(() =>
+      handlers.get('clipboard:restoreNativeChatPastes')?.(popoutEvent, ['/etc/passwd'])
+    ).toThrow('Unauthorized clipboard IPC sender')
     expect(() =>
       handlers.get('clipboard:writeFile')?.(popoutEvent, {
         filePath: '/tmp/copied-file.txt',
@@ -124,6 +134,7 @@ describe('dashboard popout clipboard access', () => {
 
   it('still rejects unrelated renderer windows from text clipboard APIs', async () => {
     isDashboardPopoutRenderer.mockReturnValue(false)
+    isSessionObserverRenderer.mockReturnValue(false)
 
     await expect(handlers.get('clipboard:readText')?.(popoutEvent)).rejects.toThrow(
       'Unauthorized clipboard IPC sender'

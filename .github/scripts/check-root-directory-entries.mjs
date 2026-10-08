@@ -13,9 +13,13 @@ function readRootEntries(sha) {
   return stdout.split('\0').filter(Boolean)
 }
 
-// Why: these are reviewed one-command local build entry points; they stay listed
-// until they land on main, after which the base tree carries them.
-const REVIEWED_ROOT_ENTRIES = new Set(['build-release.sh', 'build-test.sh', 'cloud'])
+// These reviewed additions stay listed until the base tree carries them.
+const REVIEWED_ROOT_ENTRIES = new Set([
+  'build-release.sh',
+  'build-test.sh',
+  'cloud',
+  'opencode.json'
+])
 
 function checkRootDirectoryEntries(argv) {
   if (argv.length !== 2) {

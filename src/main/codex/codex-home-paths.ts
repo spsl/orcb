@@ -48,6 +48,14 @@ export function getOrcaManagedCodexHomePath(): string {
   return managedHomePath
 }
 
+/** Config files an Orca-launched local Codex reads trust from, in the hook installer's lock order. */
+export function getLocalCodexTrustConfigFiles(agentHome: string): string[] {
+  return [
+    join(getOrcaManagedCodexHomePath(), 'config.toml'),
+    join(agentHome, '.codex', 'config.toml')
+  ]
+}
+
 export function getCodexSessionBackfillStateDirPath(): string {
   return join(getOrcaUserDataPath(), 'codex-session-backfill')
 }
@@ -62,15 +70,9 @@ export function getOrcaUserDataPath(): string {
     return join(homedir(), 'Library', 'Application Support', ORCB_CLI_COMMAND_NAME)
   }
   if (process.platform === 'win32') {
-    return join(
-      process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'),
-      ORCB_CLI_COMMAND_NAME
-    )
+    return join(process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), ORCB_CLI_COMMAND_NAME)
   }
-  return join(
-    process.env.XDG_CONFIG_HOME || join(homedir(), '.config'),
-    ORCB_CLI_COMMAND_NAME
-  )
+  return join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), ORCB_CLI_COMMAND_NAME)
 }
 
 // Why: each managed home (the shared runtime mirror, or a per-account

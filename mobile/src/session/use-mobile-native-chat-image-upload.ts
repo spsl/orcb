@@ -2,11 +2,12 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { CLIPBOARD_IMAGE_TOO_LARGE_ERROR } from '../../../src/shared/clipboard-image'
 import type { RpcClient } from '../transport/rpc-client'
 import type { ConnectionState } from '../transport/types'
+import { useMediaPicker } from '../platform/media-picker'
+import { fingerprintNativeChatImage } from '../platform/native-chat-image-fingerprint'
 import {
   ImageLibraryPermissionError,
-  pickMobileImages,
   type MobileImageSource
-} from './mobile-image-source-picker'
+} from '../platform/media-picker-contract'
 import {
   uploadMobileNativeChatImages,
   type PendingNativeChatImage
@@ -44,6 +45,7 @@ export function useMobileNativeChatImageUpload(args: {
     structuredNativeChat
   } = args
   const [isAttaching, setIsAttaching] = useState(false)
+  const picker = useMediaPicker()
   const attachingCount = useRef(0)
   const connStateRef = useRef(connState)
   useLayoutEffect(() => {
@@ -68,7 +70,8 @@ export function useMobileNativeChatImageUpload(args: {
         await uploadMobileNativeChatImages(source, {
           client,
           getConnectionId: getActiveWorktreeConnectionId,
-          pickImages: pickMobileImages,
+          pickImages: picker.pickImages,
+          fingerprintImage: fingerprintNativeChatImage,
           onImageUploaded: (image) => uploadedImages.push(image),
           onUploadStart: () => {
             started = true
@@ -116,6 +119,7 @@ export function useMobileNativeChatImageUpload(args: {
       onAttachSuccess,
       onError,
       onImagesUploaded,
+      picker,
       scopeKey,
       showToast,
       structuredNativeChat

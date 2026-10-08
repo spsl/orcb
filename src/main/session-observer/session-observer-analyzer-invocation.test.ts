@@ -90,6 +90,12 @@ describe('session observer analyzer invocation', () => {
     ])
   })
 
+  it('delegates the Pi default model to the CLI configuration', () => {
+    const result = invocation({ agent: 'pi', model: 'default', thinkingLevel: null })
+    expect(result.args).not.toContain('--model')
+    expect(result.args).toContain('--no-tools')
+  })
+
   it('builds a no-tools Pi invocation and omits a null effort', () => {
     const result = invocation({
       agent: 'pi',

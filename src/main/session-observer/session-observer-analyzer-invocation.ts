@@ -86,8 +86,7 @@ export function buildSessionObserverAnalyzerInvocation(args: {
           '--no-tools',
           '--no-skills',
           '--no-context-files',
-          '--model',
-          config.model,
+          ...(config.model === 'default' ? [] : ['--model', config.model]),
           ...thinkingArgs
         ]
       }

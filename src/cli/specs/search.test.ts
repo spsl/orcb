@@ -94,7 +94,7 @@ describe('orca search discovery surfaces', () => {
     expect(ROOT_HELP_TEXT_PRIMARY).toContain(
       '  search                    Search the full text of agent sessions on one Orca host'
     )
-    expect(ROOT_HELP_TEXT_SECONDARY).toContain('  orca search --index-status [--json]')
+    expect(ROOT_HELP_TEXT_SECONDARY).toContain('  orcb search --index-status [--json]')
   })
 
   it('prints its own help for `orca search --help`', () => {
@@ -106,7 +106,7 @@ describe('orca search discovery surfaces', () => {
     } finally {
       console.log = restore
     }
-    expect(lines.join('\n')).toContain('Usage: orca search <query>')
+    expect(lines.join('\n')).toContain('Usage: orcb search <query>')
   })
 
   it('resolves for dispatch', () => {

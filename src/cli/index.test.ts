@@ -120,6 +120,20 @@ describe('command aliases dispatch to the canonical handler', () => {
     )
   })
 
+  it('says the checkout is still being deleted when the host accepted a background removal', async () => {
+    queueFixtures(
+      callMock,
+      okFixture('req_show', { worktree: { hostId: 'local' } }),
+      okFixture('req', { removed: true, removing: true })
+    )
+
+    await main(['worktree', 'rm', '--worktree', 'id:wt-1'], '/tmp/repo')
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'removed: true\nOrca is still deleting the checkout in the background.'
+    )
+  })
+
   it('fails closed when worktree removal cannot resolve a host', async () => {
     queueFixtures(callMock, okFixture('req_show', { worktree: { id: 'wt-1' } }))
     const priorExitCode = process.exitCode
@@ -425,6 +439,7 @@ describe('orcb root help', () => {
       expect(rootHelp).toContain('Usage: orcb-dev <command> [options]')
       expect(rootHelp).toContain('$ orcb-dev open')
       expect(rootHelp).not.toContain('Usage: orcb <command> [options]')
+      expect(rootHelp).toContain('orca://pair?')
 
       logSpy.mockClear()
       await main(['worktree', 'list', '--help'], '/tmp/repo')
@@ -432,6 +447,26 @@ describe('orcb root help', () => {
       const commandHelp = String(logSpy.mock.calls[0]?.[0])
       expect(commandHelp).toContain('orcb-dev worktree list')
       expect(commandHelp).toContain('Usage: orcb-dev worktree list')
+
+      logSpy.mockClear()
+      await main(['repo', 'list', '--help'], '/tmp/repo')
+
+      const repoHelp = String(logSpy.mock.calls[0]?.[0])
+      expect(repoHelp).toContain('Usage: orcb-dev repo list')
+      expect(repoHelp).not.toContain('Usage: orca repo list')
+
+      logSpy.mockClear()
+      await main(['worktree', 'rm', '--help'], '/tmp/repo')
+
+      const archiveHelp = String(logSpy.mock.calls[0]?.[0])
+      expect(archiveHelp).toContain('orca.yaml archive hooks')
+
+      logSpy.mockClear()
+      await main(['project', 'setup-existing-folder', '--help'], '/tmp/repo')
+
+      const projectHelp = String(logSpy.mock.calls[0]?.[0])
+      expect(projectHelp).toContain('github:stablyai/orca')
+      expect(projectHelp).toContain('/home/me/orca')
     } finally {
       logSpy.mockRestore()
       vi.unstubAllEnvs()
@@ -453,10 +488,10 @@ describe('orcb root help', () => {
     await main([], '/tmp/repo')
 
     expect(logSpy.mock.calls.flat().join('\n')).toContain(
-      'account add               Add a managed Claude or Codex account on this Orca host'
+      'account add               Add a managed agent account on this Orca host'
     )
     expect(logSpy.mock.calls.flat().join('\n')).toContain(
-      'account list              List managed Claude and Codex accounts on this Orca host'
+      'account list              List managed agent accounts on this Orca host'
     )
     logSpy.mockRestore()
   })
@@ -540,7 +575,7 @@ describe('orcb root help', () => {
 
     const rootHelp = String(logSpy.mock.calls[0][0])
     expect(rootHelp).toContain('Linear:')
-    expect(rootHelp).toContain('linear                    Read Linear ticket context for agents')
+    expect(rootHelp).toContain('linear                    Read and write Linear issues for agents')
     expect(rootHelp).not.toContain('linear issue')
     expect(rootHelp).not.toContain('linear search')
 

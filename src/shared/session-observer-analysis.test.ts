@@ -49,8 +49,8 @@ describe('session observer analysis configuration', () => {
     })
     expect(getDefaultSessionObserverAnalysisConfig('pi')).toMatchObject({
       agent: 'pi',
-      model: 'github-copilot/gpt-5.4-mini',
-      thinkingLevel: 'low'
+      model: 'default',
+      thinkingLevel: null
     })
   })
 

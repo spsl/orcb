@@ -16,6 +16,7 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform: 'linux'
     })
     expect(env.PATH).toBe(`${join(RESOURCES, 'bin')}:/usr/local/bin:/usr/bin`)
+    expect(env.ORCA_CLI_BIN_DIR).toBe(join(RESOURCES, 'bin'))
   })
 
   it('promotes an already-present bundled CLI dir instead of duplicating it', () => {
@@ -31,7 +32,7 @@ describe('prependOrcaCliDirToChildPath', () => {
   })
 
   it('leaves packaged Linux PATH untouched with no resources root', () => {
-    const env: Record<string, string> = { PATH: '/usr/bin' }
+    const env: Record<string, string> = { PATH: '/usr/bin', ORCA_CLI_BIN_DIR: '/old-host/cli' }
     prependOrcaCliDirToChildPath(env, {
       isPackaged: true,
       userDataPath: USER_DATA,
@@ -39,6 +40,7 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform: 'linux'
     })
     expect(env.PATH).toBe('/usr/bin')
+    expect(env.ORCA_CLI_BIN_DIR).toBeUndefined()
   })
 
   it('leads packaged macOS PATH with the bundled CLI dir', () => {
@@ -50,10 +52,15 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform: 'darwin'
     })
     expect(env.PATH).toBe(`${join(RESOURCES, 'bin')}:/usr/bin`)
+    expect(env.ORCA_CLI_BIN_DIR).toBe(join(RESOURCES, 'bin'))
   })
 
   it('leads packaged Windows PATH with the bundled CLI dir under the env block spelling', () => {
-    const env: Record<string, string> = { Path: 'C:\\Windows\\System32' }
+    const env: Record<string, string> = {
+      Path: 'C:\\Windows\\System32',
+      ORCA_CLI_BIN_DIR: '/parent-host/cli',
+      ORCA_WSL_CLI_DIR: '/guest/orca/bin'
+    }
     prependOrcaCliDirToChildPath(env, {
       isPackaged: true,
       userDataPath: USER_DATA,
@@ -62,6 +69,8 @@ describe('prependOrcaCliDirToChildPath', () => {
     })
     expect(env.Path).toBe(`${join(RESOURCES, 'bin')};C:\\Windows\\System32`)
     expect(env.PATH).toBeUndefined()
+    expect(env.ORCA_CLI_BIN_DIR).toBeUndefined()
+    expect(env.ORCA_WSL_CLI_DIR).toBe('/guest/orca/bin')
   })
 
   it('leaves a packaged darwin/win32 PATH alone with no resources root', () => {
@@ -88,6 +97,9 @@ describe('prependOrcaCliDirToChildPath', () => {
       platform
     })
     expect(env.PATH).toBe(`${join(USER_DATA, 'cli', 'bin')}${pathDelimiter}/usr/bin`)
+    expect(env.ORCA_CLI_BIN_DIR).toBe(
+      platform === 'win32' ? undefined : join(USER_DATA, 'cli', 'bin')
+    )
   })
 
   it('writes no trailing delimiter when nothing was inherited', () => {

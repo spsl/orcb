@@ -85,6 +85,19 @@ describe('tui agent startup plans', () => {
     expect(plan?.launchCommand).toBe("claude 'fix Bob''s \"quoted\" branch'")
   })
 
+  // Why: a typed line break submits early, and PowerShell 5.1 without PSReadLine then hangs at `>>`.
+  it('keeps a multi-line PowerShell launch on one physical line', () => {
+    const plan = buildAgentStartupPlan({
+      agent: 'claude',
+      prompt: 'first line\nsecond $line',
+      cmdOverrides: {},
+      platform: 'win32'
+    })
+
+    expect(plan?.launchCommand).not.toMatch(/[\r\n]/)
+    expect(plan?.launchCommand).toBe('claude "first line`nsecond `$line"')
+  })
+
   it('invokes fully quoted argv commands in PowerShell', () => {
     expect(buildShellCommandFromArgv(['codex', 'resume', 's1'], 'powershell')).toBe(
       "& 'codex' 'resume' 's1'"
@@ -359,6 +372,50 @@ describe('tui agent startup plans', () => {
       launchConfig: { agentCommand: 'qwen', agentArgs: '', agentEnv: {} }
     })
   })
+
+  it.each([
+    ['yolo', 'linux', 'posix', undefined, "muse --trust-workspace '--yolo'"],
+    ['manual', 'linux', 'posix', { muse: '' }, 'muse --trust-workspace'],
+    ['yolo', 'darwin', 'posix', undefined, "muse --trust-workspace '--yolo'"],
+    ['manual', 'darwin', 'posix', { muse: '' }, 'muse --trust-workspace'],
+    ['yolo', 'win32', 'powershell', undefined, "muse --trust-workspace '--yolo'"],
+    ['manual', 'win32', 'powershell', { muse: '' }, 'muse --trust-workspace'],
+    ['yolo', 'win32', 'cmd', undefined, 'muse --trust-workspace "--yolo"'],
+    ['manual', 'win32', 'cmd', { muse: '' }, 'muse --trust-workspace']
+  ] as const)(
+    'launches Muse in %s mode on %s/%s before delivering its prompt',
+    (_, platform, shell, defaults, command) => {
+      const plan = buildAgentStartupPlan({
+        agent: 'muse',
+        prompt: 'fix it',
+        cmdOverrides: {},
+        platform,
+        shell,
+        agentArgs: resolveTuiAgentLaunchArgs('muse', defaults)
+      })
+
+      expect(plan).toMatchObject({
+        agent: 'muse',
+        launchCommand: command,
+        expectedProcess: 'muse',
+        followupPrompt: 'fix it'
+      })
+    }
+  )
+
+  it.each(['exec', 'resume', '--help'])(
+    'delivers the reserved Muse prompt %s as text',
+    (prompt) => {
+      const plan = buildAgentStartupPlan({
+        agent: 'muse',
+        prompt,
+        cmdOverrides: {},
+        platform: 'linux'
+      })
+      expect(plan?.launchCommand).toBe('muse --trust-workspace')
+      expect(plan?.followupPrompt).toBe(prompt)
+    }
+  )
 
   it('leaves Claude command overrides untouched', () => {
     const plan = buildAgentStartupPlan({
@@ -682,6 +739,22 @@ describe('tui agent startup plans', () => {
     ).toBeNull()
   })
 
+  it('launches Rovo Dev as an acli subcommand and types the prompt after start', () => {
+    // `acli rovodev run <instruction>` is one-shot, so the prompt must not ride argv.
+    const plan = buildAgentStartupPlan({
+      agent: 'rovo',
+      prompt: 'fix it',
+      cmdOverrides: {},
+      agentArgs: resolveTuiAgentLaunchArgs('rovo', null),
+      platform: 'linux'
+    })
+    expect(plan).toMatchObject({
+      launchCommand: "acli rovodev run '--yolo'",
+      expectedProcess: 'acli',
+      followupPrompt: 'fix it'
+    })
+  })
+
   it('launches Devin with stdin-after-start prompt delivery', () => {
     const plan = buildAgentStartupPlan({
       agent: 'devin',
@@ -692,12 +765,12 @@ describe('tui agent startup plans', () => {
     })
     expect(plan).toEqual({
       agent: 'devin',
-      launchCommand: "devin '--permission-mode' 'bypass'",
+      launchCommand: "devin '--permission-mode' 'bypass' '--respect-workspace-trust' 'false'",
       expectedProcess: 'devin',
       followupPrompt: 'fix the tests',
       launchConfig: {
-        agentCommand: "devin '--permission-mode' 'bypass'",
-        agentArgs: '--permission-mode bypass',
+        agentCommand: "devin '--permission-mode' 'bypass' '--respect-workspace-trust' 'false'",
+        agentArgs: '--permission-mode bypass --respect-workspace-trust false',
         agentEnv: {}
       }
     })
@@ -721,6 +794,8 @@ describe('tui agent startup plans', () => {
   })
 
   it('appends Devin default permission-mode bypass before stdin prompt delivery', () => {
-    expect(resolveTuiAgentLaunchArgs('devin', null)).toBe('--permission-mode bypass')
+    expect(resolveTuiAgentLaunchArgs('devin', null)).toBe(
+      '--permission-mode bypass --respect-workspace-trust false'
+    )
   })
 })
